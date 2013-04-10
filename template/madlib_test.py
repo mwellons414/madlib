@@ -13,6 +13,7 @@ from tinctest.lib import PSQL, Gpdiff
 import new
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------------------------
 
@@ -58,6 +59,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         # Also create our "Template" test cases
         def makeTest (x):
+            if "incr" in x.keys() and type(x["incr"]) == type(1): x["incr"] += 1
             methodName = TINCTestLoader.testMethodPrefix + template_method.format(**x)
             methodDoc  = template_doc.format(**x)
             methodQuery = template.format(**x)
@@ -93,7 +95,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
             method = new.instancemethod(generatedTestFunction, self, self.__class__)
             self.__dict__[methodName] = method
 
-        super(MADlibTemplateTestCase,self).__init__(methodName)
+        super(MADlibTemplateTestCase, self).__init__(methodName)
 
     # ----------------------------------------------------------------
         
@@ -121,8 +123,11 @@ class MADlibTemplateTestCase (GPDBTestCase):
                 password = args["password"], host = args["host"],
                 port = args["port"])
 
-        self.assertTrue(self.validate(sql_resultfile, answerfile,
-                                      source_dir = source_dir, **args))
+        if "create_ans" in args.keys() and args["create_ans"]:
+            shutil.copyfile(sql_resultfile, answerfile)
+
+        return self.assertTrue(self.validate(sql_resultfile, answerfile,
+                                             source_dir = source_dir, **args))
  
     # ----------------------------------------------------------------
 
@@ -131,7 +136,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
         self.assertTrue(os.path.exists(answerfile))
 
         # Compare actual result to the answer
-        self.assertTrue(Gpdiff.are_files_equal(resultfile, answerfile))
+        return Gpdiff.are_files_equal(sql_resultfile, answerfile)
 
 
         
