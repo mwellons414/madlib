@@ -116,7 +116,10 @@ class MADlibTemplateTestCase (GPDBTestCase):
         with open(sql_inputfile, 'w') as f:  f.write(methodQuery)
 
         # create the output of SQL script
-        PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile)
+        PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile,
+                dbname = args["dbname"], username = args["username"],
+                password = args["password"], host = args["host"],
+                port = args["port"])
 
         self.assertTrue(self.validate(sql_resultfile, answerfile,
                                       source_dir = source_dir, **args))

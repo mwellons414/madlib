@@ -43,7 +43,10 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
         hetero = ["TRUE", "FALSE"],
         r_resultfile = "linregr_test.ans",
         x = "x",
-        y = "y"
+        y = "y",
+        dbname = "qianh1", username = "qianh1",
+        password = None, host = "localhost", 
+        port = None # use the port provided by environment
     )
 
     template = run_sql
@@ -52,11 +55,16 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
     # We just need to read it once
     Rresults = None
 
+    # Skip some parameter combinations
+    skip = [["lin_auto_mpg_oi", "TRUE"],
+            ["lin_auto_mpg_wi", "FALSE"]]
+
     def validate (self, sql_resultfile, answerfile, **args):
         """
         Compare the result of SQL with answer file
         Matching parameters in args
         """
+        
         with open(sql_resultfile, "r") as f:
             for line in f:
                 # Look a line that looks like '^ {...}$'
