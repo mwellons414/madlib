@@ -6,6 +6,7 @@ from template.madlib_test import MADlibTemplateTestCase
 from template.utils import unique_string
 from template.utils import string_to_array
 from template.utils import mean_squared_error
+from template.dbsettings import db_settings # database settings
 import os
 import sys
 
@@ -21,11 +22,6 @@ run_sql = """
           select coef from {tbl_output};
           drop table if exists {tbl_output};
           """
-
-db_settings = dict(dbname = "qianh1", username = "qianh1",
-                   password = None, host = "localhost", 
-                   port = None # use the port provided by environment
-                   )
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -53,8 +49,9 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
 
     template_vars = dict(
         # These names are not hard-coded
-        schema_madlib = "madlib",
-        test_schema = "madlibtestdata",
+        schema_madlib = "madlib", # maybe we can move these to db_settings
+        test_schema = "madlibtestdata", # but it will make the name hard-coded
+        
         tbl_output = unique_string(),
         dataset = ["lin_auto_mpg_oi", "lin_auto_mpg_wi"],
         hetero = ["TRUE", "FALSE"],

@@ -1,0 +1,16 @@
+Convex : 
+DecisionTree : 
+LinearRegression : 
+LogisticRegression : 
+ElasticNet :
+MultinomialLogisticRegression : 
+NaiveBayesClassification : 
+RandomForest : 
+SupportVectorMachines : 
+GeneralCV : 
+kMeansClustering : 
+AssociationRules : 
+LDA :
+HypothesisTests : 
+Summary: 
+Common :

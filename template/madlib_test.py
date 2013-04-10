@@ -52,7 +52,6 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         assert isinstance(template,str)
         assert isinstance(template_method,str)
-
         tests = []
 
         print "loading tests from test case"
@@ -81,7 +80,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
                 makeTestClosure = makefunc(key, value, makeTestClosure)
                 
         makeTestClosure(kwargs)
-        
+
         return tests
 
     # ----------------------------------------------------------------
