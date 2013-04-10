@@ -4,6 +4,7 @@
 .*.swp
 *.swp
 data/
+/log/
 
 learn_tinc/linregr_result/*.*
 learn_tinc/linregr_sql/*.*
