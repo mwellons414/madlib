@@ -5,7 +5,7 @@
 *.swp
 data/
 
-learn_tinc/linregr_result/
-learn_tinc/linregr_sql/
-learn_tinc/result/
-learn_tinc/sql/
+learn_tinc/linregr_result/*.*
+learn_tinc/linregr_sql/*.*
+learn_tinc/result/*.*
+learn_tinc/sql/*.*
