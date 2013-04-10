@@ -61,7 +61,7 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
         r_resultfile = "linregr_test.ans",
         x = "x",
         y = "y",
-        **db_settings
+        **db_settings # add db settings here
     )
 
     template = run_sql
@@ -109,6 +109,10 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
 # ------------------------------------------------------------------------
 
 def read_Rresults (resultFile):
+    """
+    Read R results from the answer file.
+    Read only once for all the tests
+    """
     count = 0
     res = dict()
     with open(resultFile, "r") as f:
@@ -168,7 +172,7 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
         # False.
         # Two solutions: (1) use a complicate diff function, which
         # does not compare output_table name, or (2) Just use
-        # a fixed name.
+        # a fixed name, and don't forget to drop the table in run_sql
         # (2) is much easier. We use (2) here
         tbl_output = "__madlib_temp_40418089_1365619947_6556506__",
 
@@ -189,7 +193,7 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
         # to avoid putting very long arguments in the file name
         incr = 0, # name is hard-coded
 
-        **db_settings
+        **db_settings # don't forget to add database settings here
     )
 
     template = run_sql
