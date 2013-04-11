@@ -3,7 +3,7 @@
 ## set database properties
 ## ------------------------------------------------------------------------
 
-db_settings = dict(dbname = "qianh1", username = "qianh1",
-                   password = None, host = "localhost", 
-                   port = None, # use the port provided by environment
+db_settings = dict(dbname = "madlib", username = "gpdbchina",
+                   password = None, host = "maddemo.greenplum.com", 
+                   port = 55000, # use the port provided by environment
                )

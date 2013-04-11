@@ -1,11 +1,12 @@
 \encoding unicode
+-- @skip Skip this sql
           select madlib.linregr_train(
               'madlibtestdata.lin_auto_mpg_oi',
               '__madlib_temp_40418089_1365619947_6556506__',
               '-1', 'NULL',
               NULL,
               TRUE);
-psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:7: ERROR:  cannot EXECUTE a null querystring
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:9: ERROR:  cannot EXECUTE a null querystring
 CONTEXT:  PL/pgSQL function "__internal_get_hsk_result" line 4 at execute statement
 SQL statement "SELECT  madlib.__internal_get_hsk_result(  $1 ,  $2 ,  $3 , ( $4 ).coef)"
 PL/pgSQL function "__internal_linregr_train_hetero" line 47 at assignment
@@ -14,10 +15,10 @@ PL/pgSQL function "linregr_train" line 3 at perform
 SQL statement "SELECT  madlib.linregr_train(  $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
 PL/pgSQL function "linregr_train" line 22 at perform
           select coef from __madlib_temp_40418089_1365619947_6556506__;
-psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:8: ERROR:  relation "__madlib_temp_40418089_1365619947_6556506__" does not exist
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:10: ERROR:  relation "__madlib_temp_40418089_1365619947_6556506__" does not exist
 LINE 1: select coef from __madlib_temp_40418089_1365619947_6556506__...
                          ^
           drop table if exists __madlib_temp_40418089_1365619947_6556506__;
-psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib_tests/learn_tinc/linregr_sql_input/test_linregr_input_test_1.sql:11: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
 DROP TABLE
           

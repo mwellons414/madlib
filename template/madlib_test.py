@@ -132,7 +132,10 @@ class MADlibTemplateTestCase (GPDBTestCase):
                                   methodName + ".ans")
 
         # Create an artifact of the SQL we are going to run
-        if "create_case" in args.keys() and args["create_case"]:
+        # if "create_case" in args.keys() and args["create_case"]:
+        if ((not os.path.exists(sql_inputfile)) or
+            ("create_case" in args.keys() and
+             args["create_case"])):
             with open(sql_inputfile, 'w') as f:  f.write(methodQuery)
 
         # create the output of SQL script
