@@ -58,6 +58,18 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
         r_resultfile = "linregr_test.ans",
         x = "x",
         y = "y",
+
+        # This name is hard-coded
+        # whether to create test case file
+        # In the first run, need to set this to be True
+        create_case = False,
+        
+        # This name is hard-coded
+        # skip these tests
+        skip = [{"dataset":"lin_auto_mpg_oi"},
+                {"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}],
+
+        # This name is also hard-coded
         **db_settings # add db settings here
     )
 

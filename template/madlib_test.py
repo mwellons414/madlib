@@ -44,6 +44,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
         template_doc    = cls.template_doc
         template_vars   = cls.template_vars
         
+        
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
         # here we need to not die...
@@ -62,13 +63,30 @@ class MADlibTemplateTestCase (GPDBTestCase):
             methodName = TINCTestLoader.testMethodPrefix + template_method.format(**x)
             methodDoc  = template_doc.format(**x)
             methodQuery = template.format(**x)
-            tests.append(cls(methodName, methodQuery, methodDoc, **x))
+
+            ## Skip a test case
+            add_flag = True
+            if "skip" in x.keys() and x["skip"] is not None:
+                for case in x["skip"]:
+                    eq = True
+                    for key in case.keys():
+                        if x[key].lower() != case[key].lower():
+                            eq = False
+                            break
+                    if eq:
+                        add_flag = False
+                        break
+
+            if add_flag:
+                tests.append(cls(methodName, methodQuery, methodDoc, **x))
+            else:
+                print(cls.__name__ + "." + methodName + " ........... skipped")
             
         makeTestClosure = makeTest
 
         kwargs = {}
         for key, value in template_vars.iteritems():
-            if not isinstance(value, list):
+            if not isinstance(value, list) or key == "skip":
                 kwargs[key] = value
             else:
                 def makefunc (key, values, f):
@@ -114,7 +132,8 @@ class MADlibTemplateTestCase (GPDBTestCase):
                                   methodName + ".ans")
 
         # Create an artifact of the SQL we are going to run
-        with open(sql_inputfile, 'w') as f:  f.write(methodQuery)
+        if "create_case" in args.keys() and args["create_case"]:
+            with open(sql_inputfile, 'w') as f:  f.write(methodQuery)
 
         # create the output of SQL script
         PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile,
