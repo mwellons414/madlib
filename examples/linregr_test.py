@@ -2,7 +2,7 @@
 ## MADlib Tests for linear regression
 ## For learning tinc
 
-from template.madlib_test import MADlibTemplateTestCase
+from template.madlib_test import MADlibTestCase
 from test_utils.utils import unique_string
 from test_utils.utils import string_to_array
 from test_utils.utils import mean_squared_error
@@ -26,7 +26,7 @@ run_sql = """
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 
-class LinregrOutputTestCase (MADlibTemplateTestCase):
+class LinregrOutputTestCase (MADlibTestCase):
     """
     Run templated SQL tests
     """
@@ -75,7 +75,7 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
 
     # ----------------------------------------------------------------
     # One only needs to implement the result validation function
-    def validate (self, sql_resultfile, answerfile, **args):
+    def validate (self, sql_resultfile, answerfile):
         """
         Compare the result of SQL with answer file
         Matching parameters in args
@@ -136,7 +136,7 @@ def read_Rresults (resultFile):
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 
-class LinregrInputTestCase (MADlibTemplateTestCase):
+class LinregrInputTestCase (MADlibTestCase):
     """
     Run input tests
     """
@@ -181,6 +181,8 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
         y = "-1"
     )
 
+    skip = [{"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}]
+
     template = run_sql
 
     # ----------------------------------------------------------------
@@ -189,7 +191,7 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
     #
     # Assume the execution order of the tests does not change, and
     # we can use testcount to match files
-    def validate (self, sql_resultfile, answerfile, **args):
+    def validate (self, sql_resultfile, answerfile):
         """
         Compare the result of SQL with answer file
         Matching testcount
@@ -197,6 +199,6 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
         # compare sql_resultfile and answerfile
         return super(LinregrInputTestCase,
                      self).validate(sql_resultfile,
-                                    answerfile, **args)
+                                    answerfile)
         
         

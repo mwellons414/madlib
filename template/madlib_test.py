@@ -8,10 +8,14 @@ of parameters and generate a separate test case for each combination.
 '''
 
 from tinctest.models.gpdb import GPDBTestCase
+from template.sql import MADlibSQLTestCase
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
+from tinctest import logger
+from fnmatch import fnmatch
 import new
 import os
+import re
 import sys
 import shutil
 
@@ -23,21 +27,22 @@ import shutil
 # DB_CONFIG     to pick a database configuration from sys_settings.dbsettings
 # ------------------------------------------------------------------------
 
-class MADlibTemplateTestCase (GPDBTestCase):
+class MADlibTestCase (MADlibSQLTestCase):
     """
     Abstract class for running templated SQL, subclasses must define the template
     """
     # The following variables should be provided by subclass
     schema_madlib   = "madlib"
-    sql_dir         = "" # store the sql command executed
-    out_dir         = "" # output folder
-    ans_dir         = "" # expected results
+    sql_dir         = "sql" # store the sql command executed
+    out_dir         = "result" # output folder
+    ans_dir         = "expected" # expected results
     template        = None  
     template_method = None # method name, controls the file name 
     template_doc    = ""    
     template_vars   = {}
     skip = None
-    reserved_keywords = ["_incr", "_create_ans", "_create_case", "_db_settings"]
+    reserved_keywords = ["_incr", "_create_ans", "_create_case", \
+                         "_db_settings"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
@@ -110,6 +115,20 @@ class MADlibTemplateTestCase (GPDBTestCase):
         for key in user_set.keys():
             db[key] = user_set[key]
         return db
+
+    # ----------------------------------------------------------------
+
+    @classmethod
+    def _write_params (cls, f, reserved_keywords, args):
+        """
+        Write test parameters into the test case file
+        """
+        for key in args.keys():
+            if (key not in reserved_keywords and
+                isinstance(args[key], str)):
+                f.write("-- @madlib-param " + key + " = "
+                        + args[key] + "\n")
+        return None
     
     # ----------------------------------------------------------------
     
@@ -125,12 +144,12 @@ class MADlibTemplateTestCase (GPDBTestCase):
         template_vars   = cls.template_vars
 
         # validate cls template_vars
-        MADlibTemplateTestCase._validate_vars(template_vars,
-                                              MADlibTemplateTestCase.reserved_keywords)
+        MADlibTestCase._validate_vars(template_vars,
+                                      MADlibTestCase.reserved_keywords)
         
-        template_vars.update(_db_settings = MADlibTemplateTestCase._get_dbsettings())
-        template_vars.update(_create_case = MADlibTemplateTestCase._get_env_flag("CREATE_CASE"),
-                             _create_ans = MADlibTemplateTestCase._get_env_flag("CREATE_ANS"))
+        template_vars.update(_db_settings = MADlibTestCase._get_dbsettings())
+        template_vars.update(_create_case = MADlibTestCase._get_env_flag("CREATE_CASE"),
+                             _create_ans = MADlibTestCase._get_env_flag("CREATE_ANS"))
         skip = cls.skip
             
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
@@ -141,7 +160,6 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         assert isinstance(template,str)
         assert isinstance(template_method,str)
-        tests = []
 
         print "loading tests from test case"
 
@@ -170,73 +188,78 @@ class MADlibTemplateTestCase (GPDBTestCase):
                         add_flag = False
                         break
 
-            if add_flag:
-                tests.append(cls(methodName, methodQuery, methodDoc, **x))
-            else:
-                print(cls.__name__ + "." + methodName + " ........... skipped")
-
             # Create an artifact of the SQL we are going to run
             # if "create_case" in args.keys() and args["create_case"]:
-            if x["_create_case"]:
-                sql_inputfile = os.path.join(source_dir, cls.sql_dir,
-                                             methodName + ".sql")
-                with open(sql_inputfile, 'w') as f:
-                    if add_flag is False:
-                        f.write("-- @skip Skip this test")
-                    f.write(methodQuery)
-        # ------------------------------------------------
-            
-        makeTestClosure = makeTest
-
-        kwargs = {}
-        for key, value in template_vars.iteritems():
-            if not isinstance(value, list) or key == "skip":
-                kwargs[key] = value
-            else:
-                def makefunc (key, values, f):
-                    def doit (k):
-                        for v in values:
-                            k[key] = v
-                            f(k)
-                    return doit
-                makeTestClosure = makefunc(key, value, makeTestClosure)
+            # if x["_create_case"]:
+            sql_inputfile = os.path.join(source_dir, cls.sql_dir,
+                                         methodName + ".sql")
+            with open(sql_inputfile, 'w') as f:
+                if add_flag is False:
+                    f.write("-- @skip Skip this test\n")
+                print(methodName + " ............ test case file created")
+                MADlibTestCase._write_params(f, MADlibTestCase.reserved_keywords, x)
+                f.write(methodQuery)
                 
-        makeTestClosure(kwargs)
+        # ------------------------------------------------
+        # create test case files
+        if template_vars["_create_case"]:
+            makeTestClosure = makeTest
+    
+            kwargs = {}
+            for key, value in template_vars.iteritems():
+                if not isinstance(value, list) or key == "skip":
+                    kwargs[key] = value
+                else:
+                    def makefunc (key, values, f):
+                        def doit (k):
+                            for v in values:
+                                k[key] = v
+                                f(k)
+                        return doit
+                    makeTestClosure = makefunc(key, value, makeTestClosure)
+                    
+            makeTestClosure(kwargs)
 
-        return tests
+        if not template_vars["_create_case"] or template_vars["_create_ans"]:
+            # read files to create test cases
+            return super(MADlibTestCase, cls).loadTestsFromTestCase()
+        else:
+            return []
 
     # ----------------------------------------------------------------
         
-    def __init__ (self, methodName, methodQuery=None, methodDoc=None, **args):
+    def __init__ (self, methodName):
 
-        if methodQuery:
-            def generatedTestFunction (myself):
-                myself.__runquery(methodName, methodQuery, **args)
-            generatedTestFunction.__doc__ = methodDoc
-            method = new.instancemethod(generatedTestFunction, self, self.__class__)
-            self.__dict__[methodName] = method
+        # def generatedTestFunction (myself):
+        #     myself.__runquery(methodName, methodQuery, **args)
+        # generatedTestFunction.__doc__ = methodDoc
+        # method = new.instancemethod(generatedTestFunction, self, self.__class__)
+        # self.__dict__[methodName] = method
 
-        super(MADlibTemplateTestCase, self).__init__(methodName)
+        super(MADlibTestCase, self).__init__(methodName)
 
     # ----------------------------------------------------------------
         
-    def __runquery (self, methodName, methodQuery, **args):
+    def _run_test (self, sql_file, ans_file):
         """
         (1) Create a SQL wcript for the query
         (2) Run the SQL script using psql to produce the result file
         (3) Compare the result file to the expected answer file
         """
-        source_file = sys.modules[self.__class__.__module__].__file__
-        source_dir = os.path.dirname(source_file)
-        sql_inputfile = os.path.join(source_dir, self.__class__.sql_dir,
-                                     methodName + ".sql")
-        sql_resultfile = os.path.join(source_dir, self.__class__.out_dir,
-                                      methodName + ".sql.out")
-        answerfile = os.path.join(source_dir, self.__class__.ans_dir,
-                                  methodName + ".ans")
+        # source_file = sys.modules[self.__class__.__module__].__file__
+        # source_dir = os.path.dirname(source_file)
+        # sql_inputfile = os.path.join(source_dir, self.__class__.sql_dir,
+                                     # methodName)
+        # sql_resultfile = os.path.join(source_dir, self.__class__.out_dir,
+                                      # methodName + ".out")
+        sql_resultfile = os.path.join(self.get_out_dir(),
+                                      os.path.basename(sql_file) + ".out")
+        # answerfile = os.path.join(source_dir, self.__class__.ans_dir,
+                                  # methodName + ".ans")
 
         # create the output of SQL script
-        PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile,
+        args = self.__class__.template_vars
+        PSQL.run_sql_file(sql_file, out_file = sql_resultfile,
                           dbname = args["_db_settings"]["dbname"],
                           username = args["_db_settings"]["username"],
                           password = args["_db_settings"]["password"],
@@ -245,17 +268,16 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         # First run to create the baseline file
         if args["_create_ans"]:
-            shutil.copyfile(sql_resultfile, answerfile)
+            shutil.copyfile(sql_resultfile, ans_file)
             os.remove(sql_resultfile)
             print "Answer file was created"
             return True
 
-        return self.assertTrue(self.validate(sql_resultfile, answerfile,
-                                             source_dir = source_dir, **args))
+        return self.validate(sql_resultfile, ans_file)
  
     # ----------------------------------------------------------------
 
-    def validate (self, sql_resultfile, answerfile, **args):
+    def validate (self, sql_resultfile, answerfile):
         # Check that the answer file exists
         self.assertTrue(os.path.exists(answerfile))
 

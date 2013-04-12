@@ -10,3 +10,5 @@ examples/linregr_result/*.*
 examples/linregr_sql/*.*
 examples/linregr_result_input/*.*
 examples/linregr_sql_input/*.*
+
+*.segment_logs
