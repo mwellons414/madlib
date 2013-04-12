@@ -4,6 +4,7 @@ Some utilities
 """
 
 import re
+import os
 import time
 import random
 
@@ -56,3 +57,6 @@ def mean_squared_error (vec1, vec2):
     for i in range(len(vec1)):
         sum += (vec1[i] - vec2[i])**2
     return sum / float(len(vec1))
+
+
+

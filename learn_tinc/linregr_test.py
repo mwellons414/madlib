@@ -57,21 +57,12 @@ class LinregrOutputTestCase (MADlibTemplateTestCase):
         hetero = ["TRUE", "FALSE"],
         r_resultfile = "linregr_test.ans",
         x = "x",
-        y = "y",
+        y = "y")
 
-        # This name is hard-coded
-        # whether to create test case file
-        # In the first run, need to set this to be True
-        create_case = False,
-        
-        # This name is hard-coded
-        # skip these tests
-        skip = [{"dataset":"lin_auto_mpg_oi"},
-                {"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}],
-
-        # This name is also hard-coded
-        **db_settings # add db settings here
-    )
+    # This name is hard-coded
+    # skip these tests
+    skip = [{"dataset":"lin_auto_mpg_oi"},
+            {"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}]
 
     template = run_sql
 
@@ -188,21 +179,7 @@ class LinregrInputTestCase (MADlibTemplateTestCase):
         dataset = ["lin_auto_mpg_oi", "lin_auto_mpg_wi"],
         hetero = ["TRUE", "FALSE"],
         x = "NULL",
-        y = "-1",
-
-        # Set create_ans to be True in the first run
-        # to create answer files
-        # For the future runs, 
-        # "create_ans" name is hard-coded
-        create_ans = False, # name is hard-coded
-
-        # If you want to use fiel names like "linregr_input_test_{incr}",
-        # increse incr for every test, which is done in the super class
-        # This number is used for file name
-        # to avoid putting very long arguments in the file name
-        incr = 0, # name is hard-coded
-
-        **db_settings # don't forget to add database settings here
+        y = "-1"
     )
 
     template = run_sql

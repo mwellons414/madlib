@@ -10,6 +10,7 @@ of parameters and generate a separate test case for each combination.
 from tinctest.models.gpdb import GPDBTestCase
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
+from template.dbsettings import db_settings # database settings
 import new
 import os
 import sys
@@ -29,8 +30,60 @@ class MADlibTemplateTestCase (GPDBTestCase):
     template        = None  
     template_method = None # method name, controls the file name 
     template_doc    = ""    
-    template_vars   = {}    
+    template_vars   = {}
+    skip = None
+    reserved_keywords = ["_incr", "_create_ans", "_create_case", "db_settings"]
 
+    # If you want to use fiel names like "linregr_input_test_{incr}",
+    # increse incr for every test, which is done in the super class
+    # This number is used for file name
+    # to avoid putting very long arguments in the file name
+    incr = 0 # name is hard-coded
+
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _get_env_flag (cls, flag):
+        """
+        Get the environment variable for
+        creating case or answer file
+        """
+        if os.environ.has_key(flag):
+            value = os.environ.get(flag).lower()
+            if (value == "t" or value == "true" or
+                value == "yes" or value == "y"):
+                return True
+        return False
+
+    # ----------------------------------------------------------------
+
+    # @classmethod
+    # def get_skips (cls):
+    #     """
+    #     Get the skip file contents
+    #     """
+    #     source_file = sys.modules[cls.__module__].__file__
+    #     source_dir = os.path.dirname(source_file)
+    #     if os.environ.has_key("SKIP"):
+    #         value = os.environ.get("SKIP").split(":")
+            
+    #     return False
+
+    # ----------------------------------------------------------------
+
+    @classmethod
+    def _validate_vars (cls, template_vars, keywords):
+        """
+        To ensure that the usre provided template_vars
+        does not contain the keywords
+        """
+        anyMatch = any(key in keywords for key in template_vars.keys())
+        if anyMatch:
+            print("template_vars should not use any of the following keywords:")
+            print(keywords)
+            sys.exit("Testcase is stopping ...")
+        return None
+        
     # ----------------------------------------------------------------
     
     @classmethod
@@ -43,8 +96,16 @@ class MADlibTemplateTestCase (GPDBTestCase):
         template_method = cls.template_method
         template_doc    = cls.template_doc
         template_vars   = cls.template_vars
+
+        # validate cls template_vars
+        MADlibTemplateTestCase._validate_vars(template_vars,
+                                              MADlibTemplateTestCase.reserved_keywords)
         
-        
+        template_vars.update(db_settings)
+        template_vars.update(_create_case = MADlibTemplateTestCase._get_env_flag("CREATE_CASE"),
+                             _create_ans = MADlibTemplateTestCase._get_env_flag("CREATE_ANS"))
+        skip = cls.skip
+            
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
         # here we need to not die...
@@ -57,17 +118,21 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         print "loading tests from test case"
 
+        source_file = sys.modules[cls.__module__].__file__
+        source_dir = os.path.dirname(source_file)
+
         # Also create our "Template" test cases
         def makeTest (x):
-            if "incr" in x.keys() and type(x["incr"]) == type(1): x["incr"] += 1
+            cls.incr += 1
+            x["incr"] = cls.incr
             methodName = TINCTestLoader.testMethodPrefix + template_method.format(**x)
             methodDoc  = template_doc.format(**x)
             methodQuery = template.format(**x)
 
             ## Skip a test case
             add_flag = True
-            if "skip" in x.keys() and x["skip"] is not None:
-                for case in x["skip"]:
+            if skip is not None:
+                for case in skip:
                     eq = True
                     for key in case.keys():
                         if x[key].lower() != case[key].lower():
@@ -81,6 +146,17 @@ class MADlibTemplateTestCase (GPDBTestCase):
                 tests.append(cls(methodName, methodQuery, methodDoc, **x))
             else:
                 print(cls.__name__ + "." + methodName + " ........... skipped")
+
+            # Create an artifact of the SQL we are going to run
+            # if "create_case" in args.keys() and args["create_case"]:
+            if ("_create_case" in x.keys() and
+                x["_create_case"]):
+                sql_inputfile = os.path.join(source_dir, cls.sql_dir,
+                                             methodName + ".sql")
+                with open(sql_inputfile, 'w') as f:
+                    if add_flag is False:
+                        f.write("-- @skip Skip this test")
+                    f.write(methodQuery)
             
         makeTestClosure = makeTest
 
@@ -131,20 +207,13 @@ class MADlibTemplateTestCase (GPDBTestCase):
         answerfile = os.path.join(source_dir, self.__class__.ans_dir,
                                   methodName + ".ans")
 
-        # Create an artifact of the SQL we are going to run
-        # if "create_case" in args.keys() and args["create_case"]:
-        if ((not os.path.exists(sql_inputfile)) or
-            ("create_case" in args.keys() and
-             args["create_case"])):
-            with open(sql_inputfile, 'w') as f:  f.write(methodQuery)
-
         # create the output of SQL script
         PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile,
                 dbname = args["dbname"], username = args["username"],
                 password = args["password"], host = args["host"],
                 port = args["port"])
 
-        if "create_ans" in args.keys() and args["create_ans"]:
+        if "_create_ans" in args.keys() and args["_create_ans"]:
             shutil.copyfile(sql_resultfile, answerfile)
 
         return self.assertTrue(self.validate(sql_resultfile, answerfile,

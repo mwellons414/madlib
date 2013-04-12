@@ -1,5 +1,4 @@
 \encoding unicode
--- @skip Skip this sql
           select madlib.linregr_train(
               'madlibtestdata.lin_auto_mpg_wi',
               '__madlib_temp_40418089_1365619947_6556506__',
