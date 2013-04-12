@@ -3,10 +3,9 @@
 ## For learning tinc
 
 from template.madlib_test import MADlibTemplateTestCase
-from template.utils import unique_string
-from template.utils import string_to_array
-from template.utils import mean_squared_error
-from template.dbsettings import db_settings # database settings
+from test_utils.utils import unique_string
+from test_utils.utils import string_to_array
+from test_utils.utils import mean_squared_error
 import os
 import sys
 

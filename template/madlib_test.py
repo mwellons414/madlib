@@ -10,12 +10,17 @@ of parameters and generate a separate test case for each combination.
 from tinctest.models.gpdb import GPDBTestCase
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
-from template.dbsettings import db_settings # database settings
 import new
 import os
 import sys
 import shutil
 
+# ------------------------------------------------------------------------
+# Use environment variables to control the behavior:
+#
+# CREATE_CASE   to create case files
+# CREATE_ANS    to create answer files (mainly for input test cases)
+# DB_CONFIG     to pick a database configuration from sys_settings.dbsettings
 # ------------------------------------------------------------------------
 
 class MADlibTemplateTestCase (GPDBTestCase):
@@ -32,7 +37,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
     template_doc    = ""    
     template_vars   = {}
     skip = None
-    reserved_keywords = ["_incr", "_create_ans", "_create_case", "db_settings"]
+    reserved_keywords = ["_incr", "_create_ans", "_create_case", "_db_settings"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
@@ -83,11 +88,33 @@ class MADlibTemplateTestCase (GPDBTestCase):
             print(keywords)
             sys.exit("Testcase is stopping ...")
         return None
-        
+
+    # ----------------------------------------------------------------
+
+    @classmethod
+    def _get_dbsettings (cls):
+        """
+        Get the database settings from environment
+        """
+        db = dict(dbname = None, username = None, password = None,
+                  host = None, port = None) # default values
+        import sys_settings.dbsettings
+        if os.environ.has_key("DB_CONFIG"):
+            value = os.environ.get("DB_CONFIG")
+            try:
+                user_set = getattr(sys_settings.dbsettings, value)
+            except:
+                sys.exit("No such database settings!")
+        else:
+            user_set = sys_settings.dbsettings.default
+        for key in user_set.keys():
+            db[key] = user_set[key]
+        return db
+    
     # ----------------------------------------------------------------
     
     @classmethod
-    def loadTestsFromTestCase(cls):
+    def loadTestsFromTestCase (cls):
         """
         @param cls The child class 
         """
@@ -101,7 +128,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
         MADlibTemplateTestCase._validate_vars(template_vars,
                                               MADlibTemplateTestCase.reserved_keywords)
         
-        template_vars.update(db_settings)
+        template_vars.update(_db_settings = MADlibTemplateTestCase._get_dbsettings())
         template_vars.update(_create_case = MADlibTemplateTestCase._get_env_flag("CREATE_CASE"),
                              _create_ans = MADlibTemplateTestCase._get_env_flag("CREATE_ANS"))
         skip = cls.skip
@@ -121,6 +148,7 @@ class MADlibTemplateTestCase (GPDBTestCase):
         source_file = sys.modules[cls.__module__].__file__
         source_dir = os.path.dirname(source_file)
 
+        # ------------------------------------------------
         # Also create our "Template" test cases
         def makeTest (x):
             cls.incr += 1
@@ -149,14 +177,14 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
             # Create an artifact of the SQL we are going to run
             # if "create_case" in args.keys() and args["create_case"]:
-            if ("_create_case" in x.keys() and
-                x["_create_case"]):
+            if x["_create_case"]:
                 sql_inputfile = os.path.join(source_dir, cls.sql_dir,
                                              methodName + ".sql")
                 with open(sql_inputfile, 'w') as f:
                     if add_flag is False:
                         f.write("-- @skip Skip this test")
                     f.write(methodQuery)
+        # ------------------------------------------------
             
         makeTestClosure = makeTest
 
@@ -209,12 +237,18 @@ class MADlibTemplateTestCase (GPDBTestCase):
 
         # create the output of SQL script
         PSQL.run_sql_file(sql_inputfile, out_file = sql_resultfile,
-                dbname = args["dbname"], username = args["username"],
-                password = args["password"], host = args["host"],
-                port = args["port"])
+                          dbname = args["_db_settings"]["dbname"],
+                          username = args["_db_settings"]["username"],
+                          password = args["_db_settings"]["password"],
+                          host = args["_db_settings"]["host"],
+                          port = args["_db_settings"]["port"])
 
-        if "_create_ans" in args.keys() and args["_create_ans"]:
+        # First run to create the baseline file
+        if args["_create_ans"]:
             shutil.copyfile(sql_resultfile, answerfile)
+            os.remove(sql_resultfile)
+            print "Answer file was created"
+            return True
 
         return self.assertTrue(self.validate(sql_resultfile, answerfile,
                                              source_dir = source_dir, **args))

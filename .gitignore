@@ -6,7 +6,7 @@
 data/
 /log/
 
-learn_tinc/linregr_result/*.*
-learn_tinc/linregr_sql/*.*
-learn_tinc/linregr_result_input/*.*
-learn_tinc/linregr_sql_input/*.*
+examples/linregr_result/*.*
+examples/linregr_sql/*.*
+examples/linregr_result_input/*.*
+examples/linregr_sql_input/*.*
