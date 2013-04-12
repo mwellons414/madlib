@@ -14,14 +14,18 @@ default = dict()
 # ------------------------------------------------------------------------
 
 # default PULSE setting
-pulse = dict(dbname = "madlib", username = "gpdbchina",
-             host = "localhost", port = 55000)
+pulse = dict(dbname = "madlib",
+             username = "gpdbchina",
+             host = "localhost",
+             port = 55000)
 
 # ------------------------------------------------------------------------
 
 # maddemo machine setting
-demo = dict(dbname = "madlib", username = "gpdbchina",
-            password = None, host = "maddemo.greenplum.com", 
+demo = dict(dbname = "madlib",
+            username = "gpdbchina",
+            password = None,
+            host = "maddemo.greenplum.com", 
             port = 55000)
 
 

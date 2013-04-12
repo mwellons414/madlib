@@ -8,9 +8,37 @@ import os
 import time
 import random
 
+def read_record (f):
+    """
+    
+    """
+    pass
+    
+def read_sql_result (resultfile):
+    """
+    Read the result file into a dictionary,
+    which has two elements: madlib_params & result.
+    "madlib_params" stores all parameters
+    "result" stores the actual output
+    """
+    res = dict(madlib_params = dict(),
+               result = [])
+    with open(resultfile, "r") as f:
+        for line in f:
+            line = line.strip("\n")
+            if line.startswith("-- @madlib-param "):
+                s = re.match(r"^-- @madlib-param (.*)$", line).group(1)
+                m = re.match(r"(\S+)\s*=\s*\"(.*)\"", s)
+                res["madlib_params"][m.group(1)] = m.group(2)
+            else:
+                res["result"].append(line)
+    return res
+            
+# ------------------------------------------------------------------------
+
 def unique_string ():
     """
-    Generate random remporary names for temp table and other names.
+    Generate random temporary names for temp table and other names.
     """
     r1 = random.randint(1, 100000000)
     r2 = int(time.time())
@@ -18,7 +46,7 @@ def unique_string ():
     u_string = "__madlib_temp_" + str(r1) + "_" + str(r2) + "_" + str(r3) + "__"
     return u_string
 
-## ========================================================================
+# ------------------------------------------------------------------------
 
 def string_to_array (s):
     """
@@ -47,7 +75,7 @@ def string_to_array (s):
         elm[i] = elm[i].strip()
     return elm
 
-## ========================================================================
+# ------------------------------------------------------------------------
 
 def mean_squared_error (vec1, vec2):
     """

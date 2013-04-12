@@ -40,15 +40,17 @@ class MADlibTestCase (MADlibSQLTestCase):
     template_method = None # method name, controls the file name 
     template_doc    = ""    
     template_vars   = {}
-    skip = None
+    skip_file = "skip.py"
+    skip = []
     reserved_keywords = ["_incr", "_create_ans", "_create_case", \
                          "_db_settings"]
+    
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
     # This number is used for file name
     # to avoid putting very long arguments in the file name
-    incr = 0 # name is hard-coded
+    _incr = 0 # name is hard-coded
 
     # -----------------------------------------------------------------
 
@@ -67,20 +69,6 @@ class MADlibTestCase (MADlibSQLTestCase):
 
     # ----------------------------------------------------------------
 
-    # @classmethod
-    # def get_skips (cls):
-    #     """
-    #     Get the skip file contents
-    #     """
-    #     source_file = sys.modules[cls.__module__].__file__
-    #     source_dir = os.path.dirname(source_file)
-    #     if os.environ.has_key("SKIP"):
-    #         value = os.environ.get("SKIP").split(":")
-            
-    #     return False
-
-    # ----------------------------------------------------------------
-
     @classmethod
     def _validate_vars (cls, template_vars, keywords):
         """
@@ -89,9 +77,9 @@ class MADlibTestCase (MADlibSQLTestCase):
         """
         anyMatch = any(key in keywords for key in template_vars.keys())
         if anyMatch:
-            print("template_vars should not use any of the following keywords:")
+            print("MADlib Test Error: template_vars should not use any of the following keywords:")
             print(keywords)
-            sys.exit("Testcase is stopping ...")
+            sys.exit("Testcase is stopping for " + cls.__name__ + "!")
         return None
 
     # ----------------------------------------------------------------
@@ -109,12 +97,82 @@ class MADlibTestCase (MADlibSQLTestCase):
             try:
                 user_set = getattr(sys_settings.dbsettings, value)
             except:
-                sys.exit("No such database settings!")
+                print("""
+                      MADlib Test Error: No such database settings for """
+                      + cls.__name__ + """!
+
+                      The database setting file is located at
+                      sys_settings/dbsettings.py
+                      """)
+                sys.exit(1)
         else:
             user_set = sys_settings.dbsettings.default
         for key in user_set.keys():
             db[key] = user_set[key]
         return db
+
+    # ----------------------------------------------------------------
+
+    @classmethod
+    def _get_skip (cls, skip_file, module, create_case):
+        """
+        Get skip list
+        """
+        if create_case is False:
+            print("""
+                  MADlib Test Error: skip list only plays an role
+                  when CREATE_CASE=T.
+
+                  The skip-tag will be added to the head of each test case
+                  file when it is created. During execution, all files with
+                  skip-tag at the beginning of it will be skipped.
+                  """)
+            sys.exit(1)
+            
+        do_skip_err = False
+        if os.environ.has_key("SKIP"):
+            value = os.environ.get("SKIP")
+            m = re.match(r"^(.+)\.([^\.]+)$", value)
+            if m is None:
+                s = os.path.basename(skip_file)
+                s = os.path.splitext(s)[0]
+                mm = re.match(r"^(.+)\.([^\.]+)$", module)
+                if mm is None:
+                    ms = module
+                else:
+                    ms = mm.group(1)
+                try:
+                    md = __import__(ms + "." + s, fromlist = '1')
+                    user_skip = getattr(md, value)
+                except:
+                    do_skip_err = True
+            else:
+                try:
+                    md = __import__(m.group(1), fromlist = '1')
+                    user_skip = getattr(md, m.group(2))
+                except:
+                    do_skip_err = True
+        else:
+            user_skip = []
+
+        if do_skip_err: # something went wrong
+            print("""
+                  MADlib Test Error: No such skip definitions for """
+                  + cls.__name__ + """!
+                  
+                  Either you explicitly define the class variable skip_file in
+                  you test case class, or you put the skip list into the default
+                  skip file skip.py.
+
+                  The environment variable SKIP can have value like:
+                  SKIP=examples.linregr_skip.skip_all, which will override
+                  the skip_file,
+                  or
+                  just SKIP=skip_all, and we will search for the skip list in
+                  skip_file
+                  """)
+            sys.exit(1)
+        return user_skip        
 
     # ----------------------------------------------------------------
 
@@ -126,8 +184,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         for key in args.keys():
             if (key not in reserved_keywords and
                 isinstance(args[key], str)):
-                f.write("-- @madlib-param " + key + " = "
-                        + args[key] + "\n")
+                f.write("-- @madlib-param " + key + " = \""
+                        + args[key] + "\"\n")
         return None
     
     # ----------------------------------------------------------------
@@ -150,7 +208,9 @@ class MADlibTestCase (MADlibSQLTestCase):
         template_vars.update(_db_settings = MADlibTestCase._get_dbsettings())
         template_vars.update(_create_case = MADlibTestCase._get_env_flag("CREATE_CASE"),
                              _create_ans = MADlibTestCase._get_env_flag("CREATE_ANS"))
-        skip = cls.skip
+        skip_file = cls.skip_file
+        skip = MADlibTestCase._get_skip(skip_file, cls.__module__,
+                                        template_vars["_create_case"])
             
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
@@ -169,24 +229,23 @@ class MADlibTestCase (MADlibSQLTestCase):
         # ------------------------------------------------
         # Also create our "Template" test cases
         def makeTest (x):
-            cls.incr += 1
-            x["incr"] = cls.incr
+            cls._incr += 1
+            x["_incr"] = cls._incr
             methodName = TINCTestLoader.testMethodPrefix + template_method.format(**x)
             methodDoc  = template_doc.format(**x)
             methodQuery = template.format(**x)
 
             ## Skip a test case
             add_flag = True
-            if skip is not None:
-                for case in skip:
-                    eq = True
-                    for key in case.keys():
-                        if x[key].lower() != case[key].lower():
-                            eq = False
-                            break
-                    if eq:
-                        add_flag = False
+            for case in skip:
+                eq = True
+                for key in case.keys():
+                    if x[key].lower() != case[key].lower():
+                        eq = False
                         break
+                if eq:
+                    add_flag = False
+                    break
 
             # Create an artifact of the SQL we are going to run
             # if "create_case" in args.keys() and args["create_case"]:
@@ -198,6 +257,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                     f.write("-- @skip Skip this test\n")
                 print(methodName + " ............ test case file created")
                 MADlibTestCase._write_params(f, MADlibTestCase.reserved_keywords, x)
+                f.write("\n")
                 f.write(methodQuery)
                 
         # ------------------------------------------------
@@ -229,13 +289,6 @@ class MADlibTestCase (MADlibSQLTestCase):
     # ----------------------------------------------------------------
         
     def __init__ (self, methodName):
-
-        # def generatedTestFunction (myself):
-        #     myself.__runquery(methodName, methodQuery, **args)
-        # generatedTestFunction.__doc__ = methodDoc
-        # method = new.instancemethod(generatedTestFunction, self, self.__class__)
-        # self.__dict__[methodName] = method
-
         super(MADlibTestCase, self).__init__(methodName)
 
     # ----------------------------------------------------------------
@@ -246,16 +299,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         (2) Run the SQL script using psql to produce the result file
         (3) Compare the result file to the expected answer file
         """
-        # source_file = sys.modules[self.__class__.__module__].__file__
-        # source_dir = os.path.dirname(source_file)
-        # sql_inputfile = os.path.join(source_dir, self.__class__.sql_dir,
-                                     # methodName)
-        # sql_resultfile = os.path.join(source_dir, self.__class__.out_dir,
-                                      # methodName + ".out")
         sql_resultfile = os.path.join(self.get_out_dir(),
                                       os.path.basename(sql_file) + ".out")
-        # answerfile = os.path.join(source_dir, self.__class__.ans_dir,
-                                  # methodName + ".ans")
 
         # create the output of SQL script
         args = self.__class__.template_vars
