@@ -39,7 +39,7 @@ class MADlibSQLTestCase(GPDBTestCase):
     @classmethod
     def setUpClass(cls):
         source_file = sys.modules[cls.__module__].__file__
-        source_dir = os.path.dirname(source_file)
+        source_dir = os.path.dirname(os.path.abspath(source_file))
         abs_out_dir = os.path.join(source_dir, cls.out_dir)
         if cls.out_dir and not os.path.exists(abs_out_dir):
             os.makedirs(abs_out_dir)
@@ -91,7 +91,7 @@ class MADlibSQLTestCase(GPDBTestCase):
 
         # else:
         source_file = sys.modules[self.__class__.__module__].__file__
-        source_dir = os.path.dirname(source_file)
+        source_dir = os.path.dirname(os.path.abspath(source_file))
         sql_dir = os.path.join(self.get_source_dir(), self.__class__.sql_dir)
         ans_dir = os.path.join(self.get_source_dir(), self.__class__.ans_dir)
         self.sql_file = os.path.join(sql_dir, "%s.sql" % partial_test_name)
@@ -142,7 +142,7 @@ class MADlibSQLTestCase(GPDBTestCase):
     def loadTestsFromTestCase(cls):
         tests = []
         source_file = sys.modules[cls.__module__].__file__
-        source_dir = os.path.dirname(source_file)
+        source_dir = os.path.dirname(os.path.abspath(source_file))
 
         sql_dir = os.path.join(source_dir, cls.sql_dir)
         ans_dir = os.path.join(source_dir, cls.ans_dir)
@@ -176,18 +176,18 @@ class MADlibSQLTestCase(GPDBTestCase):
 
     def get_source_dir(self):
         source_file = sys.modules[self.__class__.__module__].__file__
-        source_dir = os.path.dirname(source_file)
+        source_dir = os.path.dirname(os.path.abspath(source_file))
         return source_dir
 
     # ----------------------------------------------------------------
     
     def get_sql_dir(self):
-        return os.path.dirname(self.sql_file)
+        return os.path.dirname(os.path.abspath(self.sql_file))
 
     # ----------------------------------------------------------------
         
     def get_ans_dir(self):
-        return os.path.dirname(self.ans_file)
+        return os.path.dirname(os.path.abspath(self.ans_file))
 
     # ----------------------------------------------------------------
 
@@ -223,7 +223,7 @@ class MADlibSQLTestCase(GPDBTestCase):
             __databases__[self.db_name].setUp()
 
         # Check if a common setup.sql file exists in the same location as the test sql
-        setup_sql_file = os.path.join(os.path.dirname(self.sql_file), 'setup.sql')
+        setup_sql_file = os.path.join(os.path.dirname(os.path.abspath(self.sql_file)), 'setup.sql')
         if os.path.exists(setup_sql_file):
             tinctest.logger.info("Running setup sql for test - %s" %setup_sql_file)
             self._run_sql_file(setup_sql_file)
@@ -248,7 +248,7 @@ class MADlibSQLTestCase(GPDBTestCase):
             self._run_sql_file(teardown_sql_file)
 
         # Check if a common teardown exists in the same location as the test sql
-        teardown_sql_file = os.path.join(os.path.dirname(self.sql_file), 'teardown.sql')
+        teardown_sql_file = os.path.join(os.path.dirname(os.path.abspath(self.sql_file)), 'teardown.sql')
         if os.path.exists(teardown_sql_file):
             tinctest.logger.info("Running teardown sql for test - %s" %teardown_sql_file)
             self._run_sql_file(teardown_sql_file)
@@ -364,7 +364,10 @@ class MADlibSQLTestCaseResult(TINCTextTestResult):
 
     def addFailure(self, test, err):
         # Collect segment logs when a test fails
-        segment_log_file = os.path.join(os.path.dirname(inspect.getfile(test.__class__)), test._testMethodName[5:] + '.segment_logs')
+        segment_log_file = os.path.join(os.path.dirname(
+            os.path.abspath(
+                sys.modules[test.__class__.__module__].__file__)),
+                                test._testMethodName[5:] + '.segment_logs')
         if not self.start_time:
             return
 

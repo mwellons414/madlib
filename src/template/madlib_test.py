@@ -8,6 +8,7 @@ of parameters and generate a separate test case for each combination.
 '''
 
 from src.template.sql import MADlibSQLTestCase
+from src.test_utils.get_dbsettings import get_dbsettings
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
 import new
@@ -42,7 +43,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     skip = []
     _create_ans = False
     _create_case = False
-    _db_settings = dict(dbname = None, user_testing = None, pwd_testing = None,
+    _db_settings = dict(dbname = None, username = None, userpwd = None,
                         schema_madlib = "madlib",
                         schema_testing = "madlibtestdata",
                         host = None, port = None) # default values
@@ -83,39 +84,6 @@ class MADlibTestCase (MADlibSQLTestCase):
             print(keywords)
             sys.exit("Testcase is stopping for " + cls.__name__ + "!")
         return None
-
-    # ----------------------------------------------------------------
-
-    @classmethod
-    def _get_dbsettings (cls):
-        """
-        Get the database settings from environment
-        """
-        db = dict(dbname = None,
-                  user_testing = None,
-                  pwd_testing = None,
-                  schema_madlib = "madlib",
-                  schema_testing = "madlibtestdata",
-                  host = None, port = None) # default values
-        import settings.dbsettings
-        if os.environ.has_key("DB_CONFIG"):
-            value = os.environ.get("DB_CONFIG")
-            try:
-                user_set = getattr(settings.dbsettings, value)
-            except:
-                print("""
-                      MADlib Test Error: No such database settings for """
-                      + cls.__name__ + """!
-
-                      The database setting file is located at
-                      settings/dbsettings.py
-                      """)
-                sys.exit(1)
-        else:
-            user_set = settings.dbsettings.default
-        for key in user_set.keys():
-            db[key] = user_set[key]
-        return db
 
     # ----------------------------------------------------------------
 
@@ -214,7 +182,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         MADlibTestCase._validate_vars(template_vars,
                                       MADlibTestCase.reserved_keywords)
         
-        cls._db_settings = MADlibTestCase._get_dbsettings()
+        cls._db_settings = get_dbsettings()
         template_vars.update(schema_madlib = cls._db_settings["schema_madlib"],
                              schema_testing = cls._db_settings["schema_testing"])
         skip_file = cls.skip_file
@@ -233,8 +201,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         print "loading tests from test case"
 
         source_file = sys.modules[cls.__module__].__file__
-        source_dir = os.path.dirname(source_file)
-
+        source_dir = os.path.dirname(os.path.abspath(source_file))
+ 
         # ------------------------------------------------
         # Also create our "Template" test cases
         def makeTest (x):
@@ -315,8 +283,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         db = self.__class__._db_settings
         PSQL.run_sql_file(sql_file, out_file = sql_resultfile,
                           dbname = db["dbname"],
-                          username = db["user_testing"],
-                          password = db["pwd_testing"],
+                          username = db["username"],
+                          password = db["userpwd"],
                           host = db["host"],
                           port = db["port"])
 

@@ -5,7 +5,6 @@ import os, sys, subprocess, socket, time
 import run_sql
 
 DataSchema              =   'madlibtestdata'
-ResultSchema            =   'madlibtestresult'
 MadlibSchema            =   'madlib'
 
 
@@ -18,7 +17,9 @@ class dbManager:
         return map {name of tool to it's configuration}, and the configuration is name-value map
         """
         self.db_conf = db_conf
-        self.cur_db =  db_conf['name']
+        DataSchema = db_conf['schema_testing']
+        MadlibSchema = db_conf['schema_madlib']
+        # self.cur_db =  db_conf['name']
 
     def start(self):
         """Start up db."""
@@ -51,14 +52,13 @@ class dbManager:
         if 'host' in dbconf:
             args.extend(['-h', dbconf['host']])
         if 'port' in dbconf:
-            args.extend(['-p', dbconf['port']])
-        if 'database' in dbconf:
-            args.extend(['-d', dbconf['database']])
+            args.extend(['-p', str(dbconf['port'])])
+        if 'dbname' in dbconf:
+            args.extend(['-d', dbconf['dbname']])
 
         return args
 
     def getDBenv(self):
-    
         return self.db_conf['env']
 
     def getDBConnection(self):
@@ -66,11 +66,11 @@ class dbManager:
         dbconf = self.db_conf
         try:
             if 'schema' in dbconf:
-                return dbconf['username'] + "@" + dbconf['host'] + ":" + dbconf['port'] + "/" \
-                         + dbconf['database'] + ":"  + dbconf['schema']
+                return dbconf['username'] + "@" + dbconf['host'] + ":" + str(dbconf['port']) + "/" \
+                         + dbconf['database'] + ":"  + dbconf['schema_testing']
             else:
-                return dbconf['username'] + "@" + dbconf['host'] + ":" + dbconf['port'] + "/" \
-                         + dbconf['database']
+                return dbconf['username'] + "@" + dbconf['host'] + ":" + str(dbconf['port']) + "/" \
+                         + dbconf['dbname']
 
         except KeyError:
             sys.exit("ERROR: Incomplete database configuration information.")
@@ -85,18 +85,18 @@ class dbManager:
         hostname = conf['host']
         username = conf['username']
         superuser = conf['superuser']
-        dbname = conf['database']
+        dbname = conf['dbname']
         dbtemplate = 'template1'
-        port = conf['port']
+        port = str(conf['port'])
 
         print "###Init test DB start ###\n"
         # 0. Update pg_hba to allow madlibtester to access all databases
         self.addUserPGHBA(username, conf["master_dir"], conf['kind'])
         # clear up
         try :
-            sql = 'DROP SCHEMA %s CASCADE'%ResultSchema
-            run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbname, \
-                             onErrorStop = False, source_path = conf['env'])
+            # sql = 'DROP SCHEMA %s CASCADE'%ResultSchema
+            # run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbname, \
+            #                  onErrorStop = False, source_path = conf['env'])
          
             sql = 'DROP SCHEMA %s CASCADE'%DataSchema
             run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbname, \
@@ -125,9 +125,9 @@ class dbManager:
                         onErrorStop = False, source_path = conf['env'])
 
         # 4. Create schema with non super user and created database
-        sql = 'CREATE SCHEMA %s'%ResultSchema
-        run_sql.runSQL(sql, logusername = username, logport = port, logdatabase = dbname, \
-                         onErrorStop = False,  source_path = conf['env'])
+        # sql = 'CREATE SCHEMA %s'%ResultSchema
+        # run_sql.runSQL(sql, logusername = username, logport = port, logdatabase = dbname, \
+        #                  onErrorStop = False,  source_path = conf['env'])
 
         # 5. Create schema to store test data
         sql = 'CREATE SCHEMA %s'%DataSchema
