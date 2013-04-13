@@ -117,20 +117,20 @@ class MADlibTestCase (MADlibSQLTestCase):
     def _get_skip (cls, skip_file, module, create_case):
         """
         Get skip list
-        """
-        if create_case is False:
-            print("""
-                  MADlib Test Error: skip list only plays an role
-                  when CREATE_CASE=T.
-
-                  The skip-tag will be added to the head of each test case
-                  file when it is created. During execution, all files with
-                  skip-tag at the beginning of it will be skipped.
-                  """)
-            sys.exit(1)
-            
+        """            
         do_skip_err = False
         if os.environ.has_key("SKIP"):
+            if create_case is False:
+                print("""
+                      MADlib Test Error: skip list only plays an role
+                      when CREATE_CASE=T.
+    
+                      The skip-tag will be added to the head of each test case
+                      file when it is created. During execution, all files with
+                      skip-tag at the beginning of it will be skipped.
+                      """)
+                sys.exit(1)
+
             value = os.environ.get("SKIP")
             m = re.match(r"^(.+)\.([^\.]+)$", value)
             if m is None:
