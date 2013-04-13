@@ -14,7 +14,7 @@ import sys
 
 run_sql = """
           select {schema_madlib}.linregr_train(
-              '{test_schema}.{dataset}',
+              '{schema_testing}.{dataset}',
               '{tbl_output}',
               '{y}', '{x}',
               NULL,
@@ -51,9 +51,6 @@ class LinregrOutputTestCase (MADlibTestCase):
 
     template_vars = dict(
         # These names are not hard-coded
-        schema_madlib = "madlib", # maybe we can move these to db_settings
-        test_schema = "madlibtestdata", # but it will make the name hard-coded
-        
         tbl_output = unique_string(),
         dataset = ["lin_auto_mpg_oi", "lin_auto_mpg_wi"],
         hetero = ["TRUE", "FALSE"],
@@ -79,7 +76,7 @@ class LinregrOutputTestCase (MADlibTestCase):
         Matching parameters in args
         """
         sql_result = read_sql_result(sql_resultfile)
-
+ 
         # In this test, we use a single R result file, which
         # is source_dir/ans_dir/r_result. More parameters
         # are passed in by **args
@@ -164,10 +161,6 @@ class LinregrInputTestCase (MADlibTestCase):
 
     template_vars = dict(
         # These names are not hard-coded
-        # except "create_ans" & "incr"
-
-        schema_madlib = "madlib",
-        test_schema = "madlibtestdata",
 
         # I really want to use unique_string as the output table name
         # to avoid possible name conflict.

@@ -12,3 +12,6 @@ examples/linregr_result_input/*.*
 examples/linregr_sql_input/*.*
 
 *.segment_logs
+
+datasets/sql/*.*
+datasets/download/*.*

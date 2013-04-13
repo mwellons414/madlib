@@ -1,0 +1,18 @@
+cmd : "./run.sh <data> <table> <sql>"
+sql : "./gen_data.sql"
+tables :
+    - id : lda_nips
+      args :
+          data : "../../../download/lda_nips.tar.gz"
+    - id : lda_nytimes
+      args :
+          data : "../../../download/lda_nytimes.tar.gz"
+    - id : lda_perplexity
+      args :
+          data : "../../../download/lda_perplexity.tar.gz"
+    - id : lda_20newsgroup
+      args :
+          data : "../../../download/lda_20newsgroup.tar.gz"
+    - id : lda_reuters21578
+      args :
+          data : "../../../download/lda_reuters21578.tar.gz"

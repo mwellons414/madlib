@@ -7,12 +7,9 @@ all combinations
 of parameters and generate a separate test case for each combination.
 '''
 
-from tinctest.models.gpdb import GPDBTestCase
 from template.sql import MADlibSQLTestCase
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
-from tinctest import logger
-from fnmatch import fnmatch
 import new
 import os
 import re
@@ -33,6 +30,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     """
     # The following variables should be provided by subclass
     schema_madlib   = "madlib"
+    schema_testing  = "madlibtestdata"
     sql_dir         = "sql" # store the sql command executed
     out_dir         = "result" # output folder
     ans_dir         = "expected" # expected results
@@ -42,9 +40,13 @@ class MADlibTestCase (MADlibSQLTestCase):
     template_vars   = {}
     skip_file = "skip.py"
     skip = []
-    reserved_keywords = ["_incr", "_create_ans", "_create_case", \
-                         "_db_settings"]
-    
+    _create_ans = False
+    _create_case = False
+    _db_settings = dict(dbname = None, username = None, password = None,
+                        schema_madlib = "madlib",
+                        schema_testing = "madlibtestdata",
+                        host = None, port = None) # default values
+    reserved_keywords = ["_incr", "schema_madlib", "schema_testing"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
@@ -90,6 +92,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         Get the database settings from environment
         """
         db = dict(dbname = None, username = None, password = None,
+                  schema_madlib = "madlib",
+                  schema_testing = "madlibtestdata",
                   host = None, port = None) # default values
         import sys_settings.dbsettings
         if os.environ.has_key("DB_CONFIG"):
@@ -114,7 +118,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     # ----------------------------------------------------------------
 
     @classmethod
-    def _get_skip (cls, skip_file, module, create_case):
+    def _get_skip (cls, skip_file, module_name, create_case):
         """
         Get skip list
         """            
@@ -136,9 +140,9 @@ class MADlibTestCase (MADlibSQLTestCase):
             if m is None:
                 s = os.path.basename(skip_file)
                 s = os.path.splitext(s)[0]
-                mm = re.match(r"^(.+)\.([^\.]+)$", module)
+                mm = re.match(r"^(.+)\.([^\.]+)$", module_name)
                 if mm is None:
-                    ms = module
+                    ms = module_name
                 else:
                     ms = mm.group(1)
                 try:
@@ -201,16 +205,19 @@ class MADlibTestCase (MADlibSQLTestCase):
         template_doc    = cls.template_doc
         template_vars   = cls.template_vars
 
+        cls._create_case = MADlibTestCase._get_env_flag("CREATE_CASE")
+        cls._create_ans = MADlibTestCase._get_env_flag("CREATE_ANS")
+        
         # validate cls template_vars
         MADlibTestCase._validate_vars(template_vars,
                                       MADlibTestCase.reserved_keywords)
         
-        template_vars.update(_db_settings = MADlibTestCase._get_dbsettings())
-        template_vars.update(_create_case = MADlibTestCase._get_env_flag("CREATE_CASE"),
-                             _create_ans = MADlibTestCase._get_env_flag("CREATE_ANS"))
+        cls._db_settings = MADlibTestCase._get_dbsettings()
+        template_vars.update(schema_madlib = cls._db_settings["schema_madlib"],
+                             schema_testing = cls._db_settings["schema_testing"])
         skip_file = cls.skip_file
         skip = MADlibTestCase._get_skip(skip_file, cls.__module__,
-                                        template_vars["_create_case"])
+                                        cls._create_case)
             
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
@@ -262,7 +269,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                 
         # ------------------------------------------------
         # create test case files
-        if template_vars["_create_case"]:
+        if cls._create_case:
             makeTestClosure = makeTest
     
             kwargs = {}
@@ -280,7 +287,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                     
             makeTestClosure(kwargs)
 
-        if not template_vars["_create_case"] or template_vars["_create_ans"]:
+        if not cls._create_case or cls._create_ans:
             # read files to create test cases
             return super(MADlibTestCase, cls).loadTestsFromTestCase()
         else:
@@ -303,16 +310,16 @@ class MADlibTestCase (MADlibSQLTestCase):
                                       os.path.basename(sql_file) + ".out")
 
         # create the output of SQL script
-        args = self.__class__.template_vars
+        db = self.__class__._db_settings
         PSQL.run_sql_file(sql_file, out_file = sql_resultfile,
-                          dbname = args["_db_settings"]["dbname"],
-                          username = args["_db_settings"]["username"],
-                          password = args["_db_settings"]["password"],
-                          host = args["_db_settings"]["host"],
-                          port = args["_db_settings"]["port"])
+                          dbname = db["dbname"],
+                          username = db["username"],
+                          password = db["password"],
+                          host = db["host"],
+                          port = db["port"])
 
         # First run to create the baseline file
-        if args["_create_ans"]:
+        if self.__class__._create_ans:
             shutil.copyfile(sql_resultfile, ans_file)
             os.remove(sql_resultfile)
             print "Answer file was created"

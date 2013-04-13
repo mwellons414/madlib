@@ -1,0 +1,9 @@
+cmd : 
+sql : "./gen_data.sql"
+tables :
+    - id : dt_golf
+      args :
+          data : "../../../download/dt_golf.sql.gz"
+    - id : dt_kddcup 
+      args :
+          data : "../../../download/dt_kddcup.sql.gz"

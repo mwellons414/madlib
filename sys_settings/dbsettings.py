@@ -17,7 +17,9 @@ default = dict()
 pulse = dict(dbname = "madlib",
              username = "gpdbchina",
              host = "localhost",
-             port = 55000)
+             port = 55000,
+             schema_madlib = "madlib",
+             schema_testing = "madlibtestdata")
 
 # ------------------------------------------------------------------------
 
@@ -26,7 +28,9 @@ demo = dict(dbname = "madlib",
             username = "gpdbchina",
             password = None,
             host = "maddemo.greenplum.com", 
-            port = 55000)
+            port = 55000,
+            schema_madlib = "madlib",
+            schema_testing = "madlibtestdata")
 
 
 

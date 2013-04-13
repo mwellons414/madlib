@@ -10,9 +10,13 @@ import random
 
 def read_record (f):
     """
-    
+    Read in records separated by an empty line
+    usually in R result file
+    To be implemented
     """
     pass
+
+# ------------------------------------------------------------------------
     
 def read_sql_result (resultfile):
     """
