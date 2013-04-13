@@ -5,8 +5,54 @@ Some utilities
 
 import re
 import os
-import time
+import time         
 import random
+
+# ------------------------------------------------------------------------
+
+def call_R_script (script, ans_path, methodName, params):
+    """
+    call external R script using the paprams
+    First, replace the parameter values in R
+    Second, execute R script
+
+    Thus, this requires that the R script must start
+    with parameter definition like
+    ## @madlib-param dataset
+    """
+    tmp_r = "tmp/" + unique_string()
+    tmpf = open(tmp_r, "w")
+    with open(script, "r") as f:
+        for line in f:
+            line = line.strip("\n")
+            h = re.match("^\s*##\s*@madlib-param\s+", line)
+            if h is not None:
+                s = re.match(r"^\s*##\s*@madlib-param\s+(\S*)\s*",
+                             line)
+                try:
+                    ms = s.group(1)
+                    if ms == "methodName":
+                        if "methodName" in params.keys():
+                            sys.exit("methodName is used for R output file names, and has duplicates in parameter list!")
+                        value = methodName + ".sql"
+                    elif ms == "ans_path":
+                        if "ans_path" in params.keys():
+                            sys.exit("ans_path is used for R output file path, and has duplicates in parameter list!")
+                        value = ans_path
+                    else:
+                        value = params[ms]
+                except:
+                    sys.exit("The parameter of R script does not match with test case!")
+                tmpf.write(ms + " = \"" + value + "\"\n")
+            else:
+                tmpf.write(line + "\n")
+    tmpf.close()
+
+    # execute the tmp R script
+    os.system("R --no-save < " + tmp_r + " > " + tmp_r + ".out")
+    os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
+    
+# ------------------------------------------------------------------------
 
 def read_record (f):
     """
@@ -30,9 +76,11 @@ def read_sql_result (resultfile):
     with open(resultfile, "r") as f:
         for line in f:
             line = line.strip("\n")
-            if line.startswith("-- @madlib-param "):
-                s = re.match(r"^-- @madlib-param (.*)$", line).group(1)
-                m = re.match(r"(\S+)\s*=\s*\"(.*)\"", s)
+            h = re.match("^\s*--\s*@madlib-param\s+", line)
+            if h is not None:
+                s = re.match(r"^\s*--\s*@madlib-param\s+(.*)$",
+                             line).group(1)
+                m = re.match(r"(\S+)\s*=\s*\"(.*)\"\s*$", s)
                 res["madlib_params"][m.group(1)] = m.group(2)
             else:
                 res["result"].append(line)

@@ -9,6 +9,7 @@ of parameters and generate a separate test case for each combination.
 
 from src.template.sql import MADlibSQLTestCase
 from src.test_utils.get_dbsettings import get_dbsettings
+from src.test_utils.utils import call_R_script
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
 import new
@@ -70,6 +71,32 @@ class MADlibTestCase (MADlibSQLTestCase):
                 return True
         return False
 
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _get_ext_ans (cls, flag, create_ans):
+        """
+        Get the environment variable for
+        creating answer file using
+        external script, which takes in
+        parameters and compute the results
+        """
+        if os.environ.has_key(flag):
+            if not create_ans:
+                print("""
+                      MADlib Test Error: R_ANS list only plays an role
+                      when CREATE_ANS=T.
+    
+                      When CREATE_ANS=T and R_ANS=R_script_path, the R
+                      script will be executed using the parameters passed
+                      from test executor to create results.
+                      """)
+                sys.exit(1)
+                
+            value = os.environ.get(flag)
+            return (True, value)
+        return (False, None)
+
     # ----------------------------------------------------------------
 
     @classmethod
@@ -96,7 +123,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         if os.environ.has_key("SKIP"):
             if create_case is False:
                 print("""
-                      MADlib Test Error: skip list only plays an role
+                      MADlib Test Error: SKIP list only plays an role
                       when CREATE_CASE=T.
     
                       The skip-tag will be added to the head of each test case
@@ -107,16 +134,19 @@ class MADlibTestCase (MADlibSQLTestCase):
 
             value = os.environ.get("SKIP")
             m = re.match(r"^(.+)\.([^\.]+)$", value)
-            if m is None:
-                s = os.path.basename(skip_file)
-                s = os.path.splitext(s)[0]
-                mm = re.match(r"^(.+)\.([^\.]+)$", module_name)
-                if mm is None:
-                    ms = module_name
+            if m is None: # value is just a dict name
+                if os.path.exists("./" + skip_file): # check current path
+                    ms = os.path.splitext(skip_file)[0]
                 else:
-                    ms = mm.group(1)
+                    s = os.path.basename(skip_file)
+                    s = os.path.splitext(s)[0]
+                    mm = re.match(r"^(.+)\.([^\.]+)$", module_name)
+                    if mm is None:
+                        ms = module_name + "." + s
+                    else:
+                        ms = mm.group(1) + "." + s
                 try:
-                    md = __import__(ms + "." + s, fromlist = '1')
+                    md = __import__(ms, fromlist = '1')
                     user_skip = getattr(md, value)
                 except:
                     do_skip_err = True
@@ -177,6 +207,7 @@ class MADlibTestCase (MADlibSQLTestCase):
        
         cls._create_case = MADlibTestCase._get_env_flag("CREATE_CASE")
         cls._create_ans = MADlibTestCase._get_env_flag("CREATE_ANS")
+        (r_ans, r_script) = MADlibTestCase._get_ext_ans("R_ANS", cls._create_ans)
         
         # validate cls template_vars
         MADlibTestCase._validate_vars(template_vars,
@@ -224,9 +255,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                     add_flag = False
                     break
 
-            # Create an artifact of the SQL we are going to run
-            # if "create_case" in args.keys() and args["create_case"]:
-            # if x["_create_case"]:
+            # Create the SQL test case file that we are going to run
             sql_inputfile = os.path.join(source_dir, cls.sql_dir,
                                          methodName + ".sql")
             with open(sql_inputfile, 'w') as f:
@@ -236,6 +265,17 @@ class MADlibTestCase (MADlibSQLTestCase):
                 MADlibTestCase._write_params(f, MADlibTestCase.reserved_keywords, x)
                 f.write("\n")
                 f.write(methodQuery)
+
+            # Call external script to compute the result
+            # right now, only support R
+            # But it is very easy to add support for other softwares
+            if r_ans:
+                ans_path = os.path.join(source_dir, ans_dir)
+                if os.path.exists(r_script):
+                    call_R_script(r_script, ans_path, methodName, x)
+                else:
+                    r_path = os.path.join(source_dir, ans_dir, r_script)
+                    call_R_script(r_path, ans_path, methodName, x)
                 
         # ------------------------------------------------
         # create test case files
@@ -257,7 +297,8 @@ class MADlibTestCase (MADlibSQLTestCase):
                     
             makeTestClosure(kwargs)
 
-        if not cls._create_case or cls._create_ans:
+        if ((not cls._create_case) or
+            (cls._create_ans and (not r_ans))): # if R has already created answers, stop
             # read files to create test cases
             return super(MADlibTestCase, cls).loadTestsFromTestCase()
         else:
