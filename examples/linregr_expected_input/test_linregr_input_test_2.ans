@@ -1,11 +1,9 @@
 \encoding unicode
--- @madlib-param tbl_output = __madlib_temp_40418089_1365619947_6556506__
--- @madlib-param hetero = FALSE
--- @madlib-param test_schema = madlibtestdata
--- @madlib-param dataset = lin_auto_mpg_oi
--- @madlib-param y = -1
--- @madlib-param x = NULL
--- @madlib-param schema_madlib = madlib
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param hetero = "FALSE"
+-- @madlib-param dataset = "lin_auto_mpg_oi"
+-- @madlib-param y = "-1"
+-- @madlib-param x = "NULL"
           select madlib.linregr_train(
               'madlibtestdata.lin_auto_mpg_oi',
               '__madlib_temp_40418089_1365619947_6556506__',

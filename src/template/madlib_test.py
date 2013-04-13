@@ -7,7 +7,7 @@ all combinations
 of parameters and generate a separate test case for each combination.
 '''
 
-from template.sql import MADlibSQLTestCase
+from src.template.sql import MADlibSQLTestCase
 from tinctest import TINCTestLoader
 from tinctest.lib import PSQL, Gpdiff
 import new
@@ -21,7 +21,7 @@ import shutil
 #
 # CREATE_CASE   to create case files
 # CREATE_ANS    to create answer files (mainly for input test cases)
-# DB_CONFIG     to pick a database configuration from sys_settings.dbsettings
+# DB_CONFIG     to pick a database configuration from settings.dbsettings
 # ------------------------------------------------------------------------
 
 class MADlibTestCase (MADlibSQLTestCase):
@@ -97,22 +97,22 @@ class MADlibTestCase (MADlibSQLTestCase):
                   schema_madlib = "madlib",
                   schema_testing = "madlibtestdata",
                   host = None, port = None) # default values
-        import sys_settings.dbsettings
+        import settings.dbsettings
         if os.environ.has_key("DB_CONFIG"):
             value = os.environ.get("DB_CONFIG")
             try:
-                user_set = getattr(sys_settings.dbsettings, value)
+                user_set = getattr(settings.dbsettings, value)
             except:
                 print("""
                       MADlib Test Error: No such database settings for """
                       + cls.__name__ + """!
 
                       The database setting file is located at
-                      sys_settings/dbsettings.py
+                      settings/dbsettings.py
                       """)
                 sys.exit(1)
         else:
-            user_set = sys_settings.dbsettings.default
+            user_set = settings.dbsettings.default
         for key in user_set.keys():
             db[key] = user_set[key]
         return db
@@ -179,7 +179,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                   """)
             sys.exit(1)
         return user_skip        
-
+ 
     # ----------------------------------------------------------------
 
     @classmethod
@@ -193,7 +193,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                 f.write("-- @madlib-param " + key + " = \""
                         + args[key] + "\"\n")
         return None
-    
+
     # ----------------------------------------------------------------
     
     @classmethod
@@ -206,7 +206,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         template_method = cls.template_method
         template_doc    = cls.template_doc
         template_vars   = cls.template_vars
-
+       
         cls._create_case = MADlibTestCase._get_env_flag("CREATE_CASE")
         cls._create_ans = MADlibTestCase._get_env_flag("CREATE_ANS")
         

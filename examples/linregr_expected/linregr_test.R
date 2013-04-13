@@ -6,12 +6,12 @@
 library(lmtest)
 library(car)
 
-source("../../R_utils/utils.R")
+source("../../src/r_utils/utils.R")
 
 ## linear regression R result
 hsd.append.results <- function(datasets, hsd = TRUE, 
                                sql.path = "~/workspace/testsuite/dataset/sql/",
-                               data.path = "data/", py.path = "../../R_utils")
+                               data.path = "data/", py.path = "../../src/r_utils")
 {
     con <- file("linregr_test.ans", "a")
     for (i in seq_along(datasets))
