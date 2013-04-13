@@ -180,21 +180,4 @@ class LinregrInputTestCase (MADlibTestCase):
     )
 
     template = run_sql
-
-    # ----------------------------------------------------------------
-    # First run of the test, generate output files, and use them as
-    # the answer files.
-    #
-    # Assume the execution order of the tests does not change, and
-    # we can use testcount to match files
-    def validate (self, sql_resultfile, answerfile):
-        """
-        Compare the result of SQL with answer file
-        Matching testcount
-        """
-        # compare sql_resultfile and answerfile
-        return super(LinregrInputTestCase,
-                     self).validate(sql_resultfile,
-                                    answerfile)
-        
         

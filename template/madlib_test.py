@@ -42,7 +42,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     skip = []
     _create_ans = False
     _create_case = False
-    _db_settings = dict(dbname = None, username = None, password = None,
+    _db_settings = dict(dbname = None, user_testing = None, pwd_testing = None,
                         schema_madlib = "madlib",
                         schema_testing = "madlibtestdata",
                         host = None, port = None) # default values
@@ -91,7 +91,9 @@ class MADlibTestCase (MADlibSQLTestCase):
         """
         Get the database settings from environment
         """
-        db = dict(dbname = None, username = None, password = None,
+        db = dict(dbname = None,
+                  user_testing = None,
+                  pwd_testing = None,
                   schema_madlib = "madlib",
                   schema_testing = "madlibtestdata",
                   host = None, port = None) # default values
@@ -313,8 +315,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         db = self.__class__._db_settings
         PSQL.run_sql_file(sql_file, out_file = sql_resultfile,
                           dbname = db["dbname"],
-                          username = db["username"],
-                          password = db["password"],
+                          username = db["user_testing"],
+                          password = db["pwd_testing"],
                           host = db["host"],
                           port = db["port"])
 
