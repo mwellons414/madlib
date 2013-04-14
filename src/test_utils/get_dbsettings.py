@@ -8,12 +8,15 @@ def get_dbsettings ():
     """
     Get the database settings from environment
     """
+    # default values
     db = dict(dbname = None,
               username = None,
               userpwd = None,
               schema_madlib = "madlib",
               schema_testing = "madlibtestdata",
-              host = None, port = None) # default values
+              host = None, 
+              port = None,
+              pg_options = None) 
     
     if os.environ.has_key("DB_CONFIG"):
         value = os.environ.get("DB_CONFIG")

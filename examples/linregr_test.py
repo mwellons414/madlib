@@ -47,7 +47,7 @@ class LinregrOutputTestCase (MADlibTestCase):
     
     template_method = "linregr%{dataset}%{hetero}"
 
-    template_doc = ""
+    template_doc = "This is for output tests of linear regression with heteroskedasticity"
 
     template_vars = dict(
         # These names are not hard-coded
@@ -106,7 +106,12 @@ class LinregrOutputTestCase (MADlibTestCase):
         """
         for line in result:
             if line.startswith(' {') and line.endswith('}'):
-                res = map(float, string_to_array(line[2:-2]))
+                try:
+                    res = map(float, string_to_array(line[2:-2]))
+                except:
+                    sys.exit("Linregr Output Test Error: The array cannot be converted to float!")
+                if res is None:
+                    sys.exit("Linregr Output Test Error: The array cannot be converted to float!")
                 return res
 
     def read_Rresults (self, resultFile):
@@ -157,7 +162,7 @@ class LinregrInputTestCase (MADlibTestCase):
     template_method = "linregr_input_test_{_incr}"
 
     # doc does not seem to be important
-    template_doc = "Running input_test_{_incr}"
+    template_doc = "This is for input tests of linear regression with heteroskedasticity"
 
     template_vars = dict(
         # These names are not hard-coded

@@ -47,14 +47,28 @@ class MADlibTestCase (MADlibSQLTestCase):
     _db_settings = dict(dbname = None, username = None, userpwd = None,
                         schema_madlib = "madlib",
                         schema_testing = "madlibtestdata",
-                        host = None, port = None) # default values
-    reserved_keywords = ["_incr", "schema_madlib", "schema_testing"]
+                        host = None, 
+                        port = None,
+                        pg_options = None) 
+    _reserved_keywords = ["_incr", "schema_madlib", "schema_testing"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
     # This number is used for file name
     # to avoid putting very long arguments in the file name
     _incr = 0 # name is hard-coded
+
+    # -----------------------------------------------------------------
+
+    @classmethod
+    def _make_sure_path_exists (cls, path):
+        if not os.path.exists(path):
+            try:
+                os.makedirs(path)
+            except:
+                sys.exit("""
+                         MADlib Test Error: cannot create """ + path + """
+                         with """ + cls.__module__ + "." + cls.__name__ + " !")
 
     # -----------------------------------------------------------------
 
@@ -74,7 +88,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     # -----------------------------------------------------------------
 
     @classmethod
-    def _get_ext_ans (cls, flag, create_ans):
+    def _get_ext_ans (cls, flag):
         """
         Get the environment variable for
         creating answer file using
@@ -82,10 +96,11 @@ class MADlibTestCase (MADlibSQLTestCase):
         parameters and compute the results
         """
         if os.environ.has_key(flag):
-            if not create_ans:
+            if not cls._create_ans:
                 print("""
-                      MADlib Test Error: R_ANS list only plays an role
-                      when CREATE_ANS=T.
+                      MADlib Test Error: """ + cls.__module__ + "." + cls.__name__ +
+                      """
+                      R_ANS list only plays an role when CREATE_ANS=T.
     
                       When CREATE_ANS=T and R_ANS=R_script_path, the R
                       script will be executed using the parameters passed
@@ -100,31 +115,33 @@ class MADlibTestCase (MADlibSQLTestCase):
     # ----------------------------------------------------------------
 
     @classmethod
-    def _validate_vars (cls, template_vars, keywords):
+    def _validate_vars (cls):
         """
         To ensure that the usre provided template_vars
         does not contain the keywords
         """
-        anyMatch = any(key in keywords for key in template_vars.keys())
+        anyMatch = any(key in cls._reserved_keywords \
+                for key in cls.template_vars.keys())
         if anyMatch:
             print("MADlib Test Error: template_vars should not use any of the following keywords:")
             print(keywords)
-            sys.exit("Testcase is stopping for " + cls.__name__ + "!")
+            sys.exit("Testcase is stopping for " + cls.__module__ + "." + cls.__name__ + " !")
         return None
 
     # ----------------------------------------------------------------
 
     @classmethod
-    def _get_skip (cls, skip_file, module_name, create_case):
+    def _get_skip (cls):
         """
         Get skip list
         """            
         do_skip_err = False
+        skip_list_name = None
         if os.environ.has_key("SKIP"):
-            if create_case is False:
+            if cls._create_case is False:
                 print("""
-                      MADlib Test Error: SKIP list only plays an role
-                      when CREATE_CASE=T.
+                      MADlib Test Error: """ + cls.__module__ + "." + cls.__name__ + 
+                      """SKIP list only plays an role when CREATE_CASE=T.
     
                       The skip-tag will be added to the head of each test case
                       file when it is created. During execution, all files with
@@ -135,25 +152,27 @@ class MADlibTestCase (MADlibSQLTestCase):
             value = os.environ.get("SKIP")
             m = re.match(r"^(.+)\.([^\.]+)$", value)
             if m is None: # value is just a dict name
-                if os.path.exists("./" + skip_file): # check current path
-                    ms = os.path.splitext(skip_file)[0]
+                if os.path.exists("./" + cls.skip_file): # check current path
+                    ms = os.path.splitext(cls.skip_file)[0]
                 else:
-                    s = os.path.basename(skip_file)
+                    s = os.path.basename(cls.skip_file)
                     s = os.path.splitext(s)[0]
-                    mm = re.match(r"^(.+)\.([^\.]+)$", module_name)
+                    mm = re.match(r"^(.+)\.([^\.]+)$", cls.__module__)
                     if mm is None:
-                        ms = module_name + "." + s
+                        ms = cls.__module__ + "." + s
                     else:
                         ms = mm.group(1) + "." + s
                 try:
                     md = __import__(ms, fromlist = '1')
                     user_skip = getattr(md, value)
+                    skip_list_name = ms + "." + value
                 except:
                     do_skip_err = True
             else:
                 try:
                     md = __import__(m.group(1), fromlist = '1')
                     user_skip = getattr(md, m.group(2))
+                    skip_list_name = value
                 except:
                     do_skip_err = True
         else:
@@ -161,8 +180,9 @@ class MADlibTestCase (MADlibSQLTestCase):
 
         if do_skip_err: # something went wrong
             print("""
-                  MADlib Test Error: No such skip definitions for """
-                  + cls.__name__ + """!
+                  MADlib Test Error: No such skip definitions for 
+                  """
+                  + cls.__module__ + "." + cls.__name__ + """ !
                   
                   Either you explicitly define the class variable skip_file in
                   you test case class, or you put the skip list into the default
@@ -176,17 +196,17 @@ class MADlibTestCase (MADlibSQLTestCase):
                   skip_file
                   """)
             sys.exit(1)
-        return user_skip        
+        return (user_skip, skip_list_name)
  
     # ----------------------------------------------------------------
 
     @classmethod
-    def _write_params (cls, f, reserved_keywords, args):
+    def _write_params (cls, f, args):
         """
         Write test parameters into the test case file
         """
         for key in args.keys():
-            if (key not in reserved_keywords and
+            if (key not in cls._reserved_keywords and
                 isinstance(args[key], str)):
                 f.write("-- @madlib-param " + key + " = \""
                         + args[key] + "\"\n")
@@ -204,21 +224,25 @@ class MADlibTestCase (MADlibSQLTestCase):
         template_method = cls.template_method
         template_doc    = cls.template_doc
         template_vars   = cls.template_vars
+
+        if template_method is None or template is None:
+            print("MADlib Test Error: " + cls.__module__ + "." + cls.__name__ + " !")
+            sys.exit("You must define template and template_method!")
        
-        cls._create_case = MADlibTestCase._get_env_flag("CREATE_CASE")
-        cls._create_ans = MADlibTestCase._get_env_flag("CREATE_ANS")
-        (r_ans, r_script) = MADlibTestCase._get_ext_ans("R_ANS", cls._create_ans)
+        cls._create_case = cls._get_env_flag("CREATE_CASE")
+        cls._create_ans = cls._get_env_flag("CREATE_ANS")
+        (r_ans, r_script) = cls._get_ext_ans("R_ANS")
         
         # validate cls template_vars
-        MADlibTestCase._validate_vars(template_vars,
-                                      MADlibTestCase.reserved_keywords)
+        cls._validate_vars()
         
         cls._db_settings = get_dbsettings()
         template_vars.update(schema_madlib = cls._db_settings["schema_madlib"],
                              schema_testing = cls._db_settings["schema_testing"])
         skip_file = cls.skip_file
-        skip = MADlibTestCase._get_skip(skip_file, cls.__module__,
-                                        cls._create_case)
+        (skip, skip_name) = cls._get_skip()
+
+        print(skip, skip_name)
             
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
@@ -233,6 +257,13 @@ class MADlibTestCase (MADlibSQLTestCase):
 
         source_file = sys.modules[cls.__module__].__file__
         source_dir = os.path.dirname(os.path.abspath(source_file))
+        sql_dir = os.path.join(source_dir, cls.sql_dir)
+        ans_dir = os.path.join(source_dir, cls.ans_dir)
+        out_dir = os.path.join(source_dir, cls.out_dir)
+
+        cls._make_sure_path_exists(sql_dir)
+        cls._make_sure_path_exists(ans_dir)
+        cls._make_sure_path_exists(out_dir)
  
         # ------------------------------------------------
         # Also create our "Template" test cases
@@ -256,14 +287,16 @@ class MADlibTestCase (MADlibSQLTestCase):
                     break
 
             # Create the SQL test case file that we are going to run
-            sql_inputfile = os.path.join(source_dir, cls.sql_dir,
-                                         methodName + ".sql")
+            sql_inputfile = os.path.join(sql_dir, methodName + ".sql")
+
             with open(sql_inputfile, 'w') as f:
                 if add_flag is False:
-                    f.write("-- @skip Skip this test\n")
+                    f.write("-- @skip ... by " + cls.__module__ + "." + 
+                            cls.__name__ + " according to " + skip_name + "\n")
                 print(methodName + " ............ test case file created")
-                MADlibTestCase._write_params(f, MADlibTestCase.reserved_keywords, x)
+                cls._write_params(f, x)
                 f.write("\n")
+                f.write("-- " + cls.template_doc + "\n")
                 f.write(methodQuery)
 
             # Call external script to compute the result
@@ -284,7 +317,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     
             kwargs = {}
             for key, value in template_vars.iteritems():
-                if not isinstance(value, list) or key == "skip":
+                if not isinstance(value, list):
                     kwargs[key] = value
                 else:
                     def makefunc (key, values, f):
@@ -294,7 +327,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                                 f(k)
                         return doit
                     makeTestClosure = makefunc(key, value, makeTestClosure)
-                    
+            
             makeTestClosure(kwargs)
 
         if ((not cls._create_case) or
@@ -327,7 +360,8 @@ class MADlibTestCase (MADlibSQLTestCase):
                           username = db["username"],
                           password = db["userpwd"],
                           host = db["host"],
-                          port = db["port"])
+                          port = db["port"],
+                          PGOPTIONS = db["pg_options"])
 
         # First run to create the baseline file
         if self.__class__._create_ans:

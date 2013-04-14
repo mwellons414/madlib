@@ -5,6 +5,7 @@ Some utilities
 
 import re
 import os
+import sys
 import time         
 import random
 
@@ -121,10 +122,13 @@ def string_to_array (s):
     are valid Postgres names.
     """
     elm = []
-    for m in re.finditer(r"(\"(\\\"|[^\"])*\"|[^\",\s]+)", s):
-        elm.append(m.group(1))
-    for i in range(len(elm)):
-        elm[i] = elm[i].strip()
+    try:
+        for m in re.finditer(r"(\"(\\\"|[^\"])*\"|[^\",\s]+)", s):
+            elm.append(m.group(1))
+        for i in range(len(elm)):
+            elm[i] = elm[i].strip()
+    except:
+        sys.exit("Utility Error: string_to_array - cannot convert!")
     return elm
 
 # ------------------------------------------------------------------------
@@ -133,9 +137,14 @@ def mean_squared_error (vec1, vec2):
     """
     Assume that the two vectors have the same length
     """
+    if vec1 is None or vec2 is None:
+        sys.exit("Utility Error: mean_squared_error - vector is None!")
     sum = 0.
-    for i in range(len(vec1)):
-        sum += (vec1[i] - vec2[i])**2
+    try:
+        for i in range(len(vec1)):
+            sum += (vec1[i] - vec2[i])**2
+    except:
+        sys.exit("Utility Error: mean_squared_error - cannot comput!")
     return sum / float(len(vec1))
 
 

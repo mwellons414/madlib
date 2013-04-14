@@ -33,6 +33,7 @@ demo = dict(dbname = "madlib",
             port = 55000,
             schema_madlib = "madlib",
             schema_testing = "madlibtestdata",
+            pg_options = "-x", # command options for psql, turn on extended display
             # ------------------------------------------------
             # The following are only for data loader
             # Future data loader may have different settings
