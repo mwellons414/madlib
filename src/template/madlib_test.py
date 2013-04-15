@@ -8,10 +8,11 @@ of parameters and generate a separate test case for each combination.
 '''
 
 from src.template.sql import MADlibSQLTestCase
+from src.template.lib import PSQL1
 from src.test_utils.get_dbsettings import get_dbsettings
 from src.test_utils.utils import call_R_script
 from tinctest import TINCTestLoader
-from tinctest.lib import PSQL, Gpdiff
+from tinctest.lib import Gpdiff
 import new
 import os
 import re
@@ -42,21 +43,21 @@ class MADlibTestCase (MADlibSQLTestCase):
     template_vars   = {}
     skip_file = "skip.py"
     skip = []
-    _create_ans = False
-    _create_case = False
-    _db_settings = dict(dbname = None, username = None, userpwd = None,
+    create_ans_ = False
+    create_case_ = False
+    db_settings_ = dict(dbname = None, username = None, userpwd = None,
                         schema_madlib = "madlib",
                         schema_testing = "madlibtestdata",
                         host = None, 
                         port = None,
                         pg_options = None) 
-    _reserved_keywords = ["_incr", "schema_madlib", "schema_testing"]
+    reserved_keywords_ = ["incr_", "schema_madlib", "schema_testing"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
     # increse incr for every test, which is done in the super class
     # This number is used for file name
     # to avoid putting very long arguments in the file name
-    _incr = 0 # name is hard-coded
+    incr_ = 0 # name is hard-coded
 
     # -----------------------------------------------------------------
 
@@ -96,7 +97,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         parameters and compute the results
         """
         if os.environ.has_key(flag):
-            if not cls._create_ans:
+            if not cls.create_ans_:
                 print("""
                       MADlib Test Error: """ + cls.__module__ + "." + cls.__name__ +
                       """
@@ -120,11 +121,11 @@ class MADlibTestCase (MADlibSQLTestCase):
         To ensure that the usre provided template_vars
         does not contain the keywords
         """
-        anyMatch = any(key in cls._reserved_keywords \
+        anyMatch = any(key in cls.reserved_keywords_ \
                 for key in cls.template_vars.keys())
         if anyMatch:
             print("MADlib Test Error: template_vars should not use any of the following keywords:")
-            print(cls._reserved_keywords)
+            print(cls.reserved_keywords_)
             sys.exit("Testcase is stopping for " + cls.__module__ + "." + cls.__name__ + " !")
         return None
 
@@ -138,7 +139,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         do_skip_err = False
         skip_list_name = None
         if os.environ.has_key("SKIP"):
-            if cls._create_case is False:
+            if cls.create_case_ is False:
                 print("""
                       MADlib Test Error: """ + cls.__module__ + "." + cls.__name__ + 
                       """SKIP list only plays an role when CREATE_CASE=T.
@@ -206,7 +207,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         Write test parameters into the test case file
         """
         for key in args.keys():
-            if (key not in cls._reserved_keywords and
+            if (key not in cls.reserved_keywords_ and
                 isinstance(args[key], str)):
                 f.write("-- @madlib-param " + key + " = \""
                         + args[key] + "\"\n")
@@ -229,16 +230,16 @@ class MADlibTestCase (MADlibSQLTestCase):
             print("MADlib Test Error: " + cls.__module__ + "." + cls.__name__ + " !")
             sys.exit("You must define template and template_method!")
        
-        cls._create_case = cls._get_env_flag("CREATE_CASE")
-        cls._create_ans = cls._get_env_flag("CREATE_ANS")
+        cls.create_case_ = cls._get_env_flag("CREATE_CASE")
+        cls.create_ans_ = cls._get_env_flag("CREATE_ANS")
         (r_ans, r_script) = cls._get_ext_ans("R_ANS")
         
         # validate cls template_vars
         cls._validate_vars()
         
-        cls._db_settings = get_dbsettings()
-        template_vars.update(schema_madlib = cls._db_settings["schema_madlib"],
-                             schema_testing = cls._db_settings["schema_testing"])
+        cls.db_settings_ = get_dbsettings()
+        template_vars.update(schema_madlib = cls.db_settings_["schema_madlib"],
+                             schema_testing = cls.db_settings_["schema_testing"])
         skip_file = cls.skip_file
         (skip, skip_name) = cls._get_skip()
             
@@ -266,8 +267,8 @@ class MADlibTestCase (MADlibSQLTestCase):
         # ------------------------------------------------
         # Also create our "Template" test cases
         def makeTest (x):
-            cls._incr += 1
-            x["_incr"] = cls._incr
+            cls.incr_ += 1
+            x["incr_"] = cls.incr_
             methodName = TINCTestLoader.testMethodPrefix + template_method.format(**x)
             methodDoc  = template_doc.format(**x)
             methodQuery = template.format(**x)
@@ -284,33 +285,36 @@ class MADlibTestCase (MADlibSQLTestCase):
                     add_flag = False
                     break
 
-            # Create the SQL test case file that we are going to run
-            sql_inputfile = os.path.join(sql_dir, methodName + ".sql")
-
-            with open(sql_inputfile, 'w') as f:
-                if add_flag is False:
-                    f.write("-- @skip ... by " + cls.__module__ + "." + 
-                            cls.__name__ + " according to " + skip_name + "\n")
-                print(methodName + " ............ test case file created")
-                cls._write_params(f, x)
-                f.write("\n")
-                f.write("-- " + cls.template_doc + "\n")
-                f.write(methodQuery)
+            if cls.create_case_:
+                # Create the SQL test case file that we are going to run
+                sql_inputfile = os.path.join(sql_dir, methodName + ".sql")
+                with open(sql_inputfile, 'w') as f:
+                    if add_flag is False:
+                        f.write("-- @skip ... by " + cls.__module__ + "." + 
+                                cls.__name__ + " according to " + skip_name + "\n")
+                    print(methodName + " ............ test case file created")
+                    cls._write_params(f, x)
+                    f.write("\n")
+                    f.write("-- " + cls.template_doc + "\n")
+                    f.write(methodQuery)
 
             # Call external script to compute the result
             # right now, only support R
             # But it is very easy to add support for other softwares
             if r_ans:
-                ans_path = os.path.join(source_dir, ans_dir)
+                print(x["incr_"])
                 if os.path.exists(r_script):
-                    call_R_script(r_script, ans_path, methodName, x)
+                    call_R_script(r_script, ans_dir, methodName, x)
+                elif os.path.exists("./" + r_script):
+                    call_R_script("./" + r_script, ans_dir, methodName, x)
                 else:
-                    r_path = os.path.join(source_dir, ans_dir, r_script)
-                    call_R_script(r_path, ans_path, methodName, x)
+                    r_path = os.path.join(ans_dir, r_script)
+                    call_R_script(r_path, ans_dir, methodName, x)
+                print(cls.__name__ + "." + methodName + " ......... Answer created")
                 
         # ------------------------------------------------
         # create test case files
-        if cls._create_case:
+        if cls.create_case_ or (cls.create_ans_ and r_ans):
             makeTestClosure = makeTest
     
             kwargs = {}
@@ -328,8 +332,8 @@ class MADlibTestCase (MADlibSQLTestCase):
             
             makeTestClosure(kwargs)
 
-        if ((not cls._create_case) or
-            (cls._create_ans and (not r_ans))): # if R has already created answers, stop
+        if ((not cls.create_case_ and not r_ans) or
+            (cls.create_ans_ and (not r_ans))): # if R has already created answers, stop
             # read files to create test cases
             return super(MADlibTestCase, cls).loadTestsFromTestCase()
         else:
@@ -352,17 +356,18 @@ class MADlibTestCase (MADlibSQLTestCase):
                                       os.path.basename(sql_file) + ".out")
 
         # create the output of SQL script
-        db = self.__class__._db_settings
-        PSQL.run_sql_file(sql_file, out_file = sql_resultfile,
-                          dbname = db["dbname"],
-                          username = db["username"],
-                          password = db["userpwd"],
-                          host = db["host"],
-                          port = db["port"],
-                          PGOPTIONS = db["pg_options"])
+        db = self.__class__.db_settings_
+        PSQL1.run_sql_file(sql_file, out_file = sql_resultfile,
+                           dbname = db["dbname"],
+                           username = db["username"],
+                           password = db["userpwd"],
+                           host = db["host"],
+                           port = db["port"],
+                           PGOPTIONS = db["pg_options"],
+                           psql_options = db["psql_options"])
 
         # First run to create the baseline file
-        if self.__class__._create_ans:
+        if self.__class__.create_ans_:
             shutil.copyfile(sql_resultfile, ans_file)
             os.remove(sql_resultfile)
             print "Answer file was created"

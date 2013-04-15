@@ -8,6 +8,7 @@ from src.test_utils.utils import string_to_array
 from src.test_utils.utils import mean_squared_error
 from src.test_utils.utils import read_sql_result
 import os
+import re
 import sys
 
 # ------------------------------------------------------------------------
@@ -65,7 +66,7 @@ class LinregrOutputTestCase (MADlibTestCase):
     # ----------------------------------------------------------------
     # Since all R result is in one file
     # We just need to read it once
-    r_resultfile = "linregr_test.ans"
+    r_resultfile = "linregr_test2.ans"
     Rresults = None
 
     # ----------------------------------------------------------------
@@ -105,9 +106,10 @@ class LinregrOutputTestCase (MADlibTestCase):
         Just extract the coefficients
         """
         for line in result:
-            if line.startswith(' {') and line.endswith('}'):
+            s = re.match(r"^[^\{]*\{([^\}]*)\}", line)
+            if s is not None:
                 try:
-                    res = map(float, string_to_array(line[2:-2]))
+                    res = map(float, string_to_array(s.group(1)))
                 except:
                     sys.exit("Linregr Output Test Error: The array cannot be converted to float!")
                 if res is None:
@@ -159,7 +161,7 @@ class LinregrInputTestCase (MADlibTestCase):
     ans_dir = "linregr_expected_input"
 
     # use a different name convention from the above example
-    template_method = "linregr_input_test_{_incr}"
+    template_method = "linregr_input_test_{incr_}"
 
     # doc does not seem to be important
     template_doc = "This is for input tests of linear regression with heteroskedasticity"

@@ -4,7 +4,7 @@
 .*.swp
 *.swp
 data/
-/log/
+log/
 
 examples/linregr_result/*.*
 examples/linregr_sql/*.*

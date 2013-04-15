@@ -21,34 +21,40 @@ def call_R_script (script, ans_path, methodName, params):
     with parameter definition like
     ## @madlib-param dataset
     """
-    tmp_r = "tmp/" + unique_string()
-    tmpf = open(tmp_r, "w")
-    with open(script, "r") as f:
-        for line in f:
-            line = line.strip("\n")
-            h = re.match("^\s*##\s*@madlib-param\s+", line)
-            if h is not None:
-                s = re.match(r"^\s*##\s*@madlib-param\s+(\S*)\s*",
-                             line)
-                try:
-                    ms = s.group(1)
-                    if ms == "methodName":
-                        if "methodName" in params.keys():
-                            sys.exit("methodName is used for R output file names, and has duplicates in parameter list!")
-                        value = methodName + ".sql"
-                    elif ms == "ans_path":
-                        if "ans_path" in params.keys():
-                            sys.exit("ans_path is used for R output file path, and has duplicates in parameter list!")
-                        value = ans_path
-                    else:
-                        value = params[ms]
-                except:
-                    sys.exit("The parameter of R script does not match with test case!")
-                tmpf.write(ms + " = \"" + value + "\"\n")
-            else:
-                tmpf.write(line + "\n")
-    tmpf.close()
-
+    tmp_r = "/tmp/" + unique_string()
+    try:
+        tmpf = open(tmp_r, "w")
+        with open(script, "r") as f:
+            for line in f:
+                line = line.strip("\n")
+                h = re.match("^\s*##\s*@madlib-param\s+", line)
+                if h is not None:
+                    s = re.match(r"^\s*##\s*@madlib-param\s+(\S*)\s*",
+                                 line)
+                    try:
+                        ms = s.group(1)
+                        if ms == "method.name_":
+                            if "method.name_" in params.keys():
+                                sys.exit("methodName is used for R output file names, and has duplicates in parameter list!")
+                            value = methodName + ".sql"
+                        elif ms == "ans.path_":
+                            if "ans.path_" in params.keys():
+                                sys.exit("ans_path is used for R output file path, and has duplicates in parameter list!")
+                            value = ans_path
+                        elif ms.startswith("_"):
+                            ms = "`" + ms + "`"
+                        else:
+                            value = params[ms]
+                    except:
+                        sys.exit("The parameter of R script does not match with test case!")
+                    tmpf.write(ms + " = \"" + str(value) + "\"\n")
+                else:
+                    tmpf.write(line + "\n")
+        tmpf.close()
+    except:
+        os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
+        sys.exit("MADlib Test Error: cannot pass parameters to R script!")
+        
     # execute the tmp R script
     os.system("R --no-save < " + tmp_r + " > " + tmp_r + ".out")
     os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
