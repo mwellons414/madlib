@@ -71,10 +71,11 @@ class MADlibSQLTestCase(GPDBTestCase):
            hasattr(getattr(self.__class__, methodName), '__call__'): 
             super(MADlibSQLTestCase, self).__init__(methodName)
             return
-        
+ 
         # otherwise, do dynamic test generation
         assert methodName.startswith(tinctest.TINCTestLoader.testMethodPrefix)
-        partial_test_name = methodName[len(tinctest.TINCTestLoader.testMethodPrefix):]
+        # partial_test_name = methodName[len(tinctest.TINCTestLoader.testMethodPrefix):]
+        partial_test_name = methodName
         
         # implicit sql tests are generated from *.sql/*.ans files 
         # found in the current working directory
@@ -167,7 +168,8 @@ class MADlibSQLTestCase(GPDBTestCase):
                 uniquePat.append(f)
 
         for pattern in uniquePat:
-            test_name = TINCTestLoader.testMethodPrefix + pattern
+            # test_name = TINCTestLoader.testMethodPrefix + pattern
+            test_name = pattern
             tests.append(cls(test_name))
 
         return tests

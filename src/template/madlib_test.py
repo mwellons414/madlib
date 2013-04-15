@@ -124,7 +124,7 @@ class MADlibTestCase (MADlibSQLTestCase):
                 for key in cls.template_vars.keys())
         if anyMatch:
             print("MADlib Test Error: template_vars should not use any of the following keywords:")
-            print(keywords)
+            print(cls._reserved_keywords)
             sys.exit("Testcase is stopping for " + cls.__module__ + "." + cls.__name__ + " !")
         return None
 
@@ -241,8 +241,6 @@ class MADlibTestCase (MADlibSQLTestCase):
                              schema_testing = cls._db_settings["schema_testing"])
         skip_file = cls.skip_file
         (skip, skip_name) = cls._get_skip()
-
-        print(skip, skip_name)
             
         # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
         # being called twice, once for the child class and once from here.  When called from
