@@ -25,7 +25,7 @@ py.path = "/Users/qianh1/workspace/madlib_testsuite/src/r_utils"
 
 result.file <- paste(ans.path_, "/linregr_test2.ans", sep = "")
 
-if (incr_ == 1) system("rm -f result.file")
+if (incr_ == 1) system(paste("rm -f", result.file))
 
 con <- file(result.file, "a")
 name <- dataset

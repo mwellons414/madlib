@@ -48,9 +48,8 @@ class MADlibTestCase (MADlibSQLTestCase):
     db_settings_ = dict(dbname = None, username = None, userpwd = None,
                         schema_madlib = "madlib",
                         schema_testing = "madlibtestdata",
-                        host = None, 
-                        port = None,
-                        pg_options = None) 
+                        host = None, port = None,
+                        pg_options = None, psql_options = None) 
     reserved_keywords_ = ["incr_", "schema_madlib", "schema_testing"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",

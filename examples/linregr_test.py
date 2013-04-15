@@ -53,7 +53,7 @@ class LinregrOutputTestCase (MADlibTestCase):
     template_vars = dict(
         # These names are not hard-coded
         tbl_output = unique_string(),
-        dataset = ["lin_auto_mpg_oi", "lin_auto_mpg_wi"],
+        dataset = ["lin_auto_mpg_oi", "lin_auto_mpg_wi", "lin_fdic_clean"],
         hetero = ["TRUE", "FALSE"],
         x = "x",
         y = "y")

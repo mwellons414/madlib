@@ -1,6 +1,10 @@
 cmd : "./conv_linregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
 sql : "./lininit.sql"
 tables :
+    - id : lin_fdic_clean
+      args :
+          data : "http://jkkjhkkjhkh"
+          desc : "/sdkhsdfhs"
     - id : lin_auto_mpg_oi
       args :
           data : "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data"

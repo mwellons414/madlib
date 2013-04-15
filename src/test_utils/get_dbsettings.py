@@ -16,7 +16,8 @@ def get_dbsettings ():
               schema_testing = "madlibtestdata",
               host = None, 
               port = None,
-              pg_options = None) 
+              pg_options = None,
+              psql_options = None) 
     
     if os.environ.has_key("DB_CONFIG"):
         value = os.environ.get("DB_CONFIG")
