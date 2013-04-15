@@ -56,7 +56,7 @@ def call_R_script (script, ans_path, methodName, params):
         sys.exit("MADlib Test Error: cannot pass parameters to R script!")
         
     # execute the tmp R script
-    os.system("R --no-save < " + tmp_r + " > " + tmp_r + ".out")
+    os.system("R -q --no-save < " + tmp_r + " > " + tmp_r + ".out")
     os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
     
 # ------------------------------------------------------------------------

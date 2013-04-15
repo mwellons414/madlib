@@ -301,7 +301,6 @@ class MADlibTestCase (MADlibSQLTestCase):
             # right now, only support R
             # But it is very easy to add support for other softwares
             if r_ans:
-                print(x["incr_"])
                 if os.path.exists(r_script):
                     call_R_script(r_script, ans_dir, methodName, x)
                 elif os.path.exists("./" + r_script):

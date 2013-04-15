@@ -5,6 +5,8 @@
 ## The parameter values are fed from TINC
 ##
 ## Put all the results into one file
+##
+## This is a quite general example, which also supports grouping
 ## ------------------------------------------------------------------------
 
 ## @madlib-param dataset The data set name, string
@@ -15,8 +17,18 @@
 dataset <- as.character(dataset)
 hetero <- as.logical(toupper(hetero))
 
-library(lmtest)
-library(car)
+## ------------------------------------------------------------------------
+
+## Other parameters
+target <- "y"                  # dependent variable
+predictors <- "~ . - 1"        # fitting formula
+grouping.cols <- character(0)  # grouping column name VECTOR
+not.xcols <- grouping.cols     # exclude these columns
+
+## ------------------------------------------------------------------------
+
+suppressMessages(library(lmtest))
+suppressMessages(library(car))
 source("/Users/qianh1/workspace/madlib_testsuite/src/r_utils/utils.R")
 
 sql.path = "~/workspace/testsuite/dataset/sql/"
@@ -27,16 +39,45 @@ result.file <- paste(ans.path_, "/linregr_test2.ans", sep = "")
 
 if (incr_ == 1) system(paste("rm -f", result.file))
 
+## ------------------------------------------------------------------------
+
 con <- file(result.file, "a")
+
 name <- dataset
 dat <- prepare.dataset(name, sql.path = sql.path,
                         data.path = data.path,
                         py.path = py.path)
-if (! is.null(dat))
+
+## The independent variable columns
+xcols <- setdiff(names(dat), c(target, not.xcols))
+n <- length(xcols)
+grouping.str <- paste("\"", grouping.cols, "\"", collapse = ", ", sep = "")
+
+##
+if (length(grouping.cols) != 0) {
+    ## grouping the original data
+    grps <- by(dat, dat[grouping.cols], rbind)
+    ## extract grouping column values
+    cats <- attr(grps, "dimnames")
+    ## for each combination of grouping column values, form a string
+    grouping.vals <- str.combine(cats) 
+} else {
+    grps <- list(dat = dat)
+    grouping.vals <- ""
+}
+## 
+for (gval in grouping.vals)
 {
-    if (sum(is.na(dat)) > 0) next
+    ## extract the data for a specific combination of grouping column values
+    dat.use <- eval(parse(text = paste("grps[", gval, "][[1]]", sep = "")))
     ##
-    fit <- lm(y ~ . - 1, data = dat)
+    ## ----------------------------------------------------------------
+    ## All the previous parts should be refactored out later, and can be
+    ## utilized in other modules that support grouping
+    ## The following computation & output parts are just module-specific
+    ##
+    ## Actual computation part
+    fit <- lm(formula(paste(target, predictors)), data = dat.use)
     fit.sum <- summary(fit)
     l <- length(fit$coefficients)
     if (hetero) {
@@ -64,4 +105,5 @@ if (! is.null(dat))
     }
     cat("\n", file = con)
 }
+
 close(con)
