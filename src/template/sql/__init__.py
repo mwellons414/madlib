@@ -118,6 +118,7 @@ class MADlibSQLTestCase(GPDBTestCase):
         # generated test intance. (note the use of closures!)
         def implied_test_function(my_self):
             assert my_self._run_test(my_self.sql_file, my_self.ans_file)
+            
         implied_test_function.__doc__ = intended_docstring
         method = new.instancemethod(implied_test_function,
                                     self,

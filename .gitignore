@@ -6,11 +6,11 @@
 data/
 log/
 
-examples/linregr_result/*.*
-examples/linregr_sql/*.*
-examples/linregr_result_input/*.*
-examples/linregr_sql_input/*.*
-examples/linregr_expected_input/*.*
+examples/result_output/
+examples/sql_output/
+examples/result_input/
+examples/sql_input/
+examples/expected_input/
 
 *.segment_logs
 

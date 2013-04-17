@@ -341,7 +341,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         
     def __init__ (self, methodName):
         super(MADlibTestCase, self).__init__(methodName)
-
+        
     # ----------------------------------------------------------------
         
     def _run_test (self, sql_file, ans_file):

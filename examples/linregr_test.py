@@ -40,9 +40,9 @@ class LinregrOutputTestCase (MADlibTestCase):
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
     # Required by superclass
-    sql_dir = "linregr_sql"
-    out_dir = "linregr_result"
-    ans_dir = "linregr_expected"
+    sql_dir = "sql_output"
+    out_dir = "result_output"
+    ans_dir = "expected_output"
 
     skip_file = "linregr_skip.py"
     
@@ -156,9 +156,9 @@ class LinregrInputTestCase (MADlibTestCase):
     # It is possible to make them un-hard-coded
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
-    sql_dir = "linregr_sql_input"
-    out_dir = "linregr_result_input"
-    ans_dir = "linregr_expected_input"
+    sql_dir = "sql_input"
+    out_dir = "result_input"
+    ans_dir = "expected_input"
 
     # use a different name convention from the above example
     template_method = "linregr_input_test_{incr_}"
