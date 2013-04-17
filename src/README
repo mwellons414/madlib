@@ -1,0 +1,11 @@
+* MADlibTestCase class definition in ./template/
+
+* Data loader class definition in ./data_loader/
+
+* Utility functions for writing tests in ./test_utils/
+
+* Utility functions for writing R validation scripts in ./r_utils/
+
+------------------------------------------------------
+
+The user should only make changes to the utility functions for tests and R.
