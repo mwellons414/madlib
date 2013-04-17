@@ -62,5 +62,24 @@ haigp = dict(dbname = "qianh1",
              master_dir = "/Users/qianh1/qianh1_usenqianh1mbp2_3629/qianh1_usenqianh1mbp2_3629/gpdb_binary/greenplum-db-4.2.4.0-data/master/gpseg-1",
              env = "/Users/qianh1/.local/bin/gp")
 
+# ------------------------------------------------------------------------
+
+haipg = dict(dbname = "qianh1",
+             username = "qianh1", # tesing user
+             userpwd = None,
+             host = "localhost", 
+             port = 5433,
+             schema_madlib = "madlib",
+             schema_testing = "madlibtestdata",
+             # ------------------------------------------------
+             # The following are only for data loader
+             # Future data loader may have different settings
+             superuser = "qianh1",
+             superpwd = None,
+             kind = "postgres", 
+             master_dir = "/Users/qianh1/qianh1_usenqianh1mbp2_3629/qianh1_usenqianh1mbp2_3629/pg_data/pg92_data",
+             env = "/Users/qianh1/.local/bin/pg")
+
+
 
 

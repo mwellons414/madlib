@@ -32,7 +32,7 @@ suppressMessages(library(car))
 source("/Users/qianh1/workspace/madlib_testsuite/src/r_utils/utils.R")
 
 sql.path = "~/workspace/testsuite/dataset/sql/"
-data.path = "/Users/qianh1/workspace/madlib_testsuite/examples/linregr_expected/data/"
+data.path = paste(ans.path_, "/data/", sep = "")
 py.path = "/Users/qianh1/workspace/madlib_testsuite/src/r_utils"
 
 result.file <- paste(ans.path_, "/linregr_test2.ans", sep = "")

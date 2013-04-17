@@ -16,3 +16,5 @@ examples/expected_input/
 
 datasets/sql/*.*
 datasets/download/*.*
+
+/pygresql
