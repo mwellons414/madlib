@@ -288,13 +288,13 @@ class MADlibTestCase (MADlibSQLTestCase):
                 # Create the SQL test case file that we are going to run
                 sql_inputfile = os.path.join(sql_dir, methodName + ".sql")
                 with open(sql_inputfile, 'w') as f:
+                    f.write("-- @description " + cls.template_doc + "\n")
                     if add_flag is False:
                         f.write("-- @skip ... by " + cls.__module__ + "." + 
                                 cls.__name__ + " according to " + skip_name + "\n")
                     print(methodName + " ............ test case file created")
                     cls._write_params(f, x)
                     f.write("\n")
-                    f.write("-- " + cls.template_doc + "\n")
                     f.write(methodQuery)
 
             # Call external script to compute the result
