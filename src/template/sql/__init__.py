@@ -55,7 +55,6 @@ class MADlibSQLTestCase(GPDBTestCase):
         So, our approach is to discover the intended test method and dynamically
         generate it; then, we will defer to traditional construction in the parent.
         """
-
         # Test case metadata
         self.db_name = db_name
         self.username = None
@@ -81,22 +80,23 @@ class MADlibSQLTestCase(GPDBTestCase):
         # found in the current working directory
         
         # To enable tinc_client to construct a test case for a specific sql file
-        # if sql_file is not None:
-        #     self.sql_file = sql_file
-        #     partial_file_name = os.path.basename(sql_file)[:-4]
-        #     # Order in which ans files are located
-        #     # 1. Same as sql file location. 2. sql_file/../expected/
-        #     # self.ans_file = os.path.join(os.path.dirname(sql_file), "%s.ans" %partial_file_name)
-        #     # if not os.path.exists(self.ans_file):
-        #     self.ans_file = os.path.join(os.path.dirname(sql_file), "../expected/", "%s.ans" %partial_file_name)
+        if sql_file is not None:
+            self.sql_file = sql_file
+            partial_file_name = os.path.basename(sql_file)[:-4]
+            # Order in which ans files are located
+            # 1. Same as sql file location. 2. sql_file/../expected/
+            self.ans_file = os.path.join(os.path.dirname(sql_file), "%s.ans" %partial_file_name)
+            if not os.path.exists(self.ans_file):
+                self.ans_file = os.path.join(os.path.dirname(sql_file), "../" + self.__class__.ans_dir + "/",
+                                             "%s.ans" %partial_file_name)
 
-        # else:
-        source_file = sys.modules[self.__class__.__module__].__file__
-        source_dir = os.path.dirname(os.path.abspath(source_file))
-        sql_dir = os.path.join(self.get_source_dir(), self.__class__.sql_dir)
-        ans_dir = os.path.join(self.get_source_dir(), self.__class__.ans_dir)
-        self.sql_file = os.path.join(sql_dir, "%s.sql" % partial_test_name)
-        self.ans_file = os.path.join(ans_dir, "%s.ans" % partial_test_name)
+        else:
+            source_file = sys.modules[self.__class__.__module__].__file__
+            source_dir = os.path.dirname(os.path.abspath(source_file))
+            sql_dir = os.path.join(self.get_source_dir(), self.__class__.sql_dir)
+            ans_dir = os.path.join(self.get_source_dir(), self.__class__.ans_dir)
+            self.sql_file = os.path.join(sql_dir, "%s.sql" % partial_test_name)
+            self.ans_file = os.path.join(ans_dir, "%s.ans" % partial_test_name)
 
         if not os.path.exists(self.sql_file):
             raise MADlibSQLTestCaseException('sql file for this test case does not exist - %s' %self.sql_file )
@@ -223,7 +223,8 @@ class MADlibSQLTestCase(GPDBTestCase):
         # in a global dict __databases__ in tinctest.databases.__databases__
         # which will be moved to a more appropriate location.
         if self.db_name is not None:
-            __databases__[self.db_name].setUp()
+            ## __databases__[self.db_name].setUp()
+            pass
 
         # Check if a common setup.sql file exists in the same location as the test sql
         setup_sql_file = os.path.join(os.path.dirname(os.path.abspath(self.sql_file)), 'setup.sql')

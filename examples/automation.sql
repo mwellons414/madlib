@@ -19,7 +19,7 @@ INSERT INTO suite_collection_map VALUES
     (SELECT col_id FROM collection 
     WHERE col_name ILIKE '%examples.sql_input'), 
     (SELECT ex_id FROM executor 
-    WHERE ex_name ILIKE 'examples.linregr_test.LinregrInputTestCase'));
+    WHERE ex_name ILIKE 'madlib_testsuite.examples.linregr_test.LinregrInputTestCase'));
 
 
 INSERT INTO schedule VALUES 

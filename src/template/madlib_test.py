@@ -7,10 +7,10 @@ all combinations
 of parameters and generate a separate test case for each combination.
 '''
 
-from src.template.sql import MADlibSQLTestCase
-from src.template.lib import PSQL1
-from src.test_utils.get_dbsettings import get_dbsettings
-from src.test_utils.utils import call_R_script
+from madlib_testsuite.src.template.sql import MADlibSQLTestCase
+from madlib_testsuite.src.template.lib import PSQL1
+from madlib_testsuite.src.test_utils.get_dbsettings import get_dbsettings
+from madlib_testsuite.src.test_utils.utils import call_R_script
 from tinctest import TINCTestLoader
 from tinctest.lib import Gpdiff
 import new
@@ -236,7 +236,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         # validate cls template_vars
         cls._validate_vars()
         
-        cls.db_settings_ = get_dbsettings()
+        cls.db_settings_ = get_dbsettings(cls.__name__)
         template_vars.update(schema_madlib = cls.db_settings_["schema_madlib"],
                              schema_testing = cls.db_settings_["schema_testing"])
         skip_file = cls.skip_file
@@ -350,8 +350,9 @@ class MADlibTestCase (MADlibSQLTestCase):
 
     # ----------------------------------------------------------------
         
-    def __init__ (self, methodName):
-        super(MADlibTestCase, self).__init__(methodName)
+    def __init__ (self, methodName, sql_file = None, db_name = None):
+        super(MADlibTestCase, self).__init__(methodName, sql_file,
+                                             self.__class__.db_settings_["dbname"])
         
     # ----------------------------------------------------------------
         

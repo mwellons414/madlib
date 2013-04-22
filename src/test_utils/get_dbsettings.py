@@ -1,10 +1,11 @@
 
-import settings.dbsettings
+import madlib_testsuite.settings.dbsettings
 import os
+import sys
 
 # ----------------------------------------------------------------
 
-def get_dbsettings ():
+def get_dbsettings (class_name):
     """
     Get the database settings from environment
     """
@@ -22,11 +23,11 @@ def get_dbsettings ():
     if os.environ.has_key("DB_CONFIG"):
         value = os.environ.get("DB_CONFIG")
         try:
-            user_set = getattr(settings.dbsettings, value)
+            user_set = getattr(madlib_testsuite.settings.dbsettings, value)
         except:
             print("""
                   MADlib Test Error: No such database settings for """
-                  + cls.__name__ + """!
+                  + class_name + """!
 
                   The database setting file is located at
                   settings/dbsettings.py

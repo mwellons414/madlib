@@ -33,6 +33,8 @@ source("/Users/qianh1/workspace/madlib_testsuite/src/r_utils/utils.R")
 
 sql.path = "~/workspace/testsuite/dataset/sql/"
 data.path = paste(ans.path_, "/data/", sep = "")
+system(paste("rm -rf", data.path))
+system(paste("mkdir", data.path))
 py.path = "/Users/qianh1/workspace/madlib_testsuite/src/r_utils"
 
 result.file <- paste(ans.path_, "/linregr_test2.ans", sep = "")
