@@ -46,6 +46,22 @@ demo = dict(dbname = "madlib",
 
 # ------------------------------------------------------------------------
 
+demopg = dict(dbname = "gpdbchina",
+              username = "gpdbchina",
+              userpwd = None,
+              host = "localhost",
+              port = 5455,
+              schema_madlib = "madlib",
+              schema_testing = "madlibtestdata",
+              psql_options = "-x",
+              superuser = "gpdbchina",
+              superpwd = None,
+              kind = "postgres",
+              master_dir = "/data/hai/pg_data",
+              env = "/data/hai/local/bin/pg")
+
+# ------------------------------------------------------------------------
+
 haigp = dict(dbname = "qianh1",
              username = "madlibtester", # tesing user
              userpwd = None,

@@ -32,7 +32,7 @@ import types
 import re
 import time
 import urllib
-from src.test_utils.get_dbsettings import get_dbsettings
+from madlib_testsuite.src.test_utils.get_dbsettings import get_dbsettings
 import dbManager, run_sql
 
 class loadingManager:
@@ -44,7 +44,7 @@ class loadingManager:
         source_file = sys.modules[self.__class__.__module__].__file__
         source_dir = os.path.dirname(os.path.abspath(source_file))
         self.__yamlPath = os.path.join(source_dir, "../../datasets/")
-        self.testdbs_conf = get_dbsettings()
+        self.testdbs_conf = get_dbsettings(self.__class__.__name__)
         self.__schema = self.testdbs_conf["schema_testing"]
         self.__sqlPath = os.path.join(self.__yamlPath, "sql")
         self.conf = yaml.load(open(self.__yamlPath + "config.yaml"))
