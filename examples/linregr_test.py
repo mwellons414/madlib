@@ -2,11 +2,11 @@
 ## MADlib Tests for linear regression
 ## For learning tinc
 
-from madlib_testsuite.src.template.madlib_test import MADlibTestCase
-from madlib_testsuite.src.test_utils.utils import unique_string
-from madlib_testsuite.src.test_utils.utils import string_to_array
-from madlib_testsuite.src.test_utils.utils import mean_squared_error
-from madlib_testsuite.src.test_utils.utils import read_sql_result
+from madlib.src.template.madlib_test import MADlibTestCase
+from madlib.src.test_utils.utils import unique_string
+from madlib.src.test_utils.utils import string_to_array
+from madlib.src.test_utils.utils import mean_squared_error
+from madlib.src.test_utils.utils import read_sql_result
 import os
 import re
 import sys

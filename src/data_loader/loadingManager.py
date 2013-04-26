@@ -32,7 +32,7 @@ import types
 import re
 import time
 import urllib
-from madlib_testsuite.src.test_utils.get_dbsettings import get_dbsettings
+from madlib.src.test_utils.get_dbsettings import get_dbsettings
 import dbManager, run_sql
 
 class loadingManager:

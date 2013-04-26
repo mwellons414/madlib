@@ -7,10 +7,10 @@ all combinations
 of parameters and generate a separate test case for each combination.
 '''
 
-from madlib_testsuite.src.template.sql import MADlibSQLTestCase
-from madlib_testsuite.src.template.lib import PSQL1
-from madlib_testsuite.src.test_utils.get_dbsettings import get_dbsettings
-from madlib_testsuite.src.test_utils.utils import call_R_script
+from madlib.src.template.sql import MADlibSQLTestCase
+from madlib.src.template.lib import PSQL1
+from madlib.src.test_utils.get_dbsettings import get_dbsettings
+from madlib.src.test_utils.utils import call_R_script
 from tinctest import TINCTestLoader
 from tinctest.lib import Gpdiff
 import new
@@ -227,7 +227,7 @@ class MADlibTestCase (MADlibSQLTestCase):
 
         if template_method is None or template is None:
             print("MADlib Test Error: " + cls.__module__ + "." + cls.__name__ + " !")
-            sys.exit("You must define template and template_method!")
+            return []
        
         cls.create_case_ = cls._get_env_flag("CREATE_CASE")
         cls.create_ans_ = cls._get_env_flag("CREATE_ANS")
@@ -242,12 +242,6 @@ class MADlibTestCase (MADlibSQLTestCase):
         skip_file = cls.skip_file
         (skip, skip_name) = cls._get_skip()
             
-        # XXX: I'm not completely clear why this is necessary, somehow the loadTests ends up
-        # being called twice, once for the child class and once from here.  When called from
-        # here we need to not die...
-        if template is None:
-            return []
-
         assert isinstance(template,str)
         assert isinstance(template_method,str)
 

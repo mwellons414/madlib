@@ -1,5 +1,5 @@
 
-import madlib_testsuite.settings.dbsettings
+import madlib.settings.dbsettings
 import os
 import sys
 
@@ -23,7 +23,7 @@ def get_dbsettings (class_name):
     if os.environ.has_key("DB_CONFIG"):
         value = os.environ.get("DB_CONFIG")
         try:
-            user_set = getattr(madlib_testsuite.settings.dbsettings, value)
+            user_set = getattr(madlib.settings.dbsettings, value)
         except:
             print("""
                   MADlib Test Error: No such database settings for """
@@ -34,7 +34,7 @@ def get_dbsettings (class_name):
                   """)
             sys.exit(1)
     else:
-        user_set = settings.dbsettings.default
+        user_set = madlib.settings.dbsettings.default
     for key in user_set.keys():
         db[key] = user_set[key]
     return db
