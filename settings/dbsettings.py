@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------
 # Setting database properties
 #
@@ -46,6 +45,7 @@ demo = dict(dbname = "madlib",
 
 # ------------------------------------------------------------------------
 
+# Postgres on demo machine
 demopg = dict(dbname = "gpdbchina",
               username = "gpdbchina",
               userpwd = None,
@@ -62,6 +62,7 @@ demopg = dict(dbname = "gpdbchina",
 
 # ------------------------------------------------------------------------
 
+# Hai's GPDB
 haigp = dict(dbname = "qianh1",
              username = "madlibtester", # tesing user
              userpwd = None,
@@ -80,6 +81,7 @@ haigp = dict(dbname = "qianh1",
 
 # ------------------------------------------------------------------------
 
+# Hai's Postgres
 haipg = dict(dbname = "qianh1",
              username = "qianh1", # tesing user
              userpwd = None,
