@@ -11,6 +11,9 @@ examples/sql_output/
 examples/result_input/
 examples/sql_input/
 examples/expected_input/
+examples/result_input2/
+examples/sql_input2/
+examples/expected_input2/
 
 *.segment_logs
 

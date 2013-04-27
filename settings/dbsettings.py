@@ -76,7 +76,7 @@ haigp = dict(dbname = "qianh1",
              superuser = "qianh1",
              superpwd = None,
              kind = "greenplum", 
-             master_dir = "/Users/qianh1/qianh1_usenqianh1mbp2_3629/qianh1_usenqianh1mbp2_3629/gpdb_binary/greenplum-db-4.2.4.0-data/master/gpseg-1",
+             master_dir = "/Users/qianh1/.gp/greenplum-db-4.2.5.0-data/master/gpseg-1",
              env = "/Users/qianh1/.local/bin/gp")
 
 # ------------------------------------------------------------------------
@@ -95,7 +95,7 @@ haipg = dict(dbname = "qianh1",
              superuser = "qianh1",
              superpwd = None,
              kind = "postgres", 
-             master_dir = "/Users/qianh1/qianh1_usenqianh1mbp2_3629/qianh1_usenqianh1mbp2_3629/pg_data/pg92_data",
+             master_dir = "/Users/qianh1/.pg/pg92_data",
              env = "/Users/qianh1/.local/bin/pg")
 
 

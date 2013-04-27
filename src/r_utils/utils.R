@@ -1,4 +1,15 @@
 
+## ------------------------------------------------------------------------
+
+## strip pattern from the beginning and end of the string
+strip <- function(string, pattern)
+{
+    m <- paste("^[", pattern, "]*|[", pattern, "]*$")
+    gsub(m, "", string)
+}
+
+## ------------------------------------------------------------------------
+
 ## Elastic Net log-likelihood for linear models
 
 log.likelihood <- function(x, y, coef, a0, lambda, alpha, scaling = FALSE)

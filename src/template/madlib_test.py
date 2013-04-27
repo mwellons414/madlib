@@ -32,8 +32,6 @@ class MADlibTestCase (MADlibSQLTestCase):
     Abstract class for running templated SQL, subclasses must define the template
     """
     # The following variables should be provided by subclass
-    schema_madlib   = "madlib"
-    schema_testing  = "madlibtestdata"
     sql_dir         = "sql" # store the sql command executed
     out_dir         = "result" # output folder
     ans_dir         = "expected" # expected results
@@ -45,11 +43,9 @@ class MADlibTestCase (MADlibSQLTestCase):
     skip = []
     create_ans_ = False
     create_case_ = False
-    db_settings_ = dict(dbname = None, username = None, userpwd = None,
-                        schema_madlib = "madlib",
-                        schema_testing = "madlibtestdata",
-                        host = None, port = None,
-                        pg_options = None, psql_options = None) 
+    db_settings_ = get_dbsettings("MADlibTestCase")
+    schema_madlib = db_settings_["schema_madlib"]
+    schema_testing = db_settings_["schema_testing"]
     reserved_keywords_ = ["incr_", "schema_madlib", "schema_testing"]
 
     # If you want to use fiel names like "linregr_input_test_{incr}",
@@ -236,7 +232,6 @@ class MADlibTestCase (MADlibSQLTestCase):
         # validate cls template_vars
         cls._validate_vars()
         
-        cls.db_settings_ = get_dbsettings(cls.__name__)
         template_vars.update(schema_madlib = cls.db_settings_["schema_madlib"],
                              schema_testing = cls.db_settings_["schema_testing"])
         skip_file = cls.skip_file

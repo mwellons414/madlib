@@ -187,4 +187,45 @@ class LinregrInputTestCase (MADlibTestCase):
     )
 
     template = run_sql
+
+# ------------------------------------------------------------------------
+
+class LinregrInputTestCase2 (MADlibTestCase):
+    """
+    Run input tests
+    """
+    # ----------------------------------------------------------------
+    # These class variable names are hard-coded and used by
+    # template/madlib_test.py.
+    # One should not change them
+    # It is possible to make them un-hard-coded
+    # But that does not seem to bring us much.
+    # ----------------------------------------------------------------
+    sql_dir = "sql_input2"
+    out_dir = "result_input2"
+    ans_dir = "expected_input2"
+
+    template_method = "linregr_input_test_{incr_}"
+    template_doc = "Use NULL values in tests"
+
+    template = """
+               select {schema_madlib}.linregr_train(
+                   {dataset},
+                   '{tbl_output}',
+                   {y}, {x},
+                   NULL,
+                   {hetero});
+               select coef from {tbl_output};
+               drop table if exists {tbl_output};
+               """
+
+    template_vars = dict(
+        tbl_output = "__madlib_temp_40418089_1365619947_6556506__",
+        dataset = ["'" + MADlibTestCase.schema_testing + ".lin_auto_mpg_oi'",
+                   "'" + MADlibTestCase.schema_testing + ".lin_auto_mpg_wi'",
+                   "NULL"],
+        hetero = ["TRUE", "FALSE", "NULL"],
+        x = "NULL",
+        y = "-1")
+
         
