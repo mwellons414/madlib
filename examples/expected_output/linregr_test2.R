@@ -31,13 +31,13 @@ tincrepo <- Sys.getenv("TINCREPOHOME")
 
 suppressMessages(library(lmtest))
 suppressMessages(library(car))
-source(paste(tincrepo, "/madlib_testsuite/src/r_utils/utils.R", sep = ""))
+source(paste(tincrepo, "/madlib/src/r_utils/utils.R", sep = ""))
 
-sql.path = paste(tincrepo, "/madlib_testsuite/datasets/sql/", sep = "")
+sql.path = paste(tincrepo, "/madlib/datasets/sql/", sep = "")
 data.path = paste(ans.path_, "/data/", sep = "")
 system(paste("rm -rf", data.path))
 system(paste("mkdir", data.path))
-py.path = paste(tincrepo, "/madlib_testsuite/src/r_utils", sep = "")
+py.path = paste(tincrepo, "/madlib/src/r_utils", sep = "")
 
 result.file <- paste(ans.path_, "/linregr_test2.ans", sep = "")
 
