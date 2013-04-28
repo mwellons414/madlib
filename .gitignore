@@ -6,11 +6,10 @@
 data/
 log/
 
-examples/result_output/
-examples/sql_output/
-examples/result_input/
-examples/sql_input/
-examples/expected_input/
+result_output/
+sql_output/
+sql_input/
+result_input/
 examples/result_input2/
 examples/sql_input2/
 examples/expected_input2/
