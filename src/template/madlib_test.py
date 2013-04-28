@@ -13,7 +13,6 @@ from madlib.src.test_utils.get_dbsettings import get_dbsettings
 from madlib.src.test_utils.utils import call_R_script
 from tinctest import TINCTestLoader
 from tinctest.lib import Gpdiff
-import new
 import os
 import re
 import sys
@@ -234,7 +233,6 @@ class MADlibTestCase (MADlibSQLTestCase):
         
         template_vars.update(schema_madlib = cls.db_settings_["schema_madlib"],
                              schema_testing = cls.db_settings_["schema_testing"])
-        skip_file = cls.skip_file
         (skip, skip_name) = cls._get_skip()
             
         assert isinstance(template,str)
