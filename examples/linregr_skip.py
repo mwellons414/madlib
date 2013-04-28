@@ -23,6 +23,21 @@ outskip = [{"dataset":"lin_auto_mpg_oi"},
 
 inskip = [{"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}]
 
+# --------------------------------
+
+def skip_some ():
+    """
+    Use a small function to generate skip list
+    """
+    datasets = ["lin_auto_mpg_oi", "lin_auto_mpg_wi", "lin_fdic_clean"]
+    skip = []
+    for data in datasets:
+        if data != "lin_auto_mpg_oi":
+            skip.append(dict(dataset = data, hetero = "FALSE"))
+    return skip
+
+skip2 = skip_some()
+
 # ------------------------------------------------------------------------
 # We can use the following convention
 # If we use these names in all skip files in different folders,
