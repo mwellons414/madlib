@@ -5,6 +5,7 @@
 *.swp
 data/
 log/
+*.ans
 
 result/
 result_output/

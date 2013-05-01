@@ -28,7 +28,7 @@ pulse = dict(dbname = "madlib",
 demo = dict(dbname = "madlib",
             username = "gpdbchina", # tesing user
             userpwd = None,
-            host = "maddemo.greenplum.com", 
+            host = "maddemo.greenplum.com",
             port = 55000,
             schema_madlib = "madlib",
             schema_testing = "madlibtestdata",
@@ -40,7 +40,7 @@ demo = dict(dbname = "madlib",
             platform = "redhat", # or "mac"
             superuser = "gpdbchina",
             superpwd = None,
-            kind = "greenplum", 
+            kind = "greenplum",
             master_dir = "maybe useful",
             env = "~/.local/bin/gp-remote")
 
@@ -67,7 +67,7 @@ demopg = dict(dbname = "gpdbchina",
 haigp = dict(dbname = "qianh1",
              username = "madlibtester", # tesing user
              userpwd = None,
-             host = "localhost", 
+             host = "localhost",
              port = 14526,
              schema_madlib = "madlib",
              schema_testing = "madlibtestdata",
@@ -77,7 +77,7 @@ haigp = dict(dbname = "qianh1",
              superuser = "qianh1",
              superpwd = None,
              kind = "greenplum", 
-             master_dir = "/Users/qianh1/GPDB/greenplum-db-4.2.5.0-data/master/gpseg-1",
+             master_dir = "/Users/qianh1/gpdb/greenplum-db-4.2.5.0-data/master/gpseg-1",
              env = "/Users/qianh1/.local/bin/gp")
 
 # ------------------------------------------------------------------------
@@ -86,7 +86,7 @@ haigp = dict(dbname = "qianh1",
 haipg = dict(dbname = "qianh1",
              username = "qianh1", # tesing user
              userpwd = None,
-             host = "localhost", 
+             host = "localhost",
              port = 5433,
              schema_madlib = "madlib",
              schema_testing = "madlibtestdata",
@@ -95,7 +95,7 @@ haipg = dict(dbname = "qianh1",
              # Future data loader may have different settings
              superuser = "qianh1",
              superpwd = None,
-             kind = "postgres", 
+             kind = "postgres",
              master_dir = "/Users/qianh1/.pg/pg92_data",
              env = "/Users/qianh1/.local/bin/pg")
 
@@ -117,12 +117,13 @@ swgp = dict(dbname = "yangs16",
              env = "/Users/yangs16/greenplum-db/greenplum_path.sh")
 
 irgp42 = dict(dbname = "madlib-gp42",
-             username = "iyerr3", # tesing user
+             username = "iyerr3", # user
              userpwd = None,
              host = "localhost",
              port = 5435,
-             schema_madlib = "madlib",
-             schema_testing = "madlibtestdata",
+             schema_madlib = "madlib",      # where madlib is installed
+             schema_testing = "madlibtestdata",     # where datasets are placed
+             psql_options = "-x", # PG client options, expended view of result, might be easier to process
              # ------------------------------------------------
              # The following are only for data loader
              # Future data loader may have different settings
@@ -131,4 +132,3 @@ irgp42 = dict(dbname = "madlib-gp42",
              kind = "greenplum",
              master_dir = "/Users/iyerr3/Work/data/gpdb-4.2/master/gpseg-1",
              env = "/Users/iyerr3/.local/gpdb-4.2.4.0/greenplum_path.sh")
-
