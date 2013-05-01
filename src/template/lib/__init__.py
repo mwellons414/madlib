@@ -1,9 +1,6 @@
 from tinctest.lib import PSQL
-from gppylib.commands.base import Command, CommandResult, REMOTE
-from gppylib.commands.gp import GpLogFilter
-import inspect, math, os, time
-import logging, sys
-from time import localtime, strftime
+from gppylib.commands.base import Command
+import os
 
 import tinctest
 

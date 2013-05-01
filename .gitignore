@@ -6,13 +6,16 @@
 data/
 log/
 
+result/
 result_output/
 sql_output/
 sql_input/
 result_input/
-examples/result_input2/
-examples/sql_input2/
-examples/expected_input2/
+examples/linregr/expected_input/
+examples/linregr/result_input2/
+examples/linregr/sql_input2/
+examples/linregr/expected_input2/
+examples/linregr/expected_input/
 
 *.segment_logs
 
@@ -20,3 +23,7 @@ datasets/sql/*.*
 datasets/download/*.*
 
 /pygresql
+
+upgrade_home
+examples/upgrade/test_0.6_0.7/*.out
+examples/upgrade/test_0.6_0.7/*.diff

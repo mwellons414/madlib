@@ -1,0 +1,20 @@
+SELECT 'upgrade_madlib.logregr_irls_step(boolean, double precision[], double precision[])'::regprocedure;
+ERROR:  function "upgrade_madlib.logregr_irls_step(boolean, double precision[], double precision[])" does not exist
+LINE 1: SELECT 'upgrade_madlib.logregr_irls_step(boolean, double pre...
+               ^
+SELECT 'upgrade_madlib.logregr_igd_step(boolean, double precision[], double precision[])'::regprocedure;
+ERROR:  function "upgrade_madlib.logregr_igd_step(boolean, double precision[], double precision[])" does not exist
+LINE 1: SELECT 'upgrade_madlib.logregr_igd_step(boolean, double prec...
+               ^
+SELECT 'upgrade_madlib.plda_cword_agg(integer[], integer[], integer, integer, integer)'::regprocedure;
+ERROR:  function "upgrade_madlib.plda_cword_agg(integer[], integer[], integer, integer, integer)" does not exist
+LINE 1: SELECT 'upgrade_madlib.plda_cword_agg(integer[], integer[], ...
+               ^
+SELECT 'upgrade_madlib.plda_sum_int4array_agg(integer[])'::regprocedure;
+ERROR:  function "upgrade_madlib.plda_sum_int4array_agg(integer[])" does not exist
+LINE 1: SELECT 'upgrade_madlib.plda_sum_int4array_agg(integer[])'::r...
+               ^
+SELECT 'upgrade_madlib.logregr_cg_step(boolean, double precision[], double precision[])'::regprocedure;
+ERROR:  function "upgrade_madlib.logregr_cg_step(boolean, double precision[], double precision[])" does not exist
+LINE 1: SELECT 'upgrade_madlib.logregr_cg_step(boolean, double preci...
+               ^

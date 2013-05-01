@@ -1,0 +1,20 @@
+SELECT 'upgrade_madlib.logregr_result'::regtype;
+ERROR:  type "upgrade_madlib.logregr_result" does not exist
+LINE 1: SELECT 'upgrade_madlib.logregr_result'::regtype;
+               ^
+SELECT 'upgrade_madlib.logregr_result'::regtype;
+ERROR:  type "upgrade_madlib.logregr_result" does not exist
+LINE 1: SELECT 'upgrade_madlib.logregr_result'::regtype;
+               ^
+SELECT 'upgrade_madlib.plda_topics_t'::regtype;
+ERROR:  type "upgrade_madlib.plda_topics_t" does not exist
+LINE 1: SELECT 'upgrade_madlib.plda_topics_t'::regtype;
+               ^
+SELECT 'upgrade_madlib.plda_word_distrn'::regtype;
+ERROR:  type "upgrade_madlib.plda_word_distrn" does not exist
+LINE 1: SELECT 'upgrade_madlib.plda_word_distrn'::regtype;
+               ^
+SELECT 'upgrade_madlib.plda_word_weight'::regtype;
+ERROR:  type "upgrade_madlib.plda_word_weight" does not exist
+LINE 1: SELECT 'upgrade_madlib.plda_word_weight'::regtype;
+               ^

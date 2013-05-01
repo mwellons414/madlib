@@ -275,12 +275,12 @@ class MADlibTestCase (MADlibSQLTestCase):
                 # Create the SQL test case file that we are going to run
                 sql_inputfile = os.path.join(sql_dir, methodName + ".sql")
                 with open(sql_inputfile, 'w') as f:
-                    if cls.template_doc == "" or cls.template_doc is None:
+                    if methodDoc == "" or methodDoc is None:
                         f.write("-- @description " + cls.__module__ + "."
                                 + cls.__name__ + "." + methodName + "\n")
                     else:
-                        if isinstance(cls.template_doc, str):
-                            f.write("-- @description " + cls.template_doc + "\n")
+                        if isinstance(methodDoc, str):
+                            f.write("-- @description " + methodDoc + "\n")
                         else:
                             sys.exit("MADlib Test Error: template_doc must be a string in" +
                                      cls.__module__ + "." + cls.__name__)

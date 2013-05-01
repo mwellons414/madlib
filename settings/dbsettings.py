@@ -37,6 +37,7 @@ demo = dict(dbname = "madlib",
             # ------------------------------------------------
             # The following are only for data loader
             # Future data loader may have different settings
+            platform = "redhat", # or "mac"
             superuser = "gpdbchina",
             superpwd = None,
             kind = "greenplum", 
@@ -76,7 +77,7 @@ haigp = dict(dbname = "qianh1",
              superuser = "qianh1",
              superpwd = None,
              kind = "greenplum", 
-             master_dir = "/Users/qianh1/.gp/greenplum-db-4.2.5.0-data/master/gpseg-1",
+             master_dir = "/Users/qianh1/GPDB/greenplum-db-4.2.5.0-data/master/gpseg-1",
              env = "/Users/qianh1/.local/bin/gp")
 
 # ------------------------------------------------------------------------
@@ -98,6 +99,36 @@ haipg = dict(dbname = "qianh1",
              master_dir = "/Users/qianh1/.pg/pg92_data",
              env = "/Users/qianh1/.local/bin/pg")
 
+# Shengwen's GPDB
+swgp = dict(dbname = "yangs16",
+             username = "yangs16", # tesing user
+             userpwd = None,
+             host = "localhost",
+             port = 5432,
+             schema_madlib = "madlib",
+             schema_testing = "madlibtestdata",
+             # ------------------------------------------------
+             # The following are only for data loader
+             # Future data loader may have different settings
+             superuser = "yangs16",
+             superpwd = None,
+             kind = "greenplum",
+             master_dir = "/Users/yangs16/gpdb/master/gpseg-1",
+             env = "/Users/yangs16/greenplum-db/greenplum_path.sh")
 
-
+irgp42 = dict(dbname = "madlib-gp42",
+             username = "iyerr3", # tesing user
+             userpwd = None,
+             host = "localhost",
+             port = 5435,
+             schema_madlib = "madlib",
+             schema_testing = "madlibtestdata",
+             # ------------------------------------------------
+             # The following are only for data loader
+             # Future data loader may have different settings
+             superuser = "iyerr3",
+             superpwd = None,
+             kind = "greenplum",
+             master_dir = "/Users/iyerr3/Work/data/gpdb-4.2/master/gpseg-1",
+             env = "/Users/iyerr3/.local/gpdb-4.2.4.0/greenplum_path.sh")
 

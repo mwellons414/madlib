@@ -1,6 +1,5 @@
-Examples of TINC tests for MADlib
+Examples for MADlib TINC tests:
 
-It has
+./linregr/ includes the Input/Output tests for linear regression with heteroskedasticity
 
-* Linear Regression Output Test
-* Linear Regression Input Test
+./upgrade/ include the test for MADlib upgrade
