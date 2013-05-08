@@ -130,8 +130,9 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         else:
             value = cls.upgrade_dir
             
-        cls_path = os.path.dirname(os.path.realpath(sys.modules[cls.__module__].__file__))
-        target = os.path.join(cls_path, value)
+        # cls_path = os.path.dirname(os.path.realpath(sys.modules[cls.__module__].__file__))
+        # target = os.path.join(cls_path, value)
+        target = os.path.join("/tmp", value) # create folder in /tmp
         if os.path.exists(target):
             return target
         else:
@@ -348,6 +349,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                         sql_dir_tmp = cls.sql_dir_tmp))
  
         cls._init_schema()
+        biprint("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
         cls.sql_dir = cls.sql_dir_tmp
         if cls.create_ans_ is not False: # to create answer
             if cls.create_ans_ == cls.old_version:
@@ -546,7 +548,13 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         """
         # pick the test case specific schema 
         if cls.hosts_file is None or pkg_type != "source":
-            cls._run_madpack(action, install_dir)
+            res = cls._run_madpack(action, install_dir)
+            if re.search(": ERROR :", str(res)) is not None:
+                biprint("\n---------------------------------------------------------")
+                biprint("FAILED: could not " + action + " MADlib")
+                biprint("---------------------------------------------------------\n")
+                biprint("****** MADlib upgrade error: could not " + action + " ******",
+                        sysexit = True)
         else: 
             cls._deploy_on_cluster(action, install_dir)
 

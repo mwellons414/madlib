@@ -23,7 +23,7 @@ class UpgradeTestCase_06_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib" 
-    upgrade_dir = "upgrade_home" 
+    # upgrade_dir = "upgrade_home" 
 
 # ------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ class UpgradeTestCase_05_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib" 
-    upgrade_dir = "upgrade_home" 
+    # upgrade_dir = "upgrade_home" 
 
 # ----------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ class UpgradeTestCase_06_07_gppkg (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-1.4-rhel5-x86_64.gppkg"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
+    # upgrade_dir = "upgrade_home"
 
 # ------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ class UpgradeTestCase_05_07_gppkg (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-1.4-rhel5-x86_64.gppkg"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
+    # upgrade_dir = "upgrade_home"
 
 # ------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ class UpgradeTestCluster_06_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
+    # upgrade_dir = "upgrade_home"
     hosts_file = "/data/hai/hosts"
 
 # ------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class UpgradeTestCluster_05_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
+    # upgrade_dir = "upgrade_home"
     hosts_file = "/data/hai/hosts"
 
 # ------------------------------------------------------------------------
