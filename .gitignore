@@ -6,6 +6,7 @@
 data/
 log/
 *.ans
+settings/dbsettings.py
 
 result/
 result_output/

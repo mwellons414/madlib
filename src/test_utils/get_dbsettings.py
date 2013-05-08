@@ -3,6 +3,10 @@ import madlib.settings.dbsettings
 import os
 import sys
 
+# All values are decided by environment variables
+# and default values of psql
+db_default = dict()
+
 # ----------------------------------------------------------------
 
 def get_dbsettings (class_name):
@@ -40,7 +44,7 @@ def get_dbsettings (class_name):
                   """)
             sys.exit(1)
     else:
-        user_set = madlib.settings.dbsettings.default
+        user_set = db_default # madlib.settings.dbsettings.default
         
     for key in user_set.keys():
         db[key] = user_set[key]

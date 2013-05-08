@@ -3,15 +3,18 @@
 # Upgrade test for MADlib
 # ------------------------------------------------------------------------
 
+from madlib.src.template.gpmad import gpmad
 from madlib.src.template.madlib_test import MADlibTestCase
 from madlib.src.template.lib import PSQL1
 from madlib.src.test_utils.get_dbsettings import get_dbsettings
 from madlib.src.test_utils.utils import unique_string
+from madlib.src.test_utils.utils import execute_cmd
+from madlib.src.test_utils.utils import biprint
 from tinctest.lib import Gpdiff
 import tinctest
 from tinctest import logger
 from gppylib.db import dbconn
-from gppylib.commands.base import Command
+# from gppylib.commands.base import Command
 import urllib
 import shutil
 import os
@@ -58,12 +61,19 @@ class MADlibUpgradeTestCase (MADlibTestCase):
     skip = []
     create_ans_ = False
 
-    upgrade_dir = "upgrade_home"
+    upgrade_dir = unique_string() # "upgrade_home"
 
     # the current working dir
-    working_dir = os.path.abspath(".")
+    working_dir = os.path.realpath(".")
 
     test_count = 0
+
+    rpmdb_exists = False # Does RPM db already exist?
+
+    # versions that do not support upgrade
+    older_versions = ["0.5", "0.6"]
+
+    cleanup = True # clean all intermediate folders
 
     # ----------------------------------------------------------------
 
@@ -79,8 +89,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
 
         if ((cls.old_pkg_type not in cls.allowed_pkg_type) or
             (cls.new_pkg_type not in cls.allowed_pkg_type)):
-            print("****** MADlib upgrade error: package type is not supported! ******")
-            sys.exit("****** package type must be source, rpm or gppkg! ******")
+            biprint("****** MADlib upgrade error: package type is not supported! ******")
+            biprint("****** package type must be source, rpm or gppkg! ******", sysexit = True)
 
     # ----------------------------------------------------------------
 
@@ -94,11 +104,11 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         if os.environ.has_key("CREATE_ANS"):
             value = os.environ.get("CREATE_ANS")
             if value != cls.old_version and value != cls.new_version:
-                sys.exit("****** MADlib upgrade test error: " +
-                         cls.__module__ + "." + cls.__name__ +
-                         " can only create answers for versions of " +
-                         cls.old_version + " and " + cls.new_version
-                         + " ******")
+                biprint("****** MADlib upgrade test error: " +
+                        cls.__module__ + "." + cls.__name__ +
+                        " can only create answers for versions of " +
+                        cls.old_version + " and " + cls.new_version
+                        + " ******", sysexit = True)
             return value
         else:
             return False
@@ -114,28 +124,24 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         if os.environ.has_key("UPHOME"):
             value = os.environ.get("UPHOME")
             if os.path.exists("./" + value):
-                return os.path.abspath("./" + value)
+                return os.path.realpath("./" + value)
             elif os.path.exists(value):
-                return os.path.abspath(value)
+                return os.path.realpath(value)
         else:
             value = cls.upgrade_dir
             
-        cls_path = os.path.dirname(os.path.abspath(sys.modules[cls.__module__].__file__))
+        cls_path = os.path.dirname(os.path.realpath(sys.modules[cls.__module__].__file__))
         target = os.path.join(cls_path, value)
         if os.path.exists(target):
             return target
         else:
             try:
-                # os.system("mkdir {target}".format(target = target))
-                cmd = Command(name = "mkdir target",
-                              cmdStr = "mkdir {target}".format(target = target))
-                logger.info("Create the previously non-existing upgrade_home folder ...")
-                cmd.run(validateAfter = False)
-                result = cmd.get_results()
-                logger.info("Output - %s" %result)
+                execute_cmd(name = "mkdir target ...",
+                            cmdStr = "mkdir {target}".format(target = target))
                 return target
             except:
-                sys.exit("****** MADlib Upgrade Error: no such directory for installing MADlib! ******")
+                biprint("****** MADlib Upgrade Error: no such directory for installing MADlib! ******",
+                        sysexit = True)
 
             
     # ----------------------------------------------------------------
@@ -159,26 +165,27 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                 # check_md5sum (install_file, version)
             else:
                 cls.tearDown(True)
-                sys.exit("****** MADlib Upgrade Error: no such package type (only 'rpm', 'gppkg' and 'source')! ******")
+                biprint("****** MADlib Upgrade Error: no such package type (only 'rpm', 'gppkg' and 'source')! ******",
+                        sysexit = True)
         else:
-            if target_dir != os.path.abspath(os.path.dirname(file_location)):
+            if target_dir != os.path.realpath(os.path.dirname(file_location)):
                 try:
                     os.system("cp " + file_location + " " + target_dir)
                     install_file = os.path.join(target_dir,
                                                 os.path.basename(file_location))
                 except:
                     cls.tearDown(True)
-                    sys.exit(file_location + " does not exist!")
+                    biprint(file_location + " does not exist!", sysexit = True)
             else:
                 install_file = file_location
 
-        return cls._unzip_download_and_install(install_file, pkg_type, target_dir)
+        return cls._unzip_download_and_install(version, install_file, pkg_type, target_dir)
 
     # ----------------------------------------------------------------
 
     # uncompress MADlib package and install at /usr/local/madlib
     @classmethod
-    def _unzip_download_and_install (cls, install_file, pkg_type, target_dir):
+    def _unzip_download_and_install (cls, version, install_file, pkg_type, target_dir):
         target_dir = os.path.dirname(install_file)
         if pkg_type == "source":
             logger.info("Untar source package ...")
@@ -191,54 +198,97 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                     dir_name = os.listdir(".")[0]
                     os.chdir(dir_name)
 
-                cmd = Command(name = "Build MADlib",
-                              cmdStr = "./configure")
-                logger.info("Building MADlib ...")
-                cmd.run(validateAfter = False)
-                result = cmd.get_results()
-                logger.info("""
-                            -------------------------- Output ------------------------- 
-                            %s
-                            """ % result)
+                install_dir = cls.upgrade_dir + "/local"
+                os.system("mkdir -p " + install_dir)
+                execute_cmd(name = "Build MADlib ...",
+                            cmdStr = "./configure -DCMAKE_INSTALL_PREFIX="
+                            + install_dir + "/madlib")
 
                 if cls.eigen_pkg is not None:
                     os.system("cp " + cls.eigen_pkg + " build/third_party/downloads/")
-                cmd = Command(name = "Continue building",
-                              cmdStr = "cd build; make")
-                cmd.run(validateAfter = False)
-                result = cmd.get_results()
-                logger.info("""
-                            %s
-                            -----------------------------------------------------------
-                            """ % result)
+                execute_cmd(name = "Continue building ...",
+                            cmdStr = "cd build; make; make install")
                 
-                install_dir = os.path.abspath("./build/src")
+                install_dir += "/madlib"
                 os.chdir(cls.working_dir)
             except:
                 cls.tearDown(True)
-                sys.exit("****** MADlib Upgrade Error: cannot uncompress the tar.gz source package! ******")
+                biprint("****** MADlib Upgrade Error: cannot uncompress the tar.gz source package! ******",
+                        sysexit = True)
         elif pkg_type == "rpm":
-            logger.info("Uncompress RPM package ...")
+            if not cls.rpmdb_exists:
+                logger.info("Initialize the local RPM database ...")
+                os.system("rm -rf " + cls.upgrade_dir + "/local/lib/rpm; mkdir -p "
+                          + cls.upgrade_dir + "/local/lib/rpm")
+                execute_cmd(name = "Initialize local RPM database on master ...",
+                            cmdStr = "rpm --initdb --root " + cls.upgrade_dir
+                            + "/local --dbpath lib/rpm")
+                if cls.hosts_file is not None:
+                    execute_cmd(name = "Initialize local RPM database on hosts ...",
+                                cmdStr =
+                                """
+                                gpssh -f {hosts_file} <<EOF
+                                    rm -rf {upgrade_dir}/local/lib/rpm;
+                                    mkdir -p {upgrade_dir}/local/lib/rpm;
+                                    rpm --initdb --root {upgrade_dir}/local --dbpath lib/rpm;
+                                EOF
+                                """.format(upgrade_dir = cls.upgrade_dir,
+                                           hosts_file = cls.hosts_file))
+                cls.rpmdb_exists = True
+                
+            logger.info("Installing RPM package ...")
+            if version[0:3] in cls.older_versions:
+                extra_prefix = "madlib/ "
+            else:
+                extra_prefix = " "
             try:
                 os.chdir(target_dir)
-                cmd = Command(name = "Expand RPM package",
-                              cmdStr = "rpm2cpio " + install_file +
-                              " | cpio -idmv")
-                logger.info("Uncompress RPM package ...")
-                cmd.run(validateAfter = False)
-                result = cmd.get_results()
-                logger.info("""
-                    ----------------------- Output --------------------- 
-                    %s
-                    ----------------------------------------------------
-                    """ % result)
-                install_dir = os.path.join(target_dir,
-                                           "usr/local/madlib")
+                execute_cmd(name = "Installing RPM package on master...",
+                            cmdStr = "rpm --root " + cls.upgrade_dir +
+                            "/local --dbpath lib/rpm -i --nodeps --prefix=" + cls.upgrade_dir +
+                            "/local/" + extra_prefix + install_file)
+                
+                if cls.hosts_file is not None: # may need to install on hosts
+                    execute_cmd(name = "Create fodler on hosts ...",
+                                cmdStr =
+                                """
+                                gpssh -f {hosts_file} <<EOF
+                                    rm -rf {target_dir};
+                                    mkdir -p {target_dir};
+                                EOF                                
+                                """.format(hosts_file = cls.hosts_file,
+                                           target_dir = target_dir))
+                    execute_cmd(name = "Scp RPM package to hosts ...",
+                                cmdStr =
+                                """
+                                gpscp -f {hosts_file} {install_file} '=:{target_dir}'
+                                """.format(hosts_file = cls.hosts_file,
+                                           install_file = install_file,
+                                           target_dir = target_dir))
+                    execute_cmd(name = "Installing RPM package on hosts ...",
+                                cmdStr =
+                                """
+                                gpssh -f {hosts_file} <<EOF
+                                    rpm --root {upgrade_dir}/local --dbpath lib/rpm -i --nodeps --prefix={upgrade_dir}/local/{extra_prefix}{install_file}
+                                EOF
+                                """.format(upgrade_dir = cls.upgrade_dir,
+                                           hosts_file = cls.hosts_file,
+                                           extra_prefix = extra_prefix,
+                                           install_file = install_file))
+                    
+                install_dir = os.path.join(cls.upgrade_dir, "local/madlib")
             except:
                 cls.tearDown(True)
-                sys.exit("****** MADlib Upgrade Error: cannot install the .rpm binary packages! ******")
+                biprint("****** MADlib Upgrade Error: cannot install the .rpm binary packages! ******",
+                        sysexit = True)
         elif pkg_type == "gppkg":
-            install_dir = install_file
+            gphome = os.environ.get("GPHOME")
+            if version[0:3] in cls.older_versions:
+                install_dir = gphome
+            else:
+                install_dir = gphome + "/madlib"
+            execute_cmd(name = "Installing gppkg package ...",
+                        cmdStr = "gppkg -i " + install_file)
 
         return install_dir
             
@@ -255,6 +305,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         tinctest.TINCTestLoader.testMethodPrefix = cls.sql_prefix
 
         cls.cwd = os.getcwd() # current working dir
+
+        cls.cleanup = cls._get_env_flag("CLEANUP", cls.cleanup)
         
         cls.create_ans_ = cls._get_ans_version()
 
@@ -267,7 +319,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         (skip, skip_name) = cls._get_skip()
 
         cls.source_file = sys.modules[cls.__module__].__file__
-        source_dir = os.path.dirname(os.path.abspath(cls.source_file))
+        source_dir = os.path.dirname(os.path.realpath(cls.source_file))
         cls.load_dir = os.path.join(source_dir, cls.load_dir)
         cls.sql_dir = os.path.join(source_dir, cls.sql_dir)
         # use sql_dir_tmp for test case files
@@ -309,61 +361,61 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                 file_location = cls.new_file_location
                 target_dir = cls.new_target_dir
             source_name = file_location if file_location is not None else download_link
-            print("* Fetching and installing MADlib " + cls.create_ans_
+            biprint("* Fetching and installing MADlib " + cls.create_ans_
                   + " from " + source_name  + " ......")
             install_dir = cls._install_MADlib(cls.create_ans_, target_dir,
                                               pkg_type,
                                               download_link, file_location)
-            print("* Deploying MADlib " + cls.create_ans_ + " onto database " +
+            biprint("* Deploying MADlib " + cls.create_ans_ + " onto database " +
                   cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
                   + " ......")
             cls._deploy_MADlib("install", install_dir, pkg_type)
-            print("* Loading data structure ......")
+            biprint("* Loading data structure ......")
             cls._run_load() # load the testing data structure
             # output answer files
-            print("* Generating answer files ......")
+            biprint("* Generating answer files ......")
             tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
         else:
             # first install the old version
             source_name = cls.old_file_location if cls.old_file_location \
                           is not None else cls.old_download_link
-            print("* Fetching and installing MADlib " + cls.old_version
+            biprint("* Fetching and installing MADlib " + cls.old_version
                   + " from " + source_name + " ......")
             install_dir = cls._install_MADlib(cls.old_version,
                                               cls.old_target_dir,
                                               cls.old_pkg_type,
                                               cls.old_download_link,
                                               cls.old_file_location)
-            print("* Deploying MADlib " + cls.old_version + " onto database " +
+            biprint("* Deploying MADlib " + cls.old_version + " onto database " +
                   cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
                   + " ......")
             cls._deploy_MADlib("install", install_dir, cls.old_pkg_type)
-            print("* Loading data structure ......")
+            biprint("* Loading data structure ......")
             cls._run_load() # load the testing data structure
 
             # upgrade to the newer version
             source_name = cls.new_file_location if cls.new_file_location \
                           is not None else cls.new_download_link
-            print("* Fetching and installing MADlib " + cls.new_version
+            biprint("* Fetching and installing MADlib " + cls.new_version
                   + " from " + source_name + " ......")
             install_dir = cls._install_MADlib(cls.new_version,
                                               cls.new_target_dir,
                                               cls.new_pkg_type,
                                               cls.new_download_link,
                                               cls.new_file_location)
-            print("* Upgrading MADlib to " + cls.new_version + " on database " +
+            biprint("* Upgrading MADlib to " + cls.new_version + " on database " +
                   cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
                   + " ......")            
             cls._deploy_MADlib("upgrade", install_dir, cls.new_pkg_type)
-            sys.stdout.write("* Checking the version of MADlib ......")
+            biprint("* Checking the version of MADlib ......", syswrite = True)
             sys.stdout.flush()
             cls._check_upgraded_version()
-            sys.stdout.write("* Running MADlib install-check for the new version ......")
+            biprint("* Running MADlib install-check for the new version ......", syswrite = True)
             sys.stdout.flush()
             cls._run_installcheck(install_dir)
             # call the super class of MADlibTestCase
             # not the super class of this class
-            print("* Generating result files and comparing with the answer files ......")
+            biprint("* Generating result files and comparing with the answer files ......")
             tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
 
         cls.test_num = len(tests)
@@ -396,7 +448,14 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                               port = db["port"],
                               PGOPTIONS = db["pg_options"],
                               psql_options = db["psql_options"])
-        os.system("rm -rf " + cls.upgrade_dir)        
+        os.system("rm -rf " + cls.upgrade_dir)
+        
+        if cls.old_pkg_type == "gppkg":
+            execute_cmd(name = "gppkg removing old package ...",
+                        cmdStr = "gppkg -r " + gpmad[cls.old_version[0:3]])
+        if cls.new_pkg_type == "gppkg":
+            execute_cmd(name = "gppkg removing new package ...",
+                        cmdStr = "gppkg -r " + gpmad[cls.new_version[0:3]])
         
     # ----------------------------------------------------------------
 
@@ -426,17 +485,18 @@ class MADlibUpgradeTestCase (MADlibTestCase):
             return None
 
         if os.path.exists("./" + value):
-            return os.path.abspath("./" + value)
+            return os.path.realpath("./" + value)
         elif os.path.exists(value):
-            return os.path.abspath(value)
+            return os.path.realpath(value)
         
-        cls_path = os.path.dirname(os.path.abspath(sys.modules[cls.__module__].__file__))
+        cls_path = os.path.dirname(os.path.realpath(sys.modules[cls.__module__].__file__))
         target = os.path.join(cls_path, value)
         if os.path.exists(target):
             return target
         else:
             cls.tearDown(True)
-            sys.exit("****** MADlib upgrade error: no such hosts file! ******")
+            biprint("****** MADlib upgrade error: no such hosts file! ******",
+                    sysexit = True)
 
     # ----------------------------------------------------------------
 
@@ -446,8 +506,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         logger.info("Downloading binary ...")
         if download_link is None:
             cls.tearDown(True)
-            sys.exit("****** MADlib Upgrade Error: Please provide the download link for MADlib " +
-                     version + " ******")
+            biprint("****** MADlib Upgrade Error: Please provide the download link for MADlib " +
+                    version + " ******", sysexit = True)
             
         filename = download_link.split("/")[-1]
         urllib.urlretrieve(download_link, target_dir + "/" + filename)
@@ -465,8 +525,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         logger.info("Downloading source ...")
         if download_link is None:
             cls.tearDown(True)
-            sys.exit("****** MADlib Upgrade Error: Please provide the download link for MADlib " +
-                     version + " ******")
+            biprint("****** MADlib Upgrade Error: Please provide the download link for MADlib " +
+                    version + " ******", sysexit = True)
         #    download_link = "https://github.com/madlib/madlib/tarball/v" \
         #            + version + "/"
 
@@ -485,25 +545,10 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         Deploy the MADlib onto the DBMS
         """
         # pick the test case specific schema 
-        if cls.hosts_file is None:
-            if pkg_type != "gppkg":
-                cls._run_madpack(action, install_dir)
-            else:
-                gppkg_file = install_dir # the file
-                #opt = "-i" if action == "install" else "-u"
-                opt = "-i"
-                cmd = Command(name = "Installing gppkg for MADlib",
-                              cmdStr = "gppkg " + opt + " " + gppkg_file)
-                logger.info("Deploying MADlib onto database ...")
-                cmd.run(validateAfter = False)
-                result = cmd.get_results()
-                logger.info("""
-                    ------------------------- Output ----------------------
-                    %s
-                    -------------------------------------------------------
-                    """ % result)
+        if cls.hosts_file is None or pkg_type != "source":
+            cls._run_madpack(action, install_dir)
         else: 
-            cls._deploy_on_cluster(action, install_dir, pkg_type)
+            cls._deploy_on_cluster(action, install_dir)
 
     # ----------------------------------------------------------------
 
@@ -515,35 +560,30 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         db = cls.db_settings_
         if db["superpwd"] is None:
             superpwd = ""
-        cmd = Command(name = "Deploy MADlib",
-                      cmdStr = "{install_dir}/bin/madpack -p {kind} \
-                      -s {schema_upgrade} -c {superuser}/{superpwd}@localhost:{port}/{dbname} {action}".format(
-                          install_dir = install_dir,
-                          kind = db["kind"],
-                          schema_upgrade = cls.schema_upgrade,
-                          superuser = db["superuser"],
-                          superpwd = superpwd,
-                          port = db["port"],
-                          dbname = db["dbname"],
-                          action = action))
-        logger.info("Deploying MADlib onto the testing database ...")
-        cmd.run(validateAfter = False)
-        result = cmd.get_results()
-        logger.info("""
-                    ----------------------- Output --------------------- 
-                    %s
-                    ----------------------------------------------------
-                    """ % result)
+        result = execute_cmd(name = "Deploy MADlib ...",
+                             cmdStr = "{install_dir}/bin/madpack -p {kind} \
+                             -s {schema_upgrade} -c {superuser}/{superpwd}@localhost:{port}/{dbname} {action}".format(
+                                 install_dir = install_dir,
+                                 kind = db["kind"],
+                                 schema_upgrade = cls.schema_upgrade,
+                                 superuser = db["superuser"],
+                                 superpwd = superpwd,
+                                 port = db["port"],
+                                 dbname = db["dbname"],
+                                 action = action))
         return result
     
     # ----------------------------------------------------------------
 
     @classmethod
-    def tearDown (cls, cleanup = False):
+    def tearDown (cls, goahead = False):
         """
         After the test, remove MADlib installation
         """
-        if cleanup is False:
+        if cls.cleanup is False:
+            return
+            
+        if goahead is False:
             if cls.old_version is None:
                 return
             cls.test_count += 1
@@ -562,8 +602,24 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                               port = db["port"],
                               PGOPTIONS = db["pg_options"],
                               psql_options = db["psql_options"])
-        os.system("rm -rf " + cls.upgrade_dir)
+        
         os.system("rm -rf " + cls.sql_dir_tmp)
+        os.system("rm -rf " + cls.upgrade_dir)
+        if cls.hosts_file is None:
+            if cls.old_pkg_type == "gppkg":
+                execute_cmd(name = "gppkg removing old package ...",
+                            cmdStr = "gppkg -r " + gpmad[cls.old_version[0:3]])
+            if cls.new_pkg_type == "gppkg":
+                execute_cmd(name = "gppkg removing new package ...",
+                            cmdStr = "gppkg -r " + gpmad[cls.new_version[0:3]])
+        else:
+            execute_cmd(name = "Removing intermediate folder on hosts ...",
+                        cmdStr = """
+                        gpssh -f {hosts_file} << EOF
+                            rm -rf {upgrade_dir}
+                        EOF
+                        """.format(hosts_file = cls.hosts_file,
+                                 upgrade_dir = cls.upgrade_dir))
         
     # ----------------------------------------------------------------
 
@@ -578,7 +634,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         logger.info("Running workload ...")
         for f in os.listdir(cls.load_dir):
             if f.endswith(".sql") and f.startswith(cls.load_prefix):
-                sys.stdout.write("  -- loading " + f + " ...... ")
+                biprint("  -- loading " + f + " ...... ", syswrite = True)
                 res =  PSQL1.run_sql_file(sql_file = cls.load_dir + "/"
                                           + f,
                                           dbname = db["dbname"],
@@ -590,10 +646,10 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                                           psql_options = db["psql_options"],
                                           output_to_file = False)
                 if res:
-                    sys.stdout.write("ok\n")
+                    biprint("ok\n", syswrite = True)
                 else:
                     cls.tearDown(True)
-                    sys.exit("\n****** MADlib upgrade error: cannot load " + f + " ******")
+                    biprint("\n****** MADlib upgrade error: cannot load " + f + " ******", sysexit = True)
          
     # ----------------------------------------------------------------
 
@@ -624,7 +680,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         if self.__class__.create_ans_:
             shutil.copyfile(sql_resultfile, ans_file)
             os.remove(sql_resultfile)
-            print "Answer file was created"
+            biprint ("Answer file was created")
             return True
 
         return self.validate(sql_resultfile, ans_file)
@@ -646,17 +702,27 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                 row = dbconn.execSQLForSingleton(conn, query)
                 version_str = row.split(" ").pop(2).strip(",")
             if version_str == cls.new_version:
-                sys.stdout.write(" ok\n")
-                print("\n---------------------------------------------------------")
-                print("Successfully upgraded MADlib version from "
+                biprint(" ok\n", syswrite = True)
+                biprint("\n---------------------------------------------------------")
+                biprint("Successfully upgraded MADlib version from "
                       + cls.old_version + " to " + cls.new_version)
-                print("---------------------------------------------------------\n")
+                biprint("---------------------------------------------------------\n")
+            else:
+                biprint(" FAIL\n", syswrite = True)
+                biprint("\n---------------------------------------------------------")
+                biprint("FAILED: could not upgrade MADlib version from "
+                      + cls.old_version + " to " + cls.new_version)
+                biprint("---------------------------------------------------------\n")
+                cls.tearDown(True)
+                biprint("****** MADlib upgrade error: could not upgrade from "
+                         + cls.old_version
+                         + " to " + cls.new_version + " ******", sysexit = True)
         except:
-            sys.stdout.write(" FAIL\n")
+            biprint(" FAIL\n", syswrite = True)
             cls.tearDown(True)
-            sys.exit("****** MADlib upgrade error: could not upgrade from "
+            biprint("****** MADlib upgrade error: could not upgrade from "
                      + cls.old_version
-                     + " to " + cls.new_version + " ******")
+                     + " to " + cls.new_version + " ******", sysexit = True)
 
     # ----------------------------------------------------------------
 
@@ -668,74 +734,54 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         t1 = datetime.datetime.now()
         res = cls._run_madpack("install-check", install_dir)
         t2 = datetime.datetime.now()
-        sys.stdout.write(" %ss ......" %
-                         str(int(t2.strftime('%s')) - int(t1.strftime('%s'))))
-        if re.search("\|FAIL\|", str(res)) is not None:
-            sys.stdout.write(" FAIL\n")
-            print("\n---------------------------------------------------------")
-            print("FAILED: The install-check of new version " + cls.new_version)
-            print("        Please see the log file for details.")
-            print("---------------------------------------------------------\n")
+        dt = int(t2.strftime('%s')) - int(t1.strftime('%s'))
+        biprint(" %ss ......" % str(dt), syswrite = True)
+        if re.search("\|FAIL\|", str(res)) is not None or dt == 0:
+            biprint(" FAIL\n", syswrite = True)
+            biprint("\n---------------------------------------------------------")
+            biprint("FAILED: The install-check of new version " + cls.new_version)
+            biprint("        Please see the log file for details.")
+            biprint("---------------------------------------------------------\n")
         else:
-            sys.stdout.write(" ok\n")
-            print("\n---------------------------------------------------------")
-            print("PASSED: The install-check of new version " + cls.new_version)
-            print("---------------------------------------------------------\n")
+            biprint(" ok\n", syswrite = True)
+            biprint("\n---------------------------------------------------------")
+            biprint("PASSED: The install-check of new version " + cls.new_version)
+            biprint("---------------------------------------------------------\n")
         
     # ----------------------------------------------------------------
 
     @classmethod
-    def _deploy_on_cluster (cls, action, install_dir, pkg_type):
+    def _deploy_on_cluster (cls, action, install_dir):
         """
         Deploy MADlib on a cluster
-        """
-        if cls.hosts_file is None:
-            cls.tearDown(True)
-            sys.exit("****** MADlib upgrade error: please specify the hosts file! ******")
-        
+        """        
         db = cls.db_settings_
         os.chdir(install_dir + "/..")
 
-        folder = "src" if pkg_type == "source" else "madlib"
-        
-        cmd = Command(name = "Distributing MADlib package", cmdStr =
+        execute_cmd(name = "Distributing MADlib package ...", cmdStr =
             """
-            cp -r {folder} madlib_compiled;   
-            tar czf madlib_compiled.tar.gz madlib_compiled;
+            tar czf madlib.tar.gz madlib;
             gpssh -f {hosts_file} <<EOF
                 rm -rf $(pwd)
                 mkdir -p $(pwd)
             EOF
-            """.format(hosts_file = cls.hosts_file, folder = folder))
-        logger.info("Distributing MADlib package")
-        cmd.run(validateAfter = False)
-        result = cmd.get_results()
-        logger.info("""
-                    ------------------------- Output ----------------------
-                    %s                    
-                    """ % result)
+            """.format(hosts_file = cls.hosts_file))
         # ------------------------------------------------
-        cmd = Command(name = "Scp package to hosts",
+        execute_cmd(name = "Scp package to hosts ...",
                       cmdStr = 'gpscp -f {hosts_file} \
-                      madlib_compiled.tar.gz "=:$(pwd)"'.format(hosts_file = cls.hosts_file))
-        cmd.run(validateAfter = False)
-        result = cmd.get_results()
-        logger.info("%s" % result)
+                      madlib.tar.gz "=:$(pwd)"'.format(hosts_file = cls.hosts_file))
         # ------------------------------------------------
-        cmd = Command(name = "Expand the epackage", cmdStr =
+        execute_cmd(name = "Expand the epackage ...", cmdStr =
             """
             gpssh -f {hosts_file} <<EOF
                 cd $(pwd);
-                tar zxf madlib_compiled.tar.gz;
-                rm madlib_compiled.tar.gz;
+                tar zxf madlib.tar.gz;
+                rm madlib.tar.gz;
             EOF
             """.format(hosts_file = cls.hosts_file))
-        cmd.run(validateAfter = False)
-        result = cmd.get_results()
-        logger.info("%s" % result)
         # ------------------------------------------------
-        cmd = Command(name = "Deploy on GPDB cluster",
-                      cmdStr = "cd madlib_compiled/; \
+        execute_cmd(name = "Deploy on GPDB cluster ...",
+                      cmdStr = "cd madlib/; \
                       ./bin/madpack -p greenplum -c \
                       {superuser}/{superpwd}@localhost:{port}/{db}\
                       -s {schema_upgrade} \
@@ -745,14 +791,6 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                                        db = db["dbname"],
                                        schema_upgrade = cls.schema_upgrade,
                                        action = action))
-        logger.info("Deploying MADlib onto GPDB cluster ...")
-        cmd.run(validateAfter = False)
-        result = cmd.get_results()
-        logger.info("""
-                    ------------------------- Output ----------------------
-                    %s
-                    -------------------------------------------------------
-                    """ % result)
 
     # ----------------------------------------------------------------------
 
@@ -761,4 +799,4 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         default validate function is a simple file diff
         """
         return Gpdiff.are_files_equal(outfile, ansfile)
-                     
+

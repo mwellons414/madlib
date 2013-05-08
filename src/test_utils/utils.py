@@ -2,7 +2,8 @@
 """
 Some utilities
 """
-
+from gppylib.commands.base import Command
+from tinctest import logger
 import re
 import os
 import sys
@@ -153,5 +154,42 @@ def mean_squared_error (vec1, vec2):
         sys.exit("Utility Error: mean_squared_error - cannot comput!")
     return sum / float(len(vec1))
 
+# ------------------------------------------------------------------------
 
+def execute_cmd (name, cmdStr):
+    """
+    Execute a command with proper log info
+    """
+    logger.info(
+        """
+        ---------------------------- Run command -----------------------
+        %s
+        ----------------------------------------------------------------
+        """ % cmdStr)
+    cmd = Command(name = name, cmdStr = cmdStr)
+    logger.info("\n" + name + "\n")
+    cmd.run(validateAfter = False)
+    res = cmd.get_results()
+    logger.info(
+        """
+        ---------------------------- Output -----------------------
+        %s
+        -----------------------------------------------------------
+        """ % res)
+    return res
 
+# ------------------------------------------------------------------------
+
+def biprint (info, syswrite = False, sysexit = False):
+    """
+    Print to both logger and std
+    """
+    logger.info("================================================================\n")
+    logger.info(info + "\n")
+    logger.info("================================================================\n")
+    if syswrite:
+        sys.stdout.write(info)
+    else:
+        print(info)
+    if sysexit:
+        sys.exit()

@@ -68,7 +68,7 @@ class MADlibTestCase (MADlibSQLTestCase):
     # -----------------------------------------------------------------
 
     @classmethod
-    def _get_env_flag (cls, flag):
+    def _get_env_flag (cls, flag, origin = False):
         """
         Get the environment variable for
         creating case or answer file
@@ -78,7 +78,10 @@ class MADlibTestCase (MADlibSQLTestCase):
             if (value == "t" or value == "true" or
                 value == "yes" or value == "y"):
                 return True
-        return False
+            elif (value == "f" or value == "false" or
+                  value == "n" or value == "no"):
+                return False
+        return origin
 
     # -----------------------------------------------------------------
 

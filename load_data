@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+cd $(dirname $0)
+python src/data_loader/loadingManager.py

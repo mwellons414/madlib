@@ -1,3 +1,5 @@
 All system settings
 
 * Database settings in ./dbsettings.py
+
+However, we just track dbsettings.py.example, so that everyone can has his own version of dbsettings.py
