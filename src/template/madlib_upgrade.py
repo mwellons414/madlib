@@ -75,6 +75,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
 
     cleanup = True # clean all intermediate folders
 
+    already_tearDown = False
+
     # ----------------------------------------------------------------
 
     @classmethod
@@ -347,85 +349,98 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                     execute_cmd("Run command ...", "cp {sql_dir}/{fs} {sql_dir_tmp}/".format(
                         sql_dir = cls.sql_dir, fs = fs,
                         sql_dir_tmp = cls.sql_dir_tmp))
- 
-        cls._init_schema()
-        if cls.cleanup is False:
-            biprint("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
-        else:
-            print("\n")
-            logger.info("============================================================\n")
-            logger.info("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
-            logger.info("============================================================\n")
-            
-        cls.sql_dir = cls.sql_dir_tmp
-        if cls.create_ans_ is not False: # to create answer
-            if cls.create_ans_ == cls.old_version:
-                pkg_type = cls.old_pkg_type
-                download_link = cls.old_download_link
-                file_location = cls.old_file_location
-                target_dir = cls.old_target_dir
-            else:
-                pkg_type = cls.new_pkg_type
-                download_link = cls.new_download_link
-                file_location = cls.new_file_location
-                target_dir = cls.new_target_dir
-            source_name = file_location if file_location is not None else download_link
-            biprint("* Fetching and installing MADlib " + cls.create_ans_
-                  + " from " + source_name  + " ......")
-            install_dir = cls._install_MADlib(cls.create_ans_, target_dir,
-                                              pkg_type,
-                                              download_link, file_location)
-            biprint("* Deploying MADlib " + cls.create_ans_ + " onto database " +
-                  cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
-                  + " ......")
-            cls._deploy_MADlib("install", install_dir, pkg_type)
-            biprint("* Loading data structure ......")
-            cls._run_load() # load the testing data structure
-            # output answer files
-            biprint("* Generating answer files ......")
-            tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
-        else:
-            # first install the old version
-            source_name = cls.old_file_location if cls.old_file_location \
-                          is not None else cls.old_download_link
-            biprint("* Fetching and installing MADlib " + cls.old_version
-                  + " from " + source_name + " ......")
-            install_dir = cls._install_MADlib(cls.old_version,
-                                              cls.old_target_dir,
-                                              cls.old_pkg_type,
-                                              cls.old_download_link,
-                                              cls.old_file_location)
-            biprint("* Deploying MADlib " + cls.old_version + " onto database " +
-                  cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
-                  + " ......")
-            cls._deploy_MADlib("install", install_dir, cls.old_pkg_type)
-            biprint("* Loading data structure ......")
-            cls._run_load() # load the testing data structure
 
-            # upgrade to the newer version
-            source_name = cls.new_file_location if cls.new_file_location \
-                          is not None else cls.new_download_link
-            biprint("* Fetching and installing MADlib " + cls.new_version
-                  + " from " + source_name + " ......")
-            install_dir = cls._install_MADlib(cls.new_version,
-                                              cls.new_target_dir,
-                                              cls.new_pkg_type,
-                                              cls.new_download_link,
-                                              cls.new_file_location)
-            biprint("* Upgrading MADlib to " + cls.new_version + " on database " +
-                  cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
-                  + " ......")            
-            cls._deploy_MADlib("upgrade", install_dir, cls.new_pkg_type)
-            biprint("* Checking the version of MADlib ......", syswrite = True)
-            sys.stdout.flush()
-            cls._check_upgraded_version()
-            biprint("* Running MADlib install-check for the new version ......", syswrite = True)
-            sys.stdout.flush()
-            cls._run_installcheck(install_dir)
-            # call the super class of MADlibTestCase
-            # not the super class of this class
-            biprint("* Generating result files and comparing with the answer files ......")
-            tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
+        try:
+            cls._init_schema()
+            if cls.cleanup is False:
+                biprint("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
+            else:
+                print
+                logger.info("============================================================\n")
+                logger.info("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
+                logger.info("============================================================\n")
+                
+            cls.sql_dir = cls.sql_dir_tmp
+            if cls.create_ans_ is not False: # to create answer
+                if cls.create_ans_ == cls.old_version:
+                    pkg_type = cls.old_pkg_type
+                    download_link = cls.old_download_link
+                    file_location = cls.old_file_location
+                    target_dir = cls.old_target_dir
+                else:
+                    pkg_type = cls.new_pkg_type
+                    download_link = cls.new_download_link
+                    file_location = cls.new_file_location
+                    target_dir = cls.new_target_dir
+                source_name = file_location if file_location is not None else download_link
+                biprint("* Fetching and installing MADlib " + cls.create_ans_
+                      + " from " + source_name  + " ......")
+                print
+                install_dir = cls._install_MADlib(cls.create_ans_, target_dir,
+                                                  pkg_type,
+                                                  download_link, file_location)
+                biprint("* Deploying MADlib " + cls.create_ans_ + " onto database " +
+                      cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
+                      + " ......")
+                print
+                cls._deploy_MADlib("install", install_dir, pkg_type)
+                biprint("* Loading data structure ......")
+                cls._run_load() # load the testing data structure
+                print
+                # output answer files
+                biprint("* Generating answer files ......")
+                tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
+            else:
+                # first install the old version
+                source_name = cls.old_file_location if cls.old_file_location \
+                              is not None else cls.old_download_link
+                biprint("* Fetching and installing MADlib " + cls.old_version
+                      + " from " + source_name + " ......")
+                print
+                install_dir = cls._install_MADlib(cls.old_version,
+                                                  cls.old_target_dir,
+                                                  cls.old_pkg_type,
+                                                  cls.old_download_link,
+                                                  cls.old_file_location)
+                biprint("* Deploying MADlib " + cls.old_version + " onto database " +
+                      cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
+                      + " ......")
+                print
+                cls._deploy_MADlib("install", install_dir, cls.old_pkg_type)
+                biprint("* Loading data structure ......")
+                cls._run_load() # load the testing data structure
+                print
+                # upgrade to the newer version
+                source_name = cls.new_file_location if cls.new_file_location \
+                              is not None else cls.new_download_link
+                biprint("* Fetching and installing MADlib " + cls.new_version
+                      + " from " + source_name + " ......")
+                print
+                install_dir = cls._install_MADlib(cls.new_version,
+                                                  cls.new_target_dir,
+                                                  cls.new_pkg_type,
+                                                  cls.new_download_link,
+                                                  cls.new_file_location)
+                biprint("* Upgrading MADlib to " + cls.new_version + " on database " +
+                      cls.db_settings_["dbname"] + " with schema " + cls.schema_upgrade
+                      + " ......")
+                print
+                cls._deploy_MADlib("upgrade", install_dir, cls.new_pkg_type)
+                biprint("* Checking the version of MADlib ......", syswrite = True)
+                sys.stdout.flush()
+                cls._check_upgraded_version()
+                biprint("* Running MADlib install-check for the new version ......", syswrite = True)
+                sys.stdout.flush()
+                cls._run_installcheck(install_dir)
+                # call the super class of MADlibTestCase
+                # not the super class of this class
+                biprint("* Generating result files and comparing with the answer files ......")
+                tests = super(MADlibTestCase, cls).loadTestsFromTestCase()
+        except (KeyboardInterrupt, SystemExit):
+            if cls.already_tearDown is False:
+                cls.tearDown(True)
+            biprint("++++++++++ MADlib upgrade test has been interrupted ! ++++++++++")
+            sys.exit()
 
         cls.test_num = len(tests)
         return tests
@@ -635,6 +650,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                         EOF
                         """.format(hosts_file = cls.hosts_file,
                                  upgrade_dir = cls.upgrade_dir))
+        cls.already_tearDown = True
         
     # ----------------------------------------------------------------
 
