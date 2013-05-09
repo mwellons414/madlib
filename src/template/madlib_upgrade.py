@@ -811,17 +811,23 @@ class MADlibUpgradeTestCase (MADlibTestCase):
             EOF
             """.format(hosts_file = cls.hosts_file))
         # ------------------------------------------------
-        execute_cmd(name = "Deploy on GPDB cluster ...",
-                      cmdStr = "cd madlib/; \
-                      ./bin/madpack -p greenplum -c \
-                      {superuser}/{superpwd}@localhost:{port}/{db}\
-                      -s {schema_upgrade} \
-                      {action}".format(superuser = db["superuser"],
-                                       superpwd = db["superpwd"],
-                                       port = db["port"],
-                                       db = db["dbname"],
-                                       schema_upgrade = cls.schema_upgrade,
-                                       action = action))
+        res = execute_cmd(name = "Deploy on GPDB cluster ...",
+                          cmdStr = "cd madlib/; \
+                          ./bin/madpack -p greenplum -c \
+                          {superuser}/{superpwd}@localhost:{port}/{db}\
+                          -s {schema_upgrade} \
+                          {action}".format(superuser = db["superuser"],
+                                           superpwd = db["superpwd"],
+                                           port = db["port"],
+                                           db = db["dbname"],
+                                           schema_upgrade = cls.schema_upgrade,
+                                           action = action))
+        if re.search(": ERROR :", str(res)) is not None:
+            biprint("\n---------------------------------------------------------")
+            biprint("FAILED: could not " + action + " MADlib on cluster")
+            biprint("---------------------------------------------------------\n")
+            biprint("****** MADlib upgrade error: could not " + action
+                    + " on cluster ******", sysexit = True)
 
     # ----------------------------------------------------------------------
 
