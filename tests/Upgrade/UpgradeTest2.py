@@ -2,7 +2,7 @@ from madlib.src.template.madlib_upgrade import MADlibUpgradeTestCase
 
 # ------------------------------------------------------------------------
 
-class UpgradeTestCase_06_07 (MADlibUpgradeTestCase):
+class UpgradeTestCase_06_07_rpm (MADlibUpgradeTestCase):
     """
     Tests for upgrading MADlib from v0.6 to v0.7
     """
@@ -23,11 +23,10 @@ class UpgradeTestCase_06_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib" 
-    # upgrade_dir = "upgrade_home" 
 
 # ------------------------------------------------------------------------
 
-class UpgradeTestCase_05_07 (MADlibUpgradeTestCase):
+class UpgradeTestCase_05_07_rpm (MADlibUpgradeTestCase):
     """
     Tests for upgrading MADlib from v0.5 to v0.7
     """
@@ -48,7 +47,6 @@ class UpgradeTestCase_05_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib" 
-    # upgrade_dir = "upgrade_home" 
 
 # ----------------------------------------------------------------------
 
@@ -73,7 +71,6 @@ class UpgradeTestCase_06_07_gppkg (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-1.4-rhel5-x86_64.gppkg"
 
     schema_madlib = "upgrade_madlib"
-    # upgrade_dir = "upgrade_home"
 
 # ------------------------------------------------------------------------
 
@@ -98,11 +95,10 @@ class UpgradeTestCase_05_07_gppkg (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-1.4-rhel5-x86_64.gppkg"
 
     schema_madlib = "upgrade_madlib"
-    # upgrade_dir = "upgrade_home"
 
 # ------------------------------------------------------------------------
 
-class UpgradeTestCluster_06_07 (MADlibUpgradeTestCase):
+class UpgradeTestCluster_06_07_rpm (MADlibUpgradeTestCase):
     """
     Tests for upgrading MADlib from v0.6 to v0.7
     """
@@ -123,12 +119,11 @@ class UpgradeTestCluster_06_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib"
-    # upgrade_dir = "upgrade_home"
     hosts_file = "/data/hai/hosts"
 
 # ------------------------------------------------------------------------
 
-class UpgradeTestCluster_05_07 (MADlibUpgradeTestCase):
+class UpgradeTestCluster_05_07_rpm (MADlibUpgradeTestCase):
     """
     Tests for upgrading MADlib from v0.5 to v0.7
     """
@@ -149,7 +144,6 @@ class UpgradeTestCluster_05_07 (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/rpm/madlib-0.7-Linux.rpm"
 
     schema_madlib = "upgrade_madlib"
-    # upgrade_dir = "upgrade_home"
     hosts_file = "/data/hai/hosts"
 
 # ------------------------------------------------------------------------
@@ -176,7 +170,6 @@ class UpgradeTestCluster_06_07_src (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/madlib-v0.7/madlib-v0.7.tar.gz"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
     hosts_file = "/data/home/gpdbchina/422build6/data/cQA24/hosts"
 
 # ------------------------------------------------------------------------
@@ -203,5 +196,4 @@ class UpgradeTestCluster_05_07_src (MADlibUpgradeTestCase):
     new_file_location = "/data/hai/madlib-v0.7/madlib-v0.7.tar.gz"
 
     schema_madlib = "upgrade_madlib"
-    upgrade_dir = "upgrade_home"
     hosts_file = "/data/home/gpdbchina/422build6/data/cQA24/hosts"

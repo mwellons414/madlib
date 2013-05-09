@@ -349,7 +349,14 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                         sql_dir_tmp = cls.sql_dir_tmp))
  
         cls._init_schema()
-        biprint("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
+        if cls.cleanup is False:
+            biprint("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
+        else:
+            print("\n")
+            logger.info("============================================================\n")
+            logger.info("\n###### All intermediate files are stored in " + cls.upgrade_dir + "/ ######\n")
+            logger.info("============================================================\n")
+            
         cls.sql_dir = cls.sql_dir_tmp
         if cls.create_ans_ is not False: # to create answer
             if cls.create_ans_ == cls.old_version:
