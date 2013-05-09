@@ -152,7 +152,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
     def _install_MADlib(cls, version, target_dir, pkg_type,
                         download_link = None,
                         file_location = None):
-        execute_cmd("mkdir -p " + target_dir)
+        execute_cmd("Run command ...", "mkdir -p " + target_dir)
         logger.info("Starting the install for new MADlib ...")
         logger.info("----------------------------------------")
         if file_location is None:
@@ -171,7 +171,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         else:
             if target_dir != os.path.realpath(os.path.dirname(file_location)):
                 try:
-                    execute_cmd("cp " + file_location + " " + target_dir)
+                    execute_cmd("Run command ...", "cp " + file_location + " " + target_dir)
                     install_file = os.path.join(target_dir,
                                                 os.path.basename(file_location))
                 except:
@@ -192,21 +192,21 @@ class MADlibUpgradeTestCase (MADlibTestCase):
             logger.info("Untar source package ...")
             try:
                 os.chdir(target_dir)
-                execute_cmd("rm -rf madlib; mkdir madlib; tar zxf " + 
-                          install_file + " -C madlib")
+                execute_cmd("Run command ...", "rm -rf madlib; mkdir madlib; tar zxf " + 
+                            install_file + " -C madlib")
                 os.chdir("madlib")
                 while "CMakeLists.txt" not in os.listdir("."):
                     dir_name = os.listdir(".")[0]
                     os.chdir(dir_name)
 
                 install_dir = cls.upgrade_dir + "/local"
-                execute_cmd("mkdir -p " + install_dir)
+                execute_cmd("Run command ...", "mkdir -p " + install_dir)
                 execute_cmd(name = "Build MADlib ...",
                             cmdStr = "./configure -DCMAKE_INSTALL_PREFIX="
                             + install_dir + "/madlib")
 
                 if cls.eigen_pkg is not None:
-                    execute_cmd("cp " + cls.eigen_pkg + " build/third_party/downloads/")
+                    execute_cmd("Run command ...", "cp " + cls.eigen_pkg + " build/third_party/downloads/")
                 execute_cmd(name = "Continue building ...",
                             cmdStr = "cd build; make; make install")
                 
@@ -219,7 +219,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         elif pkg_type == "rpm":
             if not cls.rpmdb_exists:
                 logger.info("Initialize the local RPM database ...")
-                execute_cmd("rm -rf " + cls.upgrade_dir + "/local/lib/rpm; mkdir -p "
+                execute_cmd("Run command ...", "rm -rf " + cls.upgrade_dir + "/local/lib/rpm; mkdir -p "
                           + cls.upgrade_dir + "/local/lib/rpm")
                 execute_cmd(name = "Initialize local RPM database on master ...",
                             cmdStr = "rpm --initdb --root " + cls.upgrade_dir
@@ -344,7 +344,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                             w.write(line)
                     w.close()
                 else:
-                    execute_cmd("cp {sql_dir}/{fs} {sql_dir_tmp}/".format(
+                    execute_cmd("Run command ...", "cp {sql_dir}/{fs} {sql_dir_tmp}/".format(
                         sql_dir = cls.sql_dir, fs = fs,
                         sql_dir_tmp = cls.sql_dir_tmp))
  
@@ -457,7 +457,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                               port = db["port"],
                               PGOPTIONS = db["pg_options"],
                               psql_options = db["psql_options"])
-        execute_cmd("rm -rf " + cls.upgrade_dir)
+        execute_cmd("Run command ...", "rm -rf " + cls.upgrade_dir)
         
         if cls.old_pkg_type == "gppkg":
             execute_cmd(name = "gppkg removing old package ...",
@@ -540,9 +540,9 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         #            + version + "/"
 
         filename = "madlib.tar.gz"
-        execute_cmd("mkdir -p {target}".format(target = target_dir))
-        execute_cmd("cd " + target_dir + "; wget -c " + 
-                  download_link + " --no-check-certificate -O " + filename)
+        execute_cmd("Run command ...", "mkdir -p {target}".format(target = target_dir))
+        execute_cmd("Run command ...", "cd " + target_dir + "; wget -c " + 
+                    download_link + " --no-check-certificate -O " + filename)
                 
         return (target_dir, filename)
 
@@ -618,8 +618,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                               PGOPTIONS = db["pg_options"],
                               psql_options = db["psql_options"])
         
-        execute_cmd("rm -rf " + cls.sql_dir_tmp)
-        execute_cmd("rm -rf " + cls.upgrade_dir)
+        execute_cmd("Run command ...", "rm -rf " + cls.sql_dir_tmp)
+        execute_cmd("Run command ...", "rm -rf " + cls.upgrade_dir)
         if cls.hosts_file is None:
             if cls.old_pkg_type == "gppkg":
                 execute_cmd(name = "gppkg removing old package ...",
