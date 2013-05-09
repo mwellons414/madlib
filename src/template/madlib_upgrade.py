@@ -40,7 +40,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
     out_dir = "result"
     
     hosts_file = None
-    allowed_pkg_type = ["source", "rpm", "gppkg"]
+    allowed_pkg_type = ["source", "rpm", "gppkg", "dmg"]
 
     old_version = None
     old_pkg_type = "source"
@@ -76,6 +76,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
     cleanup = True # clean all intermediate folders
 
     already_tearDown = False
+
+    dmg_install_dir = "/usr/local/madlib"
 
     # ----------------------------------------------------------------
 
@@ -158,7 +160,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         logger.info("Starting the install for new MADlib ...")
         logger.info("----------------------------------------")
         if file_location is None:
-            if pkg_type == "rpm" or pkg_type == "gppkg":
+            if pkg_type == "rpm" or pkg_type == "gppkg" or pkg_type == "dmg":
                 install_file = cls._download_binary(version, target_dir,
                                                     download_link)
                 # check_md5sum (install_file, version)
@@ -292,9 +294,65 @@ class MADlibUpgradeTestCase (MADlibTestCase):
                 install_dir = gphome + "/madlib"
             execute_cmd(name = "Installing gppkg package ...",
                         cmdStr = "gppkg -i " + install_file)
+        elif pkg_type == "dmg":
+            try:
+                res = execute_cmd(name = "Mounting DMG image ...",
+                                  cmdStr = "hdiutil mount " + install_file)
+            except:
+                biprint("****** MADlib upgrade error: could not mount the dmg image! ******",
+                        sysexit = True)
+                
+            m = re.search("(/Volumes/[^\n]*)\n", str(res))
+            if m is None:
+                biprint("****** MADlib upgrade error: the dmg image was not mounted properly! ******",
+                        sysexit = True)
+                
+            image = m.group(1)
+            try:
+                execute_cmd(name = "Installing the meta-package ...",
+                            cmdStr = "sudo installer -pkg " + image +
+                            "/*pkg -target /Volumes/Macintosh\ HD")
+            except:
+                biprint("****** MADlib upgrade error: could not install the meta-package! ******",
+                        sysexit = True)
+            install_dir = cls.dmg_install_dir
+
+            try:
+                execute_cmd(name = "Ejecting the dmg image ...",
+                            cmdStr = "hdiutil eject " + image)
+            except:
+                biprint("****** MADlib upgrade error: could not eject the dmg image! ******",
+                        sysexit = True)
 
         return install_dir
-            
+
+    # ----------------------------------------------------------------
+
+    @classmethod
+    def validate_params (cls):
+        """
+        Validate the class variables
+        """
+        valid = True
+        if (cls.old_version is None or
+            cls.new_version is None or
+            cls.old_version == cls.new_version):
+            valid = False
+
+        if (cls.old_file_location is not None and
+            cls.new_file_location is not None and
+            cls.old_file_location == cls.new_file_location):
+            valid = False
+
+        if (cls.old_download_link is not None and
+            cls.new_download_link is not None and
+            cls.old_download_link == cls.new_download_link):
+            valid = False
+
+        if valid is False:
+            biprint("****** MADlib upgrade error: some class variable is not correct! ******",
+                    sysexit = True)
+        
     # ----------------------------------------------------------------
 
     @classmethod
@@ -302,9 +360,15 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         """
         Override the superclass class method
         """
+        # Super class itself is also executed
+        # but we return [] so that an empty set is executed
         if cls.old_version is None:
             return []
 
+        # For testing class, we examine the class variables
+        # NOTE: This must be put after the 'return []'
+        cls.validate_params()
+            
         tinctest.TINCTestLoader.testMethodPrefix = cls.sql_prefix
 
         cls.cwd = os.getcwd() # current working dir
@@ -439,7 +503,7 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         except (KeyboardInterrupt, SystemExit):
             if cls.already_tearDown is False:
                 cls.tearDown(True)
-            biprint("++++++++++ MADlib upgrade test has been interrupted ! ++++++++++")
+            biprint("\n++++++++++ MADlib upgrade test has been interrupted ! ++++++++++")
             sys.exit()
 
         cls.test_num = len(tests)
@@ -480,6 +544,9 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         if cls.new_pkg_type == "gppkg":
             execute_cmd(name = "gppkg removing new package ...",
                         cmdStr = "gppkg -r " + gpmad[cls.new_version[0:3]])
+        if cls.old_pkg_type == "dmg" or cls.new_pkg_type == "dmg":
+            execute_cmd(name = "Removing previous dmg installations ...",
+                        cmdStr = "sudo rm -rf " + cls.dmg_install_dir)
         
     # ----------------------------------------------------------------
 
@@ -635,6 +702,8 @@ class MADlibUpgradeTestCase (MADlibTestCase):
         
         execute_cmd("Run command ...", "rm -rf " + cls.sql_dir_tmp)
         execute_cmd("Run command ...", "rm -rf " + cls.upgrade_dir)
+        if cls.new_pkg_type == "dmg" or cls.old_pkg_type == "dmg":
+            execute_cmd("Run command ...", "sudo rm -rf " + cls.dmg_install_dir)
         if cls.hosts_file is None:
             if cls.old_pkg_type == "gppkg":
                 execute_cmd(name = "gppkg removing old package ...",
