@@ -1,0 +1,21 @@
+-- @description This is for output tests of correlation.
+-- @madlib-param target_cols = "''"
+-- @madlib-param tbl_output = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param dataset = "'madlibtestdata.dt_golf'"
+          set client_min_messages to error;
+SET
+          select output_table, row_count from
+          madlib.correlation(
+              'madlibtestdata.dt_golf',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              '');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Correlation/sql_input/test_correlation_input_test_5.sql:12: INFO:  Summary for 'correlation' function
+DETAIL:  
+ Non-numeric columns ignored: ['outlook', 'windy', 'class']
+ Producing correlation for columns: ['id', 'temperature', 'humidity']
+CONTEXT:  PL/Python function "correlation"
+-[ RECORD 1 ]+--------------------------------------------
+output_table | __madlib_temp_40418089_1365619947_6556506__
+row_count    | 3
+
+          

@@ -1,0 +1,19 @@
+-- @description This is for output tests of correlation.
+-- @madlib-param target_cols = "'non_existing_col'"
+-- @madlib-param tbl_output = "''"
+-- @madlib-param dataset = "'madlibtestdata.dt_golf'"
+          set client_min_messages to error;
+SET
+          select output_table, row_count from
+          madlib.correlation(
+              'madlibtestdata.dt_golf',
+              '',
+              'non_existing_col');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Correlation/sql_input/test_correlation_input_test_11.sql:12: ERROR:  plpy.Error: Correlation error: Invalid output table name (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "correlation", line 25, in <module>
+    return correlation.correlation(schema_madlib, source_table, output_table, target_cols)
+  PL/Python function "correlation", line 28, in correlation
+  PL/Python function "correlation", line 99, in _validate_corr_arg
+PL/Python function "correlation"
+          

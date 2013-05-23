@@ -1,3 +1,4 @@
+
 from tinctest.lib import PSQL
 from gppylib.commands.base import Command
 import os
@@ -22,6 +23,10 @@ class PSQL1 (PSQL):
             username_option = ""
         else:
             username_option = "-U %s" % (username)
+        if password is None:
+            PGPASSWORD = ""
+        else:
+            PGPASSWORD = password
         if PGOPTIONS == None:
             PGOPTIONS = ""
         else:
@@ -54,8 +59,9 @@ class PSQL1 (PSQL):
                 cmd_str = "%s &> %s" % (cmd_str, out_file)
         else:
             assert sql_cmd is not None
-            cmd_str = "%s psql %s %s %s %s %s -a -c \"%s\"" \
-                      % (PGOPTIONS,psql_cmd_options,dbname_option,username_option,hostname_option,
+            cmd_str = "%s %s psql %s %s %s %s %s -a -c \"%s\"" \
+                      % (PGPASSWORD, PGOPTIONS,psql_cmd_options,dbname_option,
+                         username_option,hostname_option,
                          port_option,sql_cmd)
         Command.__init__(self, 'run sql test', cmd_str)
 

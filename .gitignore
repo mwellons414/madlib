@@ -8,11 +8,8 @@ log/
 *.ans
 settings/dbsettings.py
 
-result/
-result_output/
-sql_output/
-sql_input/
-result_input/
+result_*
+sql_*
 examples/linregr/expected_input/
 examples/linregr/result_input2/
 examples/linregr/sql_input2/

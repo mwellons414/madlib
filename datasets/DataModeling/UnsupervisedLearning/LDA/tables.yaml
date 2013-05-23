@@ -1,5 +1,5 @@
 cmd : "./run.sh <data> <table> <sql>"
-sql : "./gen_data.sql"
+#sql : "./gen_data.sql"
 tables :
     - id : lda_nips
       args :

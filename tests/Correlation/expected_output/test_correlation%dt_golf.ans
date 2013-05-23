@@ -1,0 +1,41 @@
+-- @description This is for output tests of correlation.
+-- @madlib-param tbl_output = "__madlib_temp_72583689_1368658638_880890__"
+-- @madlib-param dataset = "dt_golf"
+      set client_min_messages to error;
+SET
+      select output_table, row_count from
+      madlib.correlation(
+          'madlibtestdata.dt_golf',
+          '__madlib_temp_72583689_1368658638_880890__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Correlation/sql_output/test_correlation%dt_golf.sql:10: INFO:  Summary for 'correlation' function
+DETAIL:  
+ Non-numeric columns ignored: ['outlook', 'windy', 'class']
+ Producing correlation for columns: ['id', 'temperature', 'humidity']
+CONTEXT:  PL/Python function "correlation"
+-[ RECORD 1 ]+-------------------------------------------
+output_table | __madlib_temp_72583689_1368658638_880890__
+row_count    | 3
+
+      select * from __madlib_temp_72583689_1368658638_880890__ order by column_position;
+-[ RECORD 1 ]---+-------------------
+column_position | 1
+variable        | id
+id              | 1
+temperature     | 
+humidity        | 
+-[ RECORD 2 ]---+-------------------
+column_position | 2
+variable        | temperature
+id              | -0.251828311617265
+temperature     | 1
+humidity        | 
+-[ RECORD 3 ]---+-------------------
+column_position | 3
+variable        | humidity
+id              | -0.256000988597553
+temperature     | 0.273245189550316
+humidity        | 1.0
+
+      drop table if exists __madlib_temp_72583689_1368658638_880890__;
+DROP TABLE
+      

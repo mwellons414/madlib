@@ -1,5 +1,5 @@
 cmd : "./conv_linregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
-sql : "./elastic_net_init.sql"
+#sql : "./elastic_net_init.sql"
 tables :
     - id : evaluation_elastic_net_train
       args :

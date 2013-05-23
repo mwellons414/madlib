@@ -20,7 +20,6 @@ class ExampleUpgradeTestCase (MADlibUpgradeTestCase):
     sql_prefix = "check_"
 
     ans_dir = "test_0.6_0.7" # answer folder
-    out_dir = "result" # result folder
 
     # odler version info
     # must specify either one of file_location and download_link
@@ -35,8 +34,4 @@ class ExampleUpgradeTestCase (MADlibUpgradeTestCase):
     new_pkg_type = "source"
     new_download_link = None 
     new_file_location = "~/Downloads/madlib-v0.7.tar.gz"
-
-    schema_madlib = "upgrade_madlib" # default is "upgrade_madlib"
-
-    upgrade_dir = "upgrade_home" # default is "upgrade_home"
     

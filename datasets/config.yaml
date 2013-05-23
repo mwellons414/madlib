@@ -1,20 +1,20 @@
 DataModeling :
     SupervisedLearning :
-        Convex : False
-        DecisionTree : False 
+        Convex : 
+        DecisionTree : 
         LinearRegression : 
-        LogisticRegression : False
-        ElasticNet : False
-        MultinomialLogisticRegression : False
-        NaiveBayesClassification : False
-        RandomForest : False
-        SupportVectorMachines : False
-        GeneralCV : False
+        LogisticRegression : 
+        ElasticNet : 
+        MultinomialLogisticRegression : 
+        NaiveBayesClassification :
+        RandomForest : 
+        SupportVectorMachines : 
+        GeneralCV : 
     UnsupervisedLearning :
-        kMeansClustering : False
-        AssociationRules : False
-        LDA : False
+        kMeansClustering : 
+        AssociationRules : 
+        LDA : 
 InferentialStatistics :
-    HypothesisTests : False
-    Summary: False
+    HypothesisTests : 
+    Summary: 
 Common :

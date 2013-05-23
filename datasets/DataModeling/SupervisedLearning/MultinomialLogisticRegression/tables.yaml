@@ -1,5 +1,5 @@
 cmd : "python mlogr_dorothea.py -t <table> -d <sql> -s <sourfile> -l <labelfile> -D <dimension>"
-sql : "./mlogr_init.sql"
+#sql : "./mlogr_init.sql"
 tables :
     - id : mlogr_dorothea
       args :

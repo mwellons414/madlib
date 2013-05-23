@@ -28,7 +28,6 @@ import os
 import sys
 import yaml
 import subprocess
-import types
 import re
 import time
 import urllib
@@ -44,7 +43,7 @@ class loadingManager:
         source_file = sys.modules[self.__class__.__module__].__file__
         source_dir = os.path.dirname(os.path.abspath(source_file))
         self.__yamlPath = os.path.join(source_dir, "../../datasets/")
-        self.testdbs_conf = get_dbsettings(self.__class__.__name__)
+        self.testdbs_conf = get_dbsettings(self.__class__.__name__, "madlib")
         self.__schema = self.testdbs_conf["schema_testing"]
         self.__sqlPath = os.path.join(self.__yamlPath, "sql")
         self.conf = yaml.load(open(self.__yamlPath + "config.yaml"))
@@ -97,7 +96,7 @@ class loadingManager:
                 continue
             (root, _) = os.path.split(yaml_path)
             cfg = yaml.load(open(yaml_path))
-            if not 'tables' in cfg:
+            if cfg is None or not 'tables' in cfg:
                 continue
             for table in cfg['tables']:
                 if 'skip' in table and table['skip'] == 'all':
@@ -181,41 +180,44 @@ class loadingManager:
                     is False:
                 continue
             yaml_content = yaml.load(open(os.path.join(self.__yamlPath, yaml_path)))
+            if yaml_content is None: continue
             if 'tables' in yaml_content:
                 for table in yaml_content['tables']:
-                    # if 'skip' in table and \
-                    #         (table['skip'] == 'all' or (table['skip'] in kind)):
-                    #     continue
+                    if 'skip' in table and \
+                        (table['skip'] == 'all' or 
+                                (table['skip'] in self.testdbs_conf["kind"])):
+                        continue
                     table_name = '.'.join([self.__schema, table['id']])
+                    print(table_name)
                     outSQL = os.path.join(self.__yamlPath, 'sql', table['id'] + '.sql')
-                    output = run_sql.runSQL("SELECT count(*) FROM %s" % table_name,
+                    output = run_sql.runSQL("SELECT count(*) FROM (SELECT * FROM %s limit 1) s" % table_name,
                                             psqlArgs=db_manager.getDBsqlArgs(),
                                             onErrorStop=False, Return="all")
                     #If table exists and no nedd to overload, skip this sql.
                     if output.find('not exist') < 0 and \
-                            output.find('     0') < 0 and overload is False:
+                            output.find('0') < 0 and overload is False:
                         continue
-                    elif output.find('     0') > 0 and overload is False:
-                        fail_list.append(table['id'])
-                        print "ERROR : Success create but copy failed : %s" % table['id']
-                        continue
+                    # elif output.find('0') > 0 and overload is False:
+                    #    fail_list.append(table['id'])
+                    #    print "ERROR : Success create but copy failed : %s" % table['id']
+                    #    continue
                     try:
                         start = time.time()
                         subprocess.check_call('gunzip -f %s.gz' % outSQL, shell=True)
-                        run_sql.runSQL(outSQL, logport=str(db_manager.db_conf['port']),
+                        run_sql.runSQL(outSQL, logport=db_manager.db_conf['port'],
                                       logdatabase=db_manager.db_conf['dbname'],
-                                      onErrorStop=False, isFile=True,
-                                      source_path=db_manager.getDBenv())
+                                      onErrorStop=False, isFile=True)
+                                      # source_path=db_manager.getDBenv())
                         subprocess.check_call('gzip -f %s' % outSQL, shell=True)
                         self.__logInfo(table['id'], 'load', time.time() - start)
                         #Load additional sql file for table.
                         if 'sql' in table:
                             run_sql.runSQL(os.path.join(self.__yamlPath,
                                     os.path.dirname(yaml_path), table['sql']),
-                                    logport=str(db_manager.db_conf['port']),
+                                    logport=db_manager.db_conf['port'],
                                     logdatabase=db_manager.db_conf['dbname'],
-                                    onErrorStop=False, isFile=True,
-                                    source_path=db_manager.getDBenv())
+                                    onErrorStop=False, isFile=True)
+                                    # source_path=db_manager.getDBenv())
                         print "INFO : Success Loaded : %s " % table['id']
                     except:
                         fail_list.append(table['id'])
@@ -224,10 +226,10 @@ class loadingManager:
             if 'sql' in yaml_content:
                 run_sql.runSQL(os.path.join(self.__yamlPath,
                             os.path.dirname(yaml_path), yaml_content['sql']),
-                            logport=str(db_manager.db_conf['port']),
+                            logport=db_manager.db_conf['port'],
                             logdatabase=db_manager.db_conf['dbname'],
-                            onErrorStop=False, isFile=True,
-                            source_path=db_manager.getDBenv())
+                            onErrorStop=False, isFile=True)
+                            # source_path=db_manager.getDBenv())
         print "FAILED LOAD TABLES:\n", fail_list
 
     # ----------------------------------------------------------------

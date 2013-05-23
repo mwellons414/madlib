@@ -1,5 +1,4 @@
-import datetime
-import inspect
+
 import new
 import os
 import re
@@ -9,7 +8,6 @@ import unittest2 as unittest
 from fnmatch import fnmatch
 
 import tinctest
-
 from tinctest import TINCTestLoader
 from tinctest.datagen.databases import __databases__
 from tinctest.models.gpdb import GPDBTestCase
@@ -147,16 +145,17 @@ class MADlibSQLTestCase(GPDBTestCase):
         source_dir = os.path.dirname(os.path.abspath(source_file))
 
         sql_dir = os.path.join(source_dir, cls.sql_dir)
-        ans_dir = os.path.join(source_dir, cls.ans_dir)
+        
+        # ans_dir = os.path.join(source_dir, cls.ans_dir)
 
         uniquePat = []
         for filename in os.listdir(sql_dir):
             if not fnmatch(filename, "*.sql"):
                 continue
         
-            sql_file = os.path.join(sql_dir, filename)
+            # sql_file = os.path.join(sql_dir, filename)
             partial_test_name = filename[:-4]
-            ans_file = os.path.join(ans_dir, partial_test_name + ".ans")
+            # ans_file = os.path.join(ans_dir, partial_test_name + ".ans")
 
             # if we don't find corresponding answer file,
             # just move on. it's probably used for something else.

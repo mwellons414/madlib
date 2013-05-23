@@ -1,4 +1,4 @@
-import inspect, time, re, os, subprocess 
+import time, re, os, subprocess 
 
 class PSQLError(Exception):
     def __init__(self, returnMsg):
@@ -55,6 +55,11 @@ def runSQL(sql, logusername = None, logpassword = None, loghostname = None, logp
            utility: run this sql in utility mode
            stdinCmd: psql's stdin is piped from stdinCmd
     """
+#     if logusername is None: logusername = ""
+#     if logpassword is None: logpassword = ""
+#     if loghostname is None: loghostname = ""
+#     if logport is None: logport = ""
+#     if logdatabase is None: logdatabase = ""
     # See
     # http://petereisentraut.blogspot.com/2010/03/running-sql-scripts-with-psql.html
     # for valuable information on how to call psql
@@ -62,17 +67,18 @@ def runSQL(sql, logusername = None, logpassword = None, loghostname = None, logp
         cmdLine = ['psql', '-X', '-q', '-v', 'ON_ERROR_STOP=1']
     else:
         cmdLine = ['psql', '-X', '-q', '-v', 'ON_ERROR_STOP=off']
-    if loghostname:
+    if loghostname is not None:
         cmdLine.extend(['-h', loghostname])
-    if logport:
+    if logport is not None:
         cmdLine.extend(['-p', logport])
-    if logdatabase:
+    if logdatabase is not None:
         cmdLine.extend(['-d', logdatabase])
-    if logusername:
+    if logusername is not None:
         cmdLine.extend(['-U', logusername])
     
     if source_path:
         subprocess.call('source ' + source_path, shell = True)
+        
     if psqlArgs:
         cmdLine.extend(psqlArgs)
 

@@ -4,12 +4,13 @@
 
 from madlib.src.template.madlib_test import MADlibTestCase
 from madlib.src.test_utils.utils import unique_string
-from madlib.src.test_utils.utils import string_to_array
 from madlib.src.test_utils.utils import mean_squared_error
 from madlib.src.test_utils.utils import read_sql_result
-import os
+# from madlib.src.test_utils.get_dbsettings import get_schema_madlib
+from madlib.src.test_utils.get_dbsettings import get_schema_testing
+from tinctest.lib import Gpdiff
 import re
-import sys
+import os
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -36,8 +37,6 @@ class CorrelationOutputTestCase (MADlibTestCase):
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
     # Required by superclass
-    sql_dir = "sql_output"
-    out_dir = "result_output"
     ans_dir = "expected_output"
 
     template_method = "correlation%{dataset}"
@@ -49,6 +48,8 @@ class CorrelationOutputTestCase (MADlibTestCase):
 
     template = run_sql
 
+    MADlibTestCase.db_settings_["psql_options"] = "-x"
+
     def validate (self, sql_resultfile, answerfile):
         result = read_sql_result(sql_resultfile)
         answer = read_sql_result(answerfile)
@@ -59,10 +60,11 @@ class CorrelationOutputTestCase (MADlibTestCase):
     def get_corr_coef(self, result):
         coef_str = ''
         for line in result:
-            if(re.match('\d+', line.strip())):
+            if re.search(r'[-\s](\d+|\d+\.\d+)[^\d]*', line.strip()):
                 coef_str += line
-        coef_str = re.sub('[^0-9.]+', ' ',coef_str)
-        coef_str = re.sub('\s+', ' ',coef_str).strip()
+        coef_str = re.sub(r'[^0-9\.]+', ' ',coef_str)
+        coef_str = re.sub(r'\s+', ' ',coef_str).strip()
+        coef_str = re.sub(r'\s\.\s', ' ', coef_str).strip()
         coef = []
         for item in coef_str.split(' '):
             coef.append(float(item))
@@ -92,8 +94,6 @@ class CorrelationInputTestCase (MADlibTestCase):
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
     # Required by superclass
-    sql_dir = "sql_input"
-    out_dir = "result_input"
     ans_dir = "expected_input"
 
     skip_file = "corr_skip.py"
@@ -103,8 +103,8 @@ class CorrelationInputTestCase (MADlibTestCase):
 
     template_vars = dict(
         dataset = [
-            "'" + MADlibTestCase.schema_testing + ".dt_golf'",
-            "'" + MADlibTestCase.schema_testing + ".non_existing_table'",
+            "'" + get_schema_testing() + ".dt_golf'",
+            "'" + get_schema_testing() + ".non_existing_table'",
             "NULL", "''", "'-1'"],
         tbl_output = [
             "'__madlib_temp_40418089_1365619947_6556506__'",
@@ -115,6 +115,38 @@ class CorrelationInputTestCase (MADlibTestCase):
             "'humidity, temperature'",
             "NULL", "''"])
     template = run_sql
+
+    # Gpdiff cannot ignore the path name in lines with INFO
+    # but it can ignore the different path name in lines with ERROR
+    def validate(self, sql_resultfile, answerfile):
+        dirname = os.path.dirname(sql_resultfile)
+        res_tmp = dirname + "/" + unique_string()
+        ans_tmp = dirname + "/" + unique_string()
+
+        r = open(res_tmp, "w")
+        with open(sql_resultfile, "r") as f:
+            for line in f:
+                if re.search("INFO", line):
+                    r.write(line.replace("INFO", "ERROR"))
+                else:
+                    r.write(line)
+        r.close()
+
+        s = open(ans_tmp, "w")
+        with open(answerfile, "r") as f:
+            for line in f:
+                if re.search("INFO", line):
+                    s.write(line.replace("INFO", "ERROR"))
+                else:
+                    s.write(line)
+        s.close()
+
+        cmr = Gpdiff.are_files_equal(res_tmp, ans_tmp)
+
+        os.system("rm -rf " + res_tmp)
+        os.system("rm -rf " + ans_tmp)
+
+        return cmr
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 cmd : "./conv_logregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
-sql : "./loginit.sql"
+#sql : "./loginit.sql"
 tables :
     - id : log_breast_cancer_wisconsin
       args :

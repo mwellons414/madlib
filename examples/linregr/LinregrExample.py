@@ -7,6 +7,8 @@ from madlib.src.test_utils.utils import unique_string
 from madlib.src.test_utils.utils import string_to_array
 from madlib.src.test_utils.utils import mean_squared_error
 from madlib.src.test_utils.utils import read_sql_result
+# from madlib.src.test_utils.get_dbsettings import get_schema_madlib
+from madlib.src.test_utils.get_dbsettings import get_schema_testing
 import os
 import re
 import sys
@@ -40,11 +42,9 @@ class LinregrOutputTestCase (MADlibTestCase):
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
     # Required by superclass
-    sql_dir = "sql_output"
-    out_dir = "result_output"
     ans_dir = "expected_output"
 
-    skip_file = "linregr_skip.py"
+    # skip_file = "linregr_skip.py"
     
     template_method = "linregr%{dataset}%{hetero}"
 
@@ -156,9 +156,23 @@ class LinregrInputTestCase (MADlibTestCase):
     # It is possible to make them un-hard-coded
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
-    sql_dir = "sql_input"
-    out_dir = "result_input"
-    ans_dir = "expected_input"
+    # Example 1:
+    ans_dir = "expected_input" if MADlibTestCase.dbKind() == "greenplum" \
+              else "expect_input_pg"
+
+    # Example 2: A more complex example for selecting different
+    # answer folders
+    #
+    # if MADlibTestCase.dbKind() == "greenplum":
+    #     if MADlibTestCase.dbVers()[0:3] == "4.2":
+    #         ans_dir = "expected_input_4.2"
+    #     else:
+    #         ans_dir = "expected_input"
+    # else:
+    #     ans_dir = "expected_input_pg"
+
+    # Example 3: Just use a single answer folder
+    # ans_dir = "expected_input"
 
     # use a different name convention from the above example
     template_method = "linregr_input_test_{incr_}"
@@ -188,6 +202,8 @@ class LinregrInputTestCase (MADlibTestCase):
 
     template = run_sql
 
+    skip_file = "linregr_skip.py"
+
 # ------------------------------------------------------------------------
 
 class LinregrInputTestCase2 (MADlibTestCase):
@@ -201,8 +217,6 @@ class LinregrInputTestCase2 (MADlibTestCase):
     # It is possible to make them un-hard-coded
     # But that does not seem to bring us much.
     # ----------------------------------------------------------------
-    sql_dir = "sql_input2"
-    out_dir = "result_input2"
     ans_dir = "expected_input2"
 
     template_method = "linregr_input_test_{incr_}"
@@ -221,8 +235,8 @@ class LinregrInputTestCase2 (MADlibTestCase):
 
     template_vars = dict(
         tbl_output = "__madlib_temp_40418089_1365619947_6556506__",
-        dataset = ["'" + MADlibTestCase.schema_testing + ".lin_auto_mpg_oi'",
-                   "'" + MADlibTestCase.schema_testing + ".lin_auto_mpg_wi'",
+        dataset = ["'" + get_schema_testing() + ".lin_auto_mpg_oi'",
+                   "'" + get_schema_testing() + ".lin_auto_mpg_wi'",
                    "NULL"],
         hetero = ["TRUE", "FALSE", "NULL"],
         x = "NULL",

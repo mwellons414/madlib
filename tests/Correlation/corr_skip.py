@@ -1,8 +1,7 @@
-from madlib.src.test_utils.get_dbsettings import get_dbsettings
-db_settings_ = get_dbsettings("MADlibTestCase")
-schema_testing = db_settings_["schema_testing"]
+from madlib.src.test_utils.get_dbsettings import get_schema_testing
 
 def skip_some ():
+    schema_testing = get_schema_testing()
     dataset = [
         "'" + schema_testing + ".dt_golf'",
         "'" + schema_testing + ".non_exists_table'",
@@ -37,10 +36,10 @@ inskip = skip_some()
 # SKIP=skip_gp41
 
 # Skip these tests for all versions of GPDB & PG
-skip_all = []
+skip_all = inskip
 
 # Skip these tests only for GPDB4.1.2
-skip_gp412 = skip_all + []
+skip_gp41 = []
 
 # skip these tests only for PG9.0
-skip_pg90 = skip_all + []
+skip_pg90 = []

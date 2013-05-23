@@ -1,0 +1,18 @@
+-- @description This is for output tests of correlation.
+-- @madlib-param target_cols = "'non_existing_col'"
+-- @madlib-param tbl_output = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param dataset = "'madlibtestdata.dt_golf'"
+          set client_min_messages to error;
+SET
+          select output_table, row_count from
+          madlib.correlation(
+              'madlibtestdata.dt_golf',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              'non_existing_col');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Correlation/sql_input/test_correlation_input_test_1.sql:12: ERROR:  plpy.Error: Correlation error: No numerical column found. (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "correlation", line 25, in <module>
+    return correlation.correlation(schema_madlib, source_table, output_table, target_cols)
+  PL/Python function "correlation", line 48, in correlation
+PL/Python function "correlation"
+          

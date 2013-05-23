@@ -35,14 +35,10 @@ demo = dict(dbname = "madlib",
             pg_options = None, # PG server options
             psql_options = "-x", # PG client options, expended view of result, might be easier to process
             # ------------------------------------------------
-            # The following are only for data loader
-            # Future data loader may have different settings
-            platform = "redhat", # or "mac"
+            # The following are only for data loader & upgrade test
             superuser = "gpdbchina",
             superpwd = None,
-            kind = "greenplum",
-            master_dir = "maybe useful",
-            env = "~/.local/bin/gp-remote")
+            version = None)
 
 # ------------------------------------------------------------------------
 
@@ -55,11 +51,10 @@ demopg = dict(dbname = "gpdbchina",
               schema_madlib = "madlib",
               schema_testing = "madlibtestdata",
               psql_options = "-x",
+              # ------------------------------------------------
+              # The following are only for data loader & upgrade test
               superuser = "gpdbchina",
-              superpwd = None,
-              kind = "postgres",
-              master_dir = "/data/hai/pg_data",
-              env = "/data/hai/local/bin/pg")
+              superpwd = None)
 
 # ------------------------------------------------------------------------
 
@@ -72,13 +67,9 @@ haigp = dict(dbname = "qianh1",
              schema_madlib = "madlib",
              schema_testing = "madlibtestdata",
              # ------------------------------------------------
-             # The following are only for data loader
-             # Future data loader may have different settings
+             # The following are only for data loader & upgrade test
              superuser = "qianh1",
-             superpwd = None,
-             kind = "greenplum", 
-             master_dir = "/Users/qianh1/gpdb/greenplum-db-4.2.5.0-data/master/gpseg-1",
-             env = "/Users/qianh1/.local/bin/gp")
+             superpwd = None)
 
 # ------------------------------------------------------------------------
 
@@ -91,13 +82,9 @@ haipg = dict(dbname = "qianh1",
              schema_madlib = "madlib",
              schema_testing = "madlibtestdata",
              # ------------------------------------------------
-             # The following are only for data loader
-             # Future data loader may have different settings
+             # The following are only for data loader & upgrade test
              superuser = "qianh1",
-             superpwd = None,
-             kind = "postgres",
-             master_dir = "/Users/qianh1/.pg/pg92_data",
-             env = "/Users/qianh1/.local/bin/pg")
+             superpwd = None)
 
 # Shengwen's GPDB
 swgp = dict(dbname = "yangs16",
@@ -108,13 +95,9 @@ swgp = dict(dbname = "yangs16",
              schema_madlib = "madlib",
              schema_testing = "madlibtestdata",
              # ------------------------------------------------
-             # The following are only for data loader
-             # Future data loader may have different settings
+             # The following are only for data loader & upgrade test
              superuser = "yangs16",
-             superpwd = None,
-             kind = "greenplum",
-             master_dir = "/Users/yangs16/gpdb/master/gpseg-1",
-             env = "/Users/yangs16/greenplum-db/greenplum_path.sh")
+             superpwd = None)
 
 irgp42 = dict(dbname = "madlib-gp42",
              username = "iyerr3", # user
@@ -125,10 +108,6 @@ irgp42 = dict(dbname = "madlib-gp42",
              schema_testing = "madlibtestdata",     # where datasets are placed
              psql_options = "-x", # PG client options, expended view of result, might be easier to process
              # ------------------------------------------------
-             # The following are only for data loader
-             # Future data loader may have different settings
+             # The following are only for data loader & upgrade test
              superuser = "iyerr3",
-             superpwd = None,
-             kind = "greenplum",
-             master_dir = "/Users/iyerr3/Work/data/gpdb-4.2/master/gpseg-1",
-             env = "/Users/iyerr3/.local/gpdb-4.2.4.0/greenplum_path.sh")
+             superpwd = None)

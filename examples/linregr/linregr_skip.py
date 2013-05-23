@@ -21,7 +21,7 @@
 outskip = [{"dataset":"lin_auto_mpg_oi"},
           {"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}]
 
-inskip = [{"dataset":"lin_auto_mpg_wi", "hetero":"FALSE"}]
+inskip = [{"dataset":"lin_auto_mpg_wi", "hetero":"TRUE"}]
 
 # --------------------------------
 
@@ -48,7 +48,9 @@ skip2 = skip_some()
 skip_all = []
 
 # Skip these tests only for GPDB4.1.2
-skip_gp412 = skip_all + []
+skip_gp41 = []
 
 # skip these tests only for PG9.0
-skip_pg90 = skip_all + []
+skip_pg90 = []
+
+skip_pg92 = inskip

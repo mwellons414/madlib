@@ -1,6 +1,6 @@
 #USAGE: ./convertor.sh <input> <sql> <table> <desc>
 cmd : "./convertor.sh <data> <sql> <table> <desc>"
-sql : "./decisiontreeinit.sql"
+#sql : "./decisiontreeinit.sql"
 tables :
     - id : dt_soybean
       skip : pg

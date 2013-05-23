@@ -1,12 +1,8 @@
 """
 Start up and/or shut down the database.
 """
-import os, sys, subprocess, socket, time
+import os, sys, socket
 import run_sql
-
-DataSchema              =   'madlibtestdata'
-MadlibSchema            =   'madlib'
-
 
 class dbManager:
     """Start up and/or shut down the database."""
@@ -17,49 +13,49 @@ class dbManager:
         return map {name of tool to it's configuration}, and the configuration is name-value map
         """
         self.db_conf = db_conf
-        DataSchema = db_conf['schema_testing']
-        MadlibSchema = db_conf['schema_madlib']
+        self.DataSchema = db_conf['schema_testing']
+        self.MadlibSchema = db_conf['schema_madlib']
         # self.cur_db =  db_conf['name']
 
-    def start(self):
-        """Start up db."""
-        conf  = self.db_conf
-        source_path = 'source ' + conf['env'] + '&& '
-        master_dir = conf['master_dir']
-        if conf['kind'].lower() == 'postgres':
-            subprocess.call(source_path + 'pg_ctl start -D ' + master_dir, shell = True)
-            time.sleep(10)
-        elif conf['kind'].lower() == 'greenplum':
-            subprocess.call(source_path + 'gpstart -a -d ' + master_dir, shell = True)
+    # def start(self):
+    #     """Start up db."""
+    #     conf  = self.db_conf
+    #     source_path = 'source ' + conf['env'] + '&& '
+    #     master_dir = conf['master_dir']
+    #     if conf['kind'].lower() == 'postgres':
+    #         subprocess.call(source_path + 'pg_ctl start -D ' + master_dir, shell = True)
+    #         time.sleep(10)
+    #     elif conf['kind'].lower() == 'greenplum':
+    #         subprocess.call(source_path + 'gpstart -a -d ' + master_dir, shell = True)
 
-    def stop(self):
-        """Shut down db."""
-        conf  = self.db_conf
-        source_path = 'source ' + conf['env'] + '&& '
-        master_dir = conf['master_dir']
-        if conf['kind'] == 'postgres':
-            subprocess.call(source_path + 'pg_ctl stop -D ' + master_dir, shell = True)
-            time.sleep(10)
-        elif conf['kind'] == 'greenplum':
-            subprocess.call(source_path + 'gpstop -a -d ' + master_dir, shell = True)
+    # def stop(self):
+    #     """Shut down db."""
+    #     conf  = self.db_conf
+    #     source_path = 'source ' + conf['env'] + '&& '
+    #     master_dir = conf['master_dir']
+    #     if conf['kind'] == 'postgres':
+    #         subprocess.call(source_path + 'pg_ctl stop -D ' + master_dir, shell = True)
+    #         time.sleep(10)
+    #     elif conf['kind'] == 'greenplum':
+    #         subprocess.call(source_path + 'gpstop -a -d ' + master_dir, shell = True)
 
     def getDBsqlArgs(self):
 
         dbconf = self.db_conf
         args = []
-        if 'username' in dbconf:
+        if 'username' in dbconf and dbconf['username'] is not None:
             args.extend(['-U', dbconf['username']])
-        if 'host' in dbconf:
+        if 'host' in dbconf and dbconf['host'] is not None:
             args.extend(['-h', dbconf['host']])
-        if 'port' in dbconf:
+        if 'port' in dbconf and dbconf['port'] is not None:
             args.extend(['-p', str(dbconf['port'])])
-        if 'dbname' in dbconf:
+        if 'dbname' in dbconf and dbconf['dbname'] is not None:
             args.extend(['-d', dbconf['dbname']])
 
         return args
 
-    def getDBenv(self):
-        return self.db_conf['env']
+    # def getDBenv(self):
+    #     return self.db_conf['env']
 
     def getDBConnection(self):
 
@@ -85,9 +81,10 @@ class dbManager:
         hostname = conf['host']
         username = conf['username']
         superuser = conf['superuser']
+        superpwd = conf['superpwd']
         dbname = conf['dbname']
         dbtemplate = 'template1'
-        port = str(conf['port'])
+        port = conf['port']
 
         print "###Init test DB start ###\n"
         # 0. Update pg_hba to allow madlibtester to access all databases
@@ -98,31 +95,32 @@ class dbManager:
             # run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbname, \
             #                  onErrorStop = False, source_path = conf['env'])
          
-            sql = 'DROP SCHEMA %s CASCADE'%DataSchema
-            run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbname, \
-                             onErrorStop = False, source_path = conf['env'])
+            sql = 'DROP SCHEMA %s CASCADE' % self.DataSchema
+            run_sql.runSQL(sql, logusername = superuser, logpassword = superpwd,
+                           loghostname = hostname, logport = port, logdatabase = dbname,
+                           onErrorStop = False) #, source_path = conf['env'])
         except Exception, e:
             print e
             print 'Database "%s" does not exist \nCreate the new database "%s"'%(dbname,dbname)
 
-        sql = 'DROP USER %s CASCADE'%username
+        sql = 'DROP USER %s CASCADE' % username
         run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                         onErrorStop = False, source_path = conf['env'])
+                         onErrorStop = False) #, source_path = conf['env'])
 
         # 1. Create non super user with super user
-        sql = 'CREATE USER %s WITH CREATEDB'%username
+        sql = 'CREATE USER %s WITH CREATEDB' % username
         run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                          onErrorStop = False, source_path = conf['env'])
+                          onErrorStop = False) #, source_path = conf['env'])
 
         # 2. Create database non super user
-        sql = 'CREATE DATABASE %s '%dbname
+        sql = 'CREATE DATABASE %s ' % dbname
         run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                         onErrorStop = False,  source_path = conf['env'])
+                         onErrorStop = False) #, source_path = conf['env'])
         
         # 3. Change database owner to non super user
-        sql = 'ALTER DATABASE %s OWNER TO %s'%(dbname,username) 
+        sql = 'ALTER DATABASE %s OWNER TO %s' % (dbname, username) 
         run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                        onErrorStop = False, source_path = conf['env'])
+                        onErrorStop = False) #, source_path = conf['env'])
 
         # 4. Create schema with non super user and created database
         # sql = 'CREATE SCHEMA %s'%ResultSchema
@@ -130,16 +128,16 @@ class dbManager:
         #                  onErrorStop = False,  source_path = conf['env'])
 
         # 5. Create schema to store test data
-        sql = 'CREATE SCHEMA %s'%DataSchema
+        sql = 'CREATE SCHEMA %s' % self.DataSchema
         run_sql.runSQL(sql, logusername = username, logport = port, logdatabase = dbname, \
-                         onErrorStop = False, source_path = conf['env'])
+                         onErrorStop = False) #, source_path = conf['env'])
         print "###Success Init result DB ###\n"
 
     def addUserPGHBA(self, username, master_data_dir, kind = 'greenplum'):
         """Add user authentication entry in $MASTER_DATA_DIRECTORY/pg_hba.conf"""
         pghbastrs = []
-        pghbastrs.extend( ["local    all  %s     trust"%username] )
-        pghbastrs.extend( ["host    all  %s     %s/28   trust"%(username, ip)
+        pghbastrs.extend( ["local    all  %s     trust" % username] )
+        pghbastrs.extend( ["host    all  %s     %s/28   trust" % (username, ip)
                                                    for ip in getIpv4Addr() ] )
         f = master_data_dir + '/pg_hba.conf'
         pg_hba_lines = [ lin.strip() for lin in open(f).readlines() ]
@@ -152,9 +150,9 @@ class dbManager:
 
         fh.close()
         if kind.upper() == 'GREENPLUM':
-            os.system("gpstop -u -d %s"%master_data_dir)
+            os.system("gpstop -u -d %s" % master_data_dir)
         elif kind.upper() == 'POSTGRES':
-            os.system("pg_ctl reload -D %s -s"%master_data_dir)
+            os.system("pg_ctl reload -D %s -s" % master_data_dir)
 
 def getIpv4Addr():
     host_name = socket.gethostname()
@@ -167,7 +165,7 @@ def getIpv4Addr():
 def main():
     db_manager = dbManager()
     db_manager.info()
-    db_manager.info('GPDB_4.2.0_24')
+    # db_manager.info('GPDB_4.2.0_24')
 
 if __name__ == '__main__':
     main()

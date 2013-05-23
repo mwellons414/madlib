@@ -1,0 +1,32 @@
+-- @description This is for input tests of linear regression with heteroskedasticity
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param hetero = "TRUE"
+-- @madlib-param dataset = "lin_auto_mpg_wi"
+-- @madlib-param y = "-1"
+-- @madlib-param x = "NULL"
+          select madlib.linregr_train(
+              'madlibtestdata.lin_auto_mpg_wi',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              '-1', 'NULL',
+              NULL,
+              TRUE);
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib/examples/linregr/sql_LinregrInputTestCase/test_linregr_input_test_3.sql:14: ERROR:  query string argument of EXECUTE is null
+CONTEXT:  PL/pgSQL function madlib.__internal_get_hsk_result(character varying,character varying,character varying,double precision[]) line 5 at EXECUTE statement
+PL/pgSQL function madlib.__internal_linregr_train_hetero(character varying,character varying,character varying,character varying,boolean) line 48 at assignment
+SQL statement "SELECT madlib.__internal_linregr_train_hetero(
+        source_table, out_table, dependent_varname, independent_varname,
+        heteroskedasticity_option)"
+PL/pgSQL function madlib.linregr_train(character varying,character varying,character varying,character varying,boolean) line 4 at PERFORM
+SQL statement "SELECT madlib.linregr_train(
+                    source_table, out_table,
+                    dependent_varname, independent_varname,
+                    heteroskedasticity_option)"
+PL/pgSQL function madlib.linregr_train(character varying,character varying,character varying,character varying,character varying[],boolean) line 23 at PERFORM
+          select coef from __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib/examples/linregr/sql_LinregrInputTestCase/test_linregr_input_test_3.sql:15: ERROR:  relation "__madlib_temp_40418089_1365619947_6556506__" does not exist
+LINE 1: select coef from __madlib_temp_40418089_1365619947_6556506__...
+                         ^
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib/examples/linregr/sql_LinregrInputTestCase/test_linregr_input_test_3.sql:16: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          

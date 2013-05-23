@@ -1,5 +1,5 @@
 cmd : 
-sql : "./gen_data.sql"
+#sql : "./gen_data.sql"
 tables :
     - id : dt_golf
       args :

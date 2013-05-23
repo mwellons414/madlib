@@ -189,7 +189,9 @@ def biprint (info, syswrite = False, sysexit = False):
     logger.info("================================================================\n")
     if syswrite:
         sys.stdout.write(info)
+        sys.stdout.flush()
     else:
         print(info)
+        sys.stdout.flush()
     if sysexit:
         sys.exit()

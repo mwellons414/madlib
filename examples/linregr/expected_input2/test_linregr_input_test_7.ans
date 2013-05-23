@@ -1,0 +1,24 @@
+-- @description Use NULL values in tests
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param hetero = "TRUE"
+-- @madlib-param dataset = "NULL"
+-- @madlib-param y = "-1"
+-- @madlib-param x = "NULL"
+               select madlib.linregr_train(
+                   NULL,
+                   '__madlib_temp_40418089_1365619947_6556506__',
+                   -1, NULL,
+                   NULL,
+                   TRUE);
+psql:/Users/qianh1/workspace/madlib_testsuite/examples/linregr/sql_input2/test_linregr_input_test_7.sql:14: ERROR:  function madlib.linregr_train(unknown, unknown, integer, unknown, unknown, boolean) does not exist
+LINE 1: select madlib.linregr_train(
+               ^
+HINT:  No function matches the given name and argument types. You may need to add explicit type casts.
+               select coef from __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/qianh1/workspace/madlib_testsuite/examples/linregr/sql_input2/test_linregr_input_test_7.sql:15: ERROR:  relation "__madlib_temp_40418089_1365619947_6556506__" does not exist
+LINE 1: select coef from __madlib_temp_40418089_1365619947_6556506__...
+                         ^
+               drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/qianh1/workspace/madlib_testsuite/examples/linregr/sql_input2/test_linregr_input_test_7.sql:16: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+               

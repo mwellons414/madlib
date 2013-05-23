@@ -1,5 +1,5 @@
 cmd : "./conv_linregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
-sql : "./generalcv_init.sql"
+#sql : "./generalcv_init.sql"
 tables :
     - id : cv_baseline_evaluation_lin
       args :
