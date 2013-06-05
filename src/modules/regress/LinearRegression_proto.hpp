@@ -58,7 +58,44 @@ public:
 
 // ------------------------------------------------------------------------
 
-// Accumulator class for Huber-White estimator
+template <class Container>
+class RobustLinearRegressionAccumulator
+  : public DynamicStruct<RobustLinearRegressionAccumulator<Container>, Container> {
+public:
+    typedef DynamicStruct<RobustLinearRegressionAccumulator, Container> Base;
+    MADLIB_DYNAMIC_STRUCT_TYPEDEFS;
+    typedef std::tuple<MappedColumnVector, double> tuple_type;
+
+    RobustLinearRegressionAccumulator(Init_type& inInitialization);
+    void bind(ByteStream_type& inStream);
+    RobustLinearRegressionAccumulator& operator<<(const tuple_type& inTuple);
+    template <class OtherContainer> RobustLinearRegressionAccumulator& operator<<(
+        const RobustLinearRegressionAccumulator<OtherContainer>& inOther);
+    template <class OtherContainer> RobustLinearRegressionAccumulator& operator=(
+        const RobustLinearRegressionAccumulator<OtherContainer>& inOther);
+
+    uint64_type numRows;
+    uint16_type widthOfX;
+		MappedColumnVector_type ols_coef;
+    ColumnVector_type X_transp_Y;
+    Matrix_type X_transp_X;
+};
+
+class RobustLinearRegression {
+public:
+    template <class Container> RobustLinearRegression(
+        const RobustLinearRegressionAccumulator<Container>& inState);
+    template <class Container> RobustLinearRegression& compute(
+        const RobustLinearRegressionAccumulator<Container>& inState);
+
+    MutableNativeColumnVector stdErr;
+    MutableNativeColumnVector tStats;
+    MutableNativeColumnVector pValues;
+    double conditionNo;
+};
+
+// ------------------------------------------------------------------------
+// Accumulator class for testing heteroskedasticity 
 template <class Container>
 class HeteroLinearRegressionAccumulator
   : public DynamicStruct<HeteroLinearRegressionAccumulator<Container>, Container>

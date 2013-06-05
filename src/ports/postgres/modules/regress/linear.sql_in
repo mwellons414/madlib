@@ -10,7 +10,7 @@
  *
  *//* ----------------------------------------------------------------------- */
 
-m4_include(`SQLCommon.m4') --'
+m4_include(`SQLCommon.m4')
 
 /**
 @addtogroup grp_linreg
@@ -341,7 +341,6 @@ http://en.wikipedia.org/wiki/Heteroscedasticity-consistent_standard_errors
     documenting the implementation in C++
 @endinternal
 */
-
 ---------------------------------------------------------------------------
 CREATE TYPE MADLIB_SCHEMA.linregr_result AS (
     coef DOUBLE PRECISION[],
@@ -373,6 +372,40 @@ IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.linregr_final(
     state MADLIB_SCHEMA.bytea8)
 RETURNS MADLIB_SCHEMA.linregr_result
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT;
+
+--------------------------- Robust Linear Regression ----------------------------------
+CREATE TYPE MADLIB_SCHEMA.robust_linregr_result AS (
+    r2 DOUBLE PRECISION,
+    std_err DOUBLE PRECISION[],
+    t_stats DOUBLE PRECISION[],
+    p_values DOUBLE PRECISION[],
+    condition_no DOUBLE PRECISION
+);
+
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_linregr_transition(
+    state MADLIB_SCHEMA.bytea8,
+    y DOUBLE PRECISION,
+    x DOUBLE PRECISION[],
+    coef DOUBLE PRECISION[])
+RETURNS MADLIB_SCHEMA.bytea8
+AS 'MODULE_PATHNAME'
+LANGUAGE C
+IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_linregr_merge_states(
+    state1 MADLIB_SCHEMA.bytea8,
+    state2 MADLIB_SCHEMA.bytea8)
+RETURNS MADLIB_SCHEMA.bytea8
+AS 'MODULE_PATHNAME'
+LANGUAGE C
+IMMUTABLE STRICT;
+
+-- Final functions
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_linregr_final(
+    state MADLIB_SCHEMA.bytea8)
+RETURNS MADLIB_SCHEMA.robust_linregr_result
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
@@ -495,6 +528,23 @@ CREATE AGGREGATE MADLIB_SCHEMA.linregr(
     m4_ifdef(`__GREENPLUM__',`prefunc=MADLIB_SCHEMA.linregr_merge_states,')
     INITCOND=''
 );
+
+
+---------------------------------------------------------------------------
+
+
+
+CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
+    /*+ "dependentVariable" */ DOUBLE PRECISION,
+    /*+ "independentVariables" */ DOUBLE PRECISION[]) (
+
+    SFUNC=MADLIB_SCHEMA.robust_linregr_transition,
+    STYPE=MADLIB_SCHEMA.bytea8,
+    FINALFUNC=MADLIB_SCHEMA.robust_linregr_final,
+    m4_ifdef(`__GREENPLUM__',`prefunc=MADLIB_SCHEMA.robust_linregr_merge_states,')
+    INITCOND=''
+);
+
 --------------------------- INTERNAL ---------------------------------------
 /**
   * @brief Return heteroskedasticity values for specific linear regression
@@ -545,6 +595,32 @@ BEGIN
 END
 $$ LANGUAGE plpgsql VOLATILE;
 
+/**
+  * @brief Return robust linear regression output for source data
+  *
+**/
+CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linreg_result(
+     source_table         VARCHAR       -- name of input  table
+   , dependent_varname    VARCHAR       -- name of dependent variable
+   , independent_varname  VARCHAR       -- name of independent variable
+   , linregr_coeffs       DOUBLE PRECISION[]  -- coeffs from linear regression
+)
+RETURNS MADLIB_SCHEMA.robust_linregr_result AS $$
+DECLARE
+lin_rst MADLIB_SCHEMA.robust_linregr_result;
+BEGIN
+  EXECUTE '
+        SELECT (MADLIB_SCHEMA.robust_linregr( '
+                || dependent_varname    || ' , '
+                || independent_varname  || ' , '
+          	|| 'ARRAY[' || array_to_string(linregr_coeffs, ',') || '])).*
+         FROM ' || source_table
+  INTO lin_rst;
+  RETURN lin_rst;
+END
+
+
+$$ LANGUAGE plpgsql VOLATILE;
 CREATE FUNCTION MADLIB_SCHEMA.__internal_get_linregr_insert_string(
     lin_rst MADLIB_SCHEMA.linregr_result,
     out_table TEXT
