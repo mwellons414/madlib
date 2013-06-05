@@ -64,7 +64,7 @@ class RobustLinearRegressionAccumulator
 public:
     typedef DynamicStruct<RobustLinearRegressionAccumulator, Container> Base;
     MADLIB_DYNAMIC_STRUCT_TYPEDEFS;
-    typedef std::tuple<MappedColumnVector, double> tuple_type;
+    typedef std::tuple<MappedColumnVector, double, MappedColumnVector> tuple_type;
 
     RobustLinearRegressionAccumulator(Init_type& inInitialization);
     void bind(ByteStream_type& inStream);
@@ -76,9 +76,9 @@ public:
 
     uint64_type numRows;
     uint16_type widthOfX;
-		MappedColumnVector_type ols_coef;
-    ColumnVector_type X_transp_Y;
-    Matrix_type X_transp_X;
+    ColumnVector_type ols_coef;
+    ColumnVector_type X_transp_X;
+    Matrix_type X_transp_r2_X;
 };
 
 class RobustLinearRegression {

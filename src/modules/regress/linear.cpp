@@ -24,7 +24,7 @@ typedef LinearRegressionAccumulator<MutableRootContainer> MutableLinRegrState;
 
 // Robust regression
 typedef RobustLinearRegressionAccumulator<RootContainer> RobustLinRegrState;
-typedef RobustLinearRegressionAccumulator<MutableRootContainer> RobustMutableLinRegrState;
+typedef RobustLinearRegressionAccumulator<MutableRootContainer> MutableRobustLinRegrState;
 
 // Heteroskedasticitic regression
 typedef HeteroLinearRegressionAccumulator<RootContainer> HeteroLinRegrState;
@@ -81,7 +81,7 @@ robust_linregr_transition::run(AnyType& args) {
     MappedColumnVector x = args[2].getAs<MappedColumnVector>();
     MappedColumnVector coef = args[3].getAs<MappedColumnVector>();
 
-    state << MutableRobustLinRegrState::tuple_type(x, y, coef);
+    state << RobustLinRegrState::tuple_type(x, y, coef);
     return state.storage();
 }
 
