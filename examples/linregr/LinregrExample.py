@@ -242,4 +242,53 @@ class LinregrInputTestCase2 (MADlibTestCase):
         x = "NULL",
         y = "-1")
 
-        
+# ------------------------------------------------------------------------
+
+class LinregrInputTestCase3 (MADlibTestCase):
+    """
+    Run input tests
+    """
+    # ----------------------------------------------------------------
+    # These class variable names are hard-coded and used by
+    # template/madlib_test.py.
+    # One should not change them
+    # It is possible to make them un-hard-coded
+    # But that does not seem to bring us much.
+    # ----------------------------------------------------------------
+    ans_dir = "expected_input3"
+
+    template_method = "linregr_input_test_{incr_}"
+    template_doc = "Use NULL values in tests"
+
+    template = """
+               select {schema_madlib}.linregr_train(
+                   {dataset},
+                   '{tbl_output}',
+                   {y}, {x},
+                   NULL,
+                   {hetero});
+    
+               select coef from {tbl_output};
+
+               drop table if exists {tbl_output};
+               """
+
+    # Instead of a simple dictionary, one can use an array of
+    # dictionaries, which gives the user more control of what
+    # parameters to use in the template SQL query.
+    template_vars = [dict(
+        tbl_output = "__madlib_temp_40418089_1365619947_6556506__",
+        dataset = ["'" + get_schema_testing() + ".lin_auto_mpg_oi'",
+                   "'" + get_schema_testing() + ".lin_auto_mpg_wi'",
+                   "NULL"],
+        hetero = ["NULL"],
+        x = "NULL",
+        y = "-1"),
+                     dict(
+        tbl_output = "__madlib_temp_40418089_1365619947_6556506__",
+        dataset = ["'" + get_schema_testing() + ".lin_auto_mpg_oi'",
+                   "'" + get_schema_testing() + ".lin_auto_mpg_wi'",
+                   "NULL"],
+        hetero = ["TRUE"],
+        x = "NULL",
+        y = "-1")]

@@ -14,6 +14,9 @@ def make_sure_path_exists (cls, path):
                      MADlib Test Error: cannot create """ + path + """
                      with """ + cls.__module__ + "." + cls.__name__ + " !")
 
+def clean_dir (dirname):
+    os.system("cd " + dirname + "; rm -f *")
+
 # -----------------------------------------------------------------
 
 def get_env_flag (cls, flag, origin = False):

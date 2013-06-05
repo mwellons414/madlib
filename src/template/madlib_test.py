@@ -18,6 +18,7 @@ from madlib.src.template.class_utils import make_sure_path_exists
 from madlib.src.template.class_utils import get_env_flag
 from madlib.src.template.class_utils import get_ext_ans
 from madlib.src.template.class_utils import get_skip
+from madlib.src.template.class_utils import clean_dir
 import os
 import re
 import sys
@@ -113,12 +114,21 @@ class MADlibTestCase (MADlibSQLTestCase):
         To ensure that the usre provided template_vars
         does not contain the keywords
         """
-        anyMatch = any(key in cls.reserved_keywords_ \
-                for key in cls.template_vars.keys())
-        if anyMatch:
-            biprint("MADlib Test Error: template_vars should not use any of the following keywords:")
-            biprint(cls.reserved_keywords_)
-            sys.exit("Testcase is stopping for " + cls.__module__ + "." + cls.__name__ + " !")
+        if type(cls.template_vars) == type(dict()):
+            cls.template_vars = [cls.template_vars]
+        elif type(cls.template_vars) == type([]):
+            pass
+        else:
+            sys.exit("MADlib Test Error: template_vars must be a dict or an array of dict !")
+        for template_dict in cls.template_vars:
+            if type(template_dict) != type(dict()):
+                sys.exit("MADlib Test Error: template_vars must be a dict or an array of dict !!")
+            anyMatch = any(key in cls.reserved_keywords_ \
+                           for key in template_dict.keys())
+            if anyMatch:
+                biprint("MADlib Test Error: template_vars should not use any of the following keywords:")
+                biprint(cls.reserved_keywords_)
+                sys.exit("Testcase is stopping for " + cls.__module__ + "." + cls.__name__ + " !")
         return None
 
     # ----------------------------------------------------------------
@@ -155,7 +165,7 @@ class MADlibTestCase (MADlibSQLTestCase):
         template        = cls.template
         template_method = cls.template_method
         template_doc    = cls.template_doc
-        template_vars   = cls.template_vars
+        ## template_vars   = cls.template_vars
 
         if template_method is None or template is None:
             # biprint("MADlib Test Error: " + cls.__module__ + "." + cls.__name__ + " !")
@@ -164,12 +174,13 @@ class MADlibTestCase (MADlibSQLTestCase):
         cls.create_case_ = cls._get_env_flag("CREATE_CASE")
         cls.create_ans_ = cls._get_env_flag("CREATE_ANS")
         (r_ans, r_script) = cls._get_ext_ans("R_ANS")
-        
+
         # validate cls template_vars
         cls._validate_vars()
-        
-        template_vars.update(schema_madlib = cls.db_settings_["schema_madlib"],
-                             schema_testing = cls.db_settings_["schema_testing"])
+
+        for template_dict in cls.template_vars:
+            template_dict.update(schema_madlib = cls.db_settings_["schema_madlib"],
+                                 schema_testing = cls.db_settings_["schema_testing"])
             
         assert isinstance(template,str)
         assert isinstance(template_method,str)
@@ -252,23 +263,30 @@ class MADlibTestCase (MADlibSQLTestCase):
         # ------------------------------------------------
         # create test case files
         if cls.create_case_ or (cls.create_ans_ and r_ans):
-            skip = cls._get_skip()
-            makeTestClosure = makeTest
-    
-            kwargs = {}
-            for key, value in template_vars.iteritems():
-                if not isinstance(value, list):
-                    kwargs[key] = value
-                else:
-                    def makefunc (key, values, f):
-                        def doit (k):
-                            for v in values:
-                                k[key] = v
-                                f(k)
-                        return doit
-                    makeTestClosure = makefunc(key, value, makeTestClosure)
+            if cls.create_case_:
+                clean_dir(sql_dir)
+
+            if cls.create_ans_:
+                clean_dir(out_dir)
             
-            makeTestClosure(kwargs)
+            skip = cls._get_skip()
+                        
+            for template_dict in cls.template_vars:
+                makeTestClosure = makeTest
+                kwargs = {}
+                for key, value in template_dict.iteritems():
+                    if not isinstance(value, list):
+                        kwargs[key] = value
+                    else:
+                        def makefunc (key, values, f):
+                            def doit (k):
+                                for v in values:
+                                    k[key] = v
+                                    f(k)
+                            return doit
+                        makeTestClosure = makefunc(key, value, makeTestClosure)
+
+                makeTestClosure(kwargs)
 
         if ((not cls.create_case_ and not r_ans) or
             (cls.create_ans_ and (not r_ans))): # if R has already created answers, stop
