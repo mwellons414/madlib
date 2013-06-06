@@ -703,14 +703,14 @@ AnyType MLrobuststateToResult(
 	const ColumnVector &inCoef,
     const ColumnVector &diagonal_of_varianceMat) {
 
-	MutableMappedColumnVector variance(
+	MutableNativeColumnVector variance(
         inAllocator.allocateArray<double>(inCoef.size()));
 
-    MutableMappedColumnVector stdErr(
+    MutableNativeColumnVector stdErr(
         inAllocator.allocateArray<double>(inCoef.size()));
-    MutableMappedColumnVector waldZStats(
+    MutableNativeColumnVector waldZStats(
         inAllocator.allocateArray<double>(inCoef.size()));
-    MutableMappedColumnVector waldPValues(
+    MutableNativeColumnVector waldPValues(
         inAllocator.allocateArray<double>(inCoef.size()));
 
     for (Index i = 0; i < inCoef.size(); ++i) {

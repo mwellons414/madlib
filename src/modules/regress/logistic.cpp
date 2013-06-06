@@ -35,7 +35,7 @@ AnyType stateToResult(const Allocator &inAllocator,
     const HandleMap<const ColumnVector, TransparentHandle<double> >& inCoef,
     const ColumnVector &diagonal_of_inverse_of_X_transp_AX,
     double logLikelihood,
-    double conditionNo);
+    double conditionNo, int status);
 
 /**
  * @brief Inter- and intra-iteration state for conjugate-gradient method for
@@ -498,14 +498,14 @@ AnyType robuststateToResult(
 	const ColumnVector &inCoef,
     const ColumnVector &diagonal_of_varianceMat) {
 
-	MutableMappedColumnVector variance(
+	MutableNativeColumnVector variance(
         inAllocator.allocateArray<double>(inCoef.size()));
 
-    MutableMappedColumnVector stdErr(
+   MutableNativeColumnVector stdErr(
         inAllocator.allocateArray<double>(inCoef.size()));
-    MutableMappedColumnVector waldZStats(
+    MutableNativeColumnVector waldZStats(
         inAllocator.allocateArray<double>(inCoef.size()));
-    MutableMappedColumnVector waldPValues(
+    MutableNativeColumnVector waldPValues(
         inAllocator.allocateArray<double>(inCoef.size()));
 
     for (Index i = 0; i < inCoef.size(); ++i) {
@@ -533,7 +533,7 @@ robust_logregr_step_transition::run(AnyType &args) {
     MappedColumnVector coef = args[3].getAs<MappedColumnVector>();
 	
     // The following check was added with MADLIB-138.
-    if (!isfinite(x))
+    if (!dbal::eigen_integration::isfinite(x))
         throw std::domain_error("Design matrix is not finite.");
 
     if (state.numRows == 0) {	
