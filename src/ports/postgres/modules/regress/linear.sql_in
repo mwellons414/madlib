@@ -377,11 +377,9 @@ LANGUAGE C IMMUTABLE STRICT;
 
 --------------------------- Robust Linear Regression ----------------------------------
 CREATE TYPE MADLIB_SCHEMA.robust_linregr_result AS (
-    r2 DOUBLE PRECISION,
     std_err DOUBLE PRECISION[],
     t_stats DOUBLE PRECISION[],
-    p_values DOUBLE PRECISION[],
-    condition_no DOUBLE PRECISION
+    p_values DOUBLE PRECISION[]
 );
 
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_linregr_transition(
@@ -409,7 +407,71 @@ RETURNS MADLIB_SCHEMA.robust_linregr_result
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
---------------------------- HETEROSKEDASTICITY ----------------------------------
+/**
+  * @brief Linear regression training function with grouping support and
+  * option for heteroskedasticity values.
+ **/
+CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , regression_type						VARCHAR       -- type of regression 
+   , dependent_varname          VARCHAR       -- name of dependent variable
+   , independent_varname        VARCHAR       -- name of independent variable
+   , coef												DOUBLE PRECISION[]      --regression coefficients 
+  )
+RETURNS VOID AS $$
+DECLARE
+insert_string         VARCHAR;
+robust_lin_rst      MADLIB_SCHEMA.linregr_result;
+BEGIN
+	IF (source_table IS NULL OR source_table = '') THEN
+	RAISE EXCEPTION 'Invalid input table name given.';
+	END IF;
+	IF (out_table IS NULL OR out_table = '') THEN
+	RAISE EXCEPTION 'Invalid output table name given.';
+	END IF;
+	IF (dependent_varname IS NULL OR dependent_varname = '') THEN
+	RAISE EXCEPTION 'Invalid dependent variable name given.';
+	END IF;
+	IF (independent_varname IS NULL OR independent_varname = '') THEN
+	RAISE EXCEPTION 'Invalid independent variable name given.';
+	END IF;
+	-- create output table with appropriate column names
+	EXECUTE 'DROP TABLE IF EXISTS ' || out_table;
+	RAISE NOTICE 'Creating table';		
+	EXECUTE '
+	CREATE TABLE ' || out_table || ' (
+			coef DOUBLE PRECISION[],
+			std_err DOUBLE PRECISION[],
+			t_stats DOUBLE PRECISION[],
+			p_values DOUBLE PRECISION[])';
+	-- Separate wrapper for each function 
+	IF (regression_type = 'linear') THEN
+
+		RAISE NOTICE 'Computing linear regression coef';		
+    -- compute linear regression and heteroskedasticity values (if required)
+    robust_lin_rst := MADLIB_SCHEMA.__internal_get_robust_linregr_result(
+                    source_table, dependent_varname, independent_varname, coef);
+		RAISE NOTICE 'Computing string';		
+		insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
+                    robust_lin_rst, out_table);
+		RAISE NOTICE 'Calling cs_create_job(%)', 1;		
+		RAISE NOTICE '%', insert_string;		
+    -- Ensure Infinity and NaN are cast properly
+    insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
+                                    '''Infinity''::double precision', 'gi');
+    insert_string := REGEXP_REPLACE(insert_string, 'NaN', 
+                                    '''NaN''::double precision', 'gi');
+		-- complete the sql string and execute
+		EXECUTE insert_string || ')';
+  ELSE
+      RAISE EXCEPTION 'No such regression type found. Must be (linear/logistic)';
+  END IF;
+
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
 CREATE TYPE MADLIB_SCHEMA.heteroskedasticity_test_result AS (
     bp_stats DOUBLE PRECISION,
     bp_p_value DOUBLE PRECISION
@@ -476,7 +538,6 @@ CREATE AGGREGATE MADLIB_SCHEMA.heteroskedasticity_test_linregr(
     INITCOND=''
 );
 
----------------------------------------------------------------------------
 /**
  * @brief Compute linear regression coefficients and diagnostic statistics.
  *
@@ -530,14 +591,48 @@ CREATE AGGREGATE MADLIB_SCHEMA.linregr(
 );
 
 
----------------------------------------------------------------------------
-
-
+/**
+ * @brief Compute robust regression diagnostic statistics.
+ *
+ * @param dependentVariable Column containing the dependent variable
+ * @param independentVariables Column containing the array of independent variables
+ * @param olsCoefficients Column containing the array of the OLS coefficients (as obtained by linregr)
+ *
+ * @par
+ * To include an intercept in the model, set one coordinate in the
+ * <tt>independentVariables</tt> array to 1.
+ *
+ * @return A composite value:
+ *  - <tt>robust_std_err FLOAT8[]</tt> - Array of huber-white standard errors,
+ *    \f$ \mathit{se}(c_1), \dots, \mathit{se}(c_k) \f$
+ *  - <tt>robust_t_stats FLOAT8[]</tt> - Array of t-statistics, \f$ \boldsymbol t \f$
+ *  - <tt>robust_p_values FLOAT8[]</tt> - Array of p-values, \f$ \boldsymbol p \f$
+ *  - <tt>condition_no FLOAT8</tt> - The condition number of the robust vCov matrix.
+ *
+ * @usage
+ *  - Get all the diagnostic statistics:\n
+ * @usage
+ *  <pre> SELECT (robust_linregr(<em>dependentVariable</em>,
+ *	<em>independentVariables</em>, coef)).*
+ *	FROM (
+ *    SELECT linregr(<em>dependentVariable</em>, <em>independentVariables</em>).coef 
+ *	) AS ols_coef, <em>sourceName</em> as src; 
+ *  - Get a subset of the output columns, e.g., only the condition number 
+ *  and the array of p-values \f$ \boldsymbol p \f$:
+ *    <pre>SELECT (lr).robust_condition_no, (lr).robust_p_values
+ *FROM (
+ *  <pre> SELECT (robust_linregr(<em>dependentVariable</em>,
+ *	<em>independentVariables</em>, coef)).*
+ *	FROM (
+ *    SELECT linregr(<em>dependentVariable</em>, <em>independentVariables</em>).coef 
+ *	) AS ols_coef, <em>sourceName</em> as src
+ *) AS subq;</pre>
+ */
 
 CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
     /*+ "dependentVariable" */ DOUBLE PRECISION,
-    /*+ "independentVariables" */ DOUBLE PRECISION[]) (
-
+    /*+ "independentVariables" */ DOUBLE PRECISION[],
+    /*+ "coef" */ DOUBLE PRECISION[]) (
     SFUNC=MADLIB_SCHEMA.robust_linregr_transition,
     STYPE=MADLIB_SCHEMA.bytea8,
     FINALFUNC=MADLIB_SCHEMA.robust_linregr_final,
@@ -546,6 +641,70 @@ CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
 );
 
 --------------------------- INTERNAL ---------------------------------------
+/**
+  * @brief Return robust linear regression estimates given a set of coefficients
+**/
+CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linregr_result(
+     source_table         VARCHAR       -- name of input  table
+   , dependent_varname    VARCHAR       -- name of dependent variable
+   , independent_varname  VARCHAR       -- name of independent variable
+   , linregr_coeffs       DOUBLE PRECISION[]  -- coeffs from linear regression
+)
+RETURNS MADLIB_SCHEMA.robust_linregr_result AS $$
+DECLARE
+robust_value MADLIB_SCHEMA.robust_linregr_result;
+BEGIN
+  
+	EXECUTE '
+    SELECT (MADLIB_SCHEMA.robust_linregr('
+          || dependent_varname    || ' , '
+          || independent_varname  || ' , '
+          || 'ARRAY[' || array_to_string(linregr_coeffs, ',') || '])
+     	).* FROM ' || source_table
+	INTO robust_value;
+  RETURN robust_value;
+END
+$$ LANGUAGE plpgsql VOLATILE;
+
+/**
+  * @brief Return insert string for robust linear regression 
+**/
+
+CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
+    robust_lin_rst MADLIB_SCHEMA.robust_linregr_result,
+    out_table TEXT
+)
+RETURNS VARCHAR AS $$
+DECLARE 
+  insert_string VARCHAR;
+BEGIN
+  insert_string := 'INSERT INTO ' || out_table || ' VALUES ('; 
+  insert_string := insert_string  || 
+            CASE 
+              WHEN (robust_lin_rst).coef is NULL
+              THEN '''{}'','
+              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).coef, ',')     || '], '
+            END             || 
+            CASE 
+              WHEN (robust_lin_rst).std_err is NULL
+              THEN '''{}'','
+              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).std_err, ',')  || '], '
+            END             ||
+            CASE 
+              WHEN (robust_lin_rst).t_stats is NULL
+              THEN '''{}'','
+              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).t_stats, ',')  || '], '
+            END             ||
+            CASE 
+              WHEN (robust_lin_rst).p_values is NULL
+              THEN '''{}'','
+              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).p_values, ',') || '], '
+            END;
+  RETURN insert_string; 
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
 /**
   * @brief Return heteroskedasticity values for specific linear regression
   * coefficients
@@ -595,32 +754,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql VOLATILE;
 
-/**
-  * @brief Return robust linear regression output for source data
-  *
-**/
-CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linreg_result(
-     source_table         VARCHAR       -- name of input  table
-   , dependent_varname    VARCHAR       -- name of dependent variable
-   , independent_varname  VARCHAR       -- name of independent variable
-   , linregr_coeffs       DOUBLE PRECISION[]  -- coeffs from linear regression
-)
-RETURNS MADLIB_SCHEMA.robust_linregr_result AS $$
-DECLARE
-lin_rst MADLIB_SCHEMA.robust_linregr_result;
-BEGIN
-  EXECUTE '
-        SELECT (MADLIB_SCHEMA.robust_linregr( '
-                || dependent_varname    || ' , '
-                || independent_varname  || ' , '
-          	|| 'ARRAY[' || array_to_string(linregr_coeffs, ',') || '])).*
-         FROM ' || source_table
-  INTO lin_rst;
-  RETURN lin_rst;
-END
 
-
-$$ LANGUAGE plpgsql VOLATILE;
 CREATE FUNCTION MADLIB_SCHEMA.__internal_get_linregr_insert_string(
     lin_rst MADLIB_SCHEMA.linregr_result,
     out_table TEXT

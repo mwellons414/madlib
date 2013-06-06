@@ -77,7 +77,7 @@ public:
     uint64_type numRows;
     uint16_type widthOfX;
     ColumnVector_type ols_coef;
-    ColumnVector_type X_transp_X;
+    Matrix_type X_transp_X;
     Matrix_type X_transp_r2_X;
 };
 
@@ -91,7 +91,6 @@ public:
     MutableNativeColumnVector stdErr;
     MutableNativeColumnVector tStats;
     MutableNativeColumnVector pValues;
-    double conditionNo;
 };
 
 // ------------------------------------------------------------------------

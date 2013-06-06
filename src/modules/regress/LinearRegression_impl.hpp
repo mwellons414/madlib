@@ -398,7 +398,6 @@ RobustLinearRegression::compute(
 
     // Precompute (X^T * X)^+
     Matrix inverse_of_X_transp_X = decomposition.pseudoInverse();
-    conditionNo = decomposition.conditionNo();
 
 		// Calculate the robust variance covariance matrix as:
 		// (X^T X)^-1  X^T diag(r1^2,r2^2....rn^2)X  (X^T X)^-1
