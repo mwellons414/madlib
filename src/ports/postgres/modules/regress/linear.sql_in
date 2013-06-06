@@ -496,6 +496,7 @@ CREATE AGGREGATE MADLIB_SCHEMA.linregr(
 
 --------------------------- INTERNAL ---------------------------------------
 
+
 /**
   * @brief Return heteroskedasticity values for specific linear regression
   * coefficients

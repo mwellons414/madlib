@@ -54,11 +54,12 @@ CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
    , regression_type						VARCHAR       -- type of regression 
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname        VARCHAR       -- name of independent variable
-   , coef												DOUBLE PRECISION[]      --regression coefficients 
+   , regr_coef									DOUBLE PRECISION[]      --regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
-insert_string         VARCHAR;
+insert_string       VARCHAR;
+coef								DOUBLE PRECISION[];
 robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
 BEGIN
 	IF (source_table IS NULL OR source_table = '') THEN
@@ -84,16 +85,24 @@ BEGIN
 			p_values DOUBLE PRECISION[])';
 	-- Separate wrapper for each function 
 	IF (regression_type = 'linear') THEN
-
-		RAISE NOTICE 'Computing linear regression coef';		
-    -- compute linear regression and heteroskedasticity values (if required)
+	
+		IF (regr_coef IS NULL) THEN
+			-- Run the regression if the coefficients are not provided 
+			EXECUTE '
+					SELECT (MADLIB_SCHEMA.linregr('
+								|| dependent_varname    || ' , '
+								|| independent_varname  || ')
+						).coef FROM ' || source_table
+				INTO coef;
+		ELSE
+				coef := regr_coef;	
+		END IF;
+    
+		-- compute linear regression and heteroskedasticity values (if required)
     robust_lin_rst := MADLIB_SCHEMA.__internal_get_robust_linregr_result(
                     source_table, dependent_varname, independent_varname, coef);
-		RAISE NOTICE 'Computing string';		
 		insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
                     robust_lin_rst, coef, out_table);
-		RAISE NOTICE 'Calling cs_create_job(%)', 1;		
-		RAISE NOTICE '%', insert_string;		
     -- Ensure Infinity and NaN are cast properly
     insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
                                     '''Infinity''::double precision', 'gi');
@@ -248,7 +257,7 @@ BEGIN
           || dependent_varname    || ' , '
           || independent_varname  || ' , '
           || 'ARRAY[' || array_to_string(linregr_coeffs, ',') || '])
-     	).* FROM ' || source_table
+			).* FROM ' || source_table
 	INTO robust_value;
   RETURN robust_value;
 END
@@ -259,7 +268,7 @@ $$ LANGUAGE plpgsql VOLATILE;
 **/
 
 CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
-    robust_lin_rst 		MADLIB_SCHEMA.robust_linregr_result
+    robust_lin_rst		MADLIB_SCHEMA.robust_linregr_result
   , linregr_coeffs    DOUBLE PRECISION[]  -- coeffs from linear regression
   , out_table TEXT
 )
