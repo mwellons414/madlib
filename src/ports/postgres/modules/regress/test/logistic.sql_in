@@ -97,7 +97,7 @@ FROM temp_result;
  * The correct values were checked with R.  For completeness, the following
  * R code segment can be used to reproduce the correct values. This code segment
  * expects the data table 'patients' to be in a file called "testdata.txt".
- * the data file should look like:
+ * the data file should look exactly like:
 second_attack, treatment, trait_anxiety
 1, 1, 70
 1, 1, 80
