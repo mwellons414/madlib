@@ -70,7 +70,7 @@ def runSQL(sql, logusername = None, logpassword = None, loghostname = None, logp
     if loghostname is not None:
         cmdLine.extend(['-h', loghostname])
     if logport is not None:
-        cmdLine.extend(['-p', logport])
+        cmdLine.extend(['-p', str(logport)])
     if logdatabase is not None:
         cmdLine.extend(['-d', logdatabase])
     if logusername is not None:

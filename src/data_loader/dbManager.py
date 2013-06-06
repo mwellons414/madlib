@@ -84,7 +84,7 @@ class dbManager:
         superpwd = conf['superpwd']
         dbname = conf['dbname']
         dbtemplate = 'template1'
-        port = conf['port']
+        port = str(conf['port'])
 
         print "###Init test DB start ###\n"
         # 0. Update pg_hba to allow madlibtester to access all databases
