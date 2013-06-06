@@ -59,7 +59,7 @@ CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
 RETURNS VOID AS $$
 DECLARE
 insert_string         VARCHAR;
-robust_lin_rst      MADLIB_SCHEMA.linregr_result;
+robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
 BEGIN
 	IF (source_table IS NULL OR source_table = '') THEN
 	RAISE EXCEPTION 'Invalid input table name given.';
@@ -91,7 +91,7 @@ BEGIN
                     source_table, dependent_varname, independent_varname, coef);
 		RAISE NOTICE 'Computing string';		
 		insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
-                    robust_lin_rst, out_table);
+                    robust_lin_rst, coef, out_table);
 		RAISE NOTICE 'Calling cs_create_job(%)', 1;		
 		RAISE NOTICE '%', insert_string;		
     -- Ensure Infinity and NaN are cast properly
@@ -243,7 +243,6 @@ RETURNS MADLIB_SCHEMA.robust_linregr_result AS $$
 DECLARE
 robust_value MADLIB_SCHEMA.robust_linregr_result;
 BEGIN
-  
 	EXECUTE '
     SELECT (MADLIB_SCHEMA.robust_linregr('
           || dependent_varname    || ' , '
@@ -260,8 +259,9 @@ $$ LANGUAGE plpgsql VOLATILE;
 **/
 
 CREATE FUNCTION MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
-    robust_lin_rst MADLIB_SCHEMA.robust_linregr_result,
-    out_table TEXT
+    robust_lin_rst 		MADLIB_SCHEMA.robust_linregr_result
+  , linregr_coeffs    DOUBLE PRECISION[]  -- coeffs from linear regression
+  , out_table TEXT
 )
 RETURNS VARCHAR AS $$
 DECLARE 
@@ -269,26 +269,26 @@ DECLARE
 BEGIN
   insert_string := 'INSERT INTO ' || out_table || ' VALUES ('; 
   insert_string := insert_string  || 
-            CASE 
-              WHEN (robust_lin_rst).coef is NULL
-              THEN '''{}'','
-              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).coef, ',')     || '], '
-            END             || 
-            CASE 
-              WHEN (robust_lin_rst).std_err is NULL
-              THEN '''{}'','
-              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).std_err, ',')  || '], '
-            END             ||
-            CASE 
-              WHEN (robust_lin_rst).t_stats is NULL
-              THEN '''{}'','
-              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).t_stats, ',')  || '], '
-            END             ||
-            CASE 
-              WHEN (robust_lin_rst).p_values is NULL
-              THEN '''{}'','
-              ELSE 'ARRAY[' || array_to_string((robust_lin_rst).p_values, ',') || '], '
-            END;
+		CASE 
+			WHEN linregr_coeffs is NULL
+			THEN '''{}'','
+			ELSE 'ARRAY[' || array_to_string(linregr_coeffs, ',')  || '], '
+		END             ||
+		CASE 
+			WHEN (robust_lin_rst).std_err is NULL
+			THEN '''{}'','
+			ELSE 'ARRAY[' || array_to_string((robust_lin_rst).std_err, ',')  || '], '
+		END             ||
+		CASE 
+			WHEN (robust_lin_rst).t_stats is NULL
+			THEN '''{}'','
+			ELSE 'ARRAY[' || array_to_string((robust_lin_rst).t_stats, ',')  || '], '
+		END             ||
+		CASE 
+			WHEN (robust_lin_rst).p_values is NULL
+			THEN '''{}'','
+			ELSE 'ARRAY[' || array_to_string((robust_lin_rst).p_values, ',') || ']'
+		END;
   RETURN insert_string; 
 END;
 $$ LANGUAGE plpgsql VOLATILE;

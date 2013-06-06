@@ -7,9 +7,7 @@
  * http://luna.cas.usf.edu/~mbrannic/files/regression/Logistic.html
  * Predicting heart attack
  */
- 
 DROP TABLE IF EXISTS patients;
- 
 CREATE TABLE patients (
     id INTEGER NOT NULL,
     second_attack INTEGER,
@@ -119,6 +117,7 @@ FROM temp_result;
  * Median  : Median value of transferable goods and assets or family income in tens of $
  * BelowMed: The number of families per 1000 earning below 1/2 the median income
  */
+DROP TABLE IF EXISTS crime;
 CREATE TABLE crime (
 	id SERIAL NOT NULL,
     CrimeRat DOUBLE PRECISION,
@@ -219,6 +218,8 @@ SELECT assert(
  * http://www.ats.ucla.edu/stat/r/dae/logit.htm
  * Predicting heart attack
  */
+
+DROP TABLE IF EXISTS grad_school;
 CREATE TABLE grad_school (
     id SERIAL NOT NULL,
     admit INTEGER,

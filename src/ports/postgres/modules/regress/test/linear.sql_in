@@ -7,6 +7,7 @@
  * http://www.weibull.com/DOEWeb/estimating_regression_models_using_least_squares.htm#Example%205.1
  * http://www.weibull.com/DOEWeb/hypothesis_tests_in_multiple_linear_regression.htm#Example%205.3
  */
+DROP TABLE IF EXISTS weibull;
 CREATE TABLE weibull (
     id INTEGER NOT NULL,
     x1 DOUBLE PRECISION,
@@ -54,6 +55,7 @@ SELECT assert(
  * The following example is taken from:
  * http://biocomp.health.unm.edu/biomed505/Course/Cheminformatics/advanced/data_classification_qsar/linear_multilinear_regression.pdf
  */
+DROP TABLE IF EXISTS unm;
 CREATE TABLE unm (
     id INTEGER NOT NULL,
     x1 DOUBLE PRECISION,
@@ -83,6 +85,8 @@ SELECT assert(
  * The following example is taken from:
  * http://www.stat.columbia.edu/~martin/W2110/SAS_7.pdf
  */
+
+DROP TABLE IF EXISTS houses;
 CREATE TABLE houses (
     id SERIAL NOT NULL,
     tax INTEGER,
@@ -150,44 +154,6 @@ SELECT assert(
         )
     ) AS linregr
 ) ignored;
-
-
---------------------- Robust linear regression install checks ----------- 
-
-SELECT * FROM (
-	SELECT (robust_linregr(y, ARRAY[1, x1, x2], coef)).*
-	FROM
-	(		SELECT (linregr(y, ARRAY[1, x1, x2])).coef
-			FROM weibull
-	) as mle_coef,
-	weibull as src
-) q;
-
-select robust_variance('weibull', 'result_weibull', 'linear',
-                    'y', 'ARRAY[1, x1, x2]', ARRAY[-153.51, 1.24, 12.08]);
-
--- End of robust linear regression 
-
-/*
-	The numbers for the robust variance estimates have been verified using
-	R's sandwich package.
-	Refer to http://cran.r-project.org/web/packages/sandwich/sandwich.pdf 
-	for more details
-*/
-
-SELECT assert(
-    relative_error(std_err, ARRAY[70.2748,0.2790,2.7000]) < 1e-4 AND
-    relative_error(t_stats, ARRAY[-2.1844,4.4392,4.4749]) < 1e-4 AND
-    relative_error(p_values, ARRAY[0.0464,0.00056,0.00052]) < 1e-2, 
-    'Huber white sandwich estimator (weibull.com test): Wrong results'
-) FROM (
-	SELECT (robust_linregr(y, ARRAY[1, x1, x2], coef)).*
-	FROM
-	(		SELECT (linregr(y, ARRAY[1, x1, x2])).coef
-			FROM weibull
-	) as mle_coef,
-	weibull as src
-) q;
 
 
 

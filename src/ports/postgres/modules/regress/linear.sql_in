@@ -376,7 +376,6 @@ AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
 
-
 CREATE TYPE MADLIB_SCHEMA.heteroskedasticity_test_result AS (
     bp_stats DOUBLE PRECISION,
     bp_p_value DOUBLE PRECISION
@@ -494,6 +493,8 @@ CREATE AGGREGATE MADLIB_SCHEMA.linregr(
     m4_ifdef(`__GREENPLUM__',`prefunc=MADLIB_SCHEMA.linregr_merge_states,')
     INITCOND=''
 );
+
+--------------------------- INTERNAL ---------------------------------------
 
 /**
   * @brief Return heteroskedasticity values for specific linear regression
