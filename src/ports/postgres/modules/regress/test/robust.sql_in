@@ -54,3 +54,82 @@ select robust_variance('weibull', 'result_weibull', 'linear',
                     'y', 'ARRAY[1, x1, x2]', ARRAY[-153.51, 1.24, 12.08]);
 
 -- End of robust linear regression 
+
+
+/* Robust variance test
+ * The following example is uses the coefficients computed in the above
+ * example, and checks that the robust variance is correct.  
+ * The correct values were checked with R.  For completeness, the following
+ * R code segment can be used to reproduce the correct values. This code segment
+ * expects the data table 'patients' to be in a file called "testdata.txt".
+ * the data file should look exactly like:
+second_attack, treatment, trait_anxiety
+1, 1, 70
+1, 1, 80
+1, 1, 50
+1, 0, 60
+1, 0, 40
+1, 0, 65
+1, 0, 75
+1, 0, 80
+1, 0, 70
+1, 0, 60
+0, 1, 65
+0, 1, 50
+0, 1, 45
+0, 1, 35
+0, 1, 40
+0, 1, 50
+0, 0, 55
+0, 0, 45
+0, 0, 50
+0, 0, 60
+ * BEGIN CODE:
+	 data <- read.csv("testdata.txt")
+	 regress <- glm( second_attack ~ treatment + trait_anxiety, family=binomial("logit"), data = data)
+	 library(sandwich)
+	 vcovHC(regress, 'HC0')
+ * END CODE
+ */
+
+
+DROP TABLE IF EXISTS patients;
+ 
+CREATE TABLE patients (
+    id INTEGER NOT NULL,
+    second_attack INTEGER,
+    treatment INTEGER,
+    trait_anxiety INTEGER,
+    CONSTRAINT pk_patient PRIMARY key (id)
+);
+INSERT INTO patients(ID, second_attack, treatment, trait_anxiety) VALUES
+( 1, 1, 1, 70),
+( 2, 1, 1, 80),
+( 3, 1, 1, 50),
+( 4, 1, 0, 60),
+( 5, 1, 0, 40),
+( 6, 1, 0, 65),
+( 7, 1, 0, 75),
+( 8, 1, 0, 80),
+( 9, 1, 0, 70),
+(10, 1, 0, 60),
+(11, 0, 1, 65),
+(12, 0, 1, 50),
+(13, 0, 1, 45),
+(14, 0, 1, 35),
+(15, 0, 1, 40),
+(16, 0, 1, 50),
+(17, 0, 0, 55),
+(18, 0, 0, 45),
+(19, 0, 0, 50),
+(20, 0, 0, 60);
+
+
+
+SELECT assert(
+	relative_error(robust_variance, ARRAY[11.96, 1.37, 0.0028]) < 1e-3,
+	'Robust Variance: Wrong Results'
+)FROM (
+	select (robust_logregr( CAST (second_attack as BOOLEAN), ARRAY[1,treatment, trait_anxiety], 
+	ARRAY[-6.36346994177327,-1.02410605238946,0.119044916668435])).* from patients
+) as sq;
