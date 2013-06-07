@@ -1,22 +1,81 @@
+
 /* ----------------------------------------------------------------------- *//**
  *
  * @file robust.sql_in
  *
- * @brief SQL functions for robust linear regression
- * @date June 2013
+ * @brief SQL functions for linear regression
+ * @date January 2011
  *
- * @sa For a brief introduction to linear regression, see the module
- *     description \ref grp_linreg.
+ * @sa Calculates robust statistics for various regression models. 
  *
  *//* ----------------------------------------------------------------------- */
 
 m4_include(`SQLCommon.m4')
 
-/**
-  * @brief Linear regression training function with grouping support and
-  * option for heteroskedasticity values.
- **/
 
+/**
+@addtogroup grp_robust
+
+@about
+
+This method calculates robust variance (Huber white estimates) statistic of utilizing the a clustered sandwich estimator for linear regression, logistic regression, multinomial logistic regression, and cox proportional hazard models. It is useful in calculating variances in a dataset with potentially noisy outliers.
+
+
+@input
+
+The training data is expected to be of the following form:
+<pre>{TABLE|VIEW} <em>sourceName</em> (
+    <em>outputTable</em> VARCHAR,
+    <em>regressionType </em> VARCHAR,
+    <em>dependentVariable</em> VARCHAR,
+    <em>independentVariable</em> VARCHAR,
+    <em>coef</em> FLOAT8[] OR NULL,
+)</pre>
+
+If the coefficients are NULL then the function will compute the coeffiecents of the required regresison.
+@usage
+
+
+<b> The Full Interface</b>
+
+<pre>
+SELECT madlib.\ref robust_variance(
+    <em>'source_table'</em>,        -- name of input table, VARCHAR
+    <em>'out_table'</em>,           -- name of output table, VARCHAR
+    <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogisitc) 
+    <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
+    <em>'independent_varname'</em>, -- dependent variable, VARCHAR
+    <em>'coef'</em>,  							-- coef FLOAT8[] or NULL
+);
+</pre>
+
+Here the <em>'independent_varname'</em> can be the name of a column, which contains
+array of numeric values. It can also have a format of string 'array[1, x1, x2, x3]',
+where <em>x1</em>, <em>x2</em> and <em>x3</em> are all column names.
+
+Output is stored in the <em>out_table</em>:
+<pre>
+[ coef | std_err | stats | p_values |
++------+---------+-------+----------+
+</pre>
+
+
+@examp
+
+@literature
+
+
+[1] vce(cluster) function in STATA: http://www.stata.com/help.cgi?vce_option
+
+[2] clustered estimators in R: http://people.su.se/~ma/clustering.pdf
+
+@sa File robust.sql_in documenting the SQL functions.
+
+@internal
+@sa Namespace \ref madlib::modules::regress
+    documenting the implementation in C++
+@endinternal
+*/
 --------------------------- Robust Linear Regression ----------------------------------
 CREATE TYPE MADLIB_SCHEMA.robust_linregr_result AS (
     std_err DOUBLE PRECISION[],
@@ -49,8 +108,6 @@ RETURNS MADLIB_SCHEMA.robust_linregr_result
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT;
 
-
-
 /**
  * @brief Compute robust regression diagnostic statistics.
  *
@@ -63,11 +120,10 @@ LANGUAGE C IMMUTABLE STRICT;
  * <tt>independentVariables</tt> array to 1.
  *
  * @return A composite value:
- *  - <tt>robust_std_err FLOAT8[]</tt> - Array of huber-white standard errors,
+ *  - <tt>std_err FLOAT8[]</tt> - Array of huber-white standard errors,
  *    \f$ \mathit{se}(c_1), \dots, \mathit{se}(c_k) \f$
- *  - <tt>robust_t_stats FLOAT8[]</tt> - Array of t-statistics, \f$ \boldsymbol t \f$
- *  - <tt>robust_p_values FLOAT8[]</tt> - Array of p-values, \f$ \boldsymbol p \f$
- *  - <tt>condition_no FLOAT8</tt> - The condition number of the robust vCov matrix.
+ *  - <tt>t_stats FLOAT8[]</tt> - Array of t-statistics, \f$ \boldsymbol t \f$
+ *  - <tt>p_values FLOAT8[]</tt> - Array of p-values, \f$ \boldsymbol p \f$
  *
  * @usage
  *  - Get all the diagnostic statistics:\n
@@ -286,9 +342,9 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 
 /**
-  * @brief Computes the robust variance 
-**/
-
+  @brief Compute robust regression diagnostic statistics.
+ 
+*/
 CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
      source_table               VARCHAR       -- name of input  table
    , out_table                  VARCHAR       -- name of output table
@@ -397,7 +453,40 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.mlogregr_robust_step_transition(
+    state DOUBLE PRECISION[],
+    y INTEGER,
+    numcat INTEGER,
+    x DOUBLE PRECISION[],
+    coef DOUBLE PRECISION[])
+RETURNS DOUBLE PRECISION[]
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.mlogregr_robust_step_merge_states(
+    state1 DOUBLE PRECISION[],
+    state2 DOUBLE PRECISION[])
+RETURNS DOUBLE PRECISION[]
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT;
 
 
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.mlogregr_robust_step_final(
+    state DOUBLE PRECISION[])
+RETURNS MADLIB_SCHEMA.robust_logregr_result
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT; 
 
+CREATE AGGREGATE MADLIB_SCHEMA.robustMLogregr(
+	INTEGER, /*+ y */
+	INTEGER, /*numcat*/
+	DOUBLE PRECISION[], /*+ x */ 
+    DOUBLE PRECISION[] /*+ coef */ ) (
+    
+    STYPE=DOUBLE PRECISION[],
+    SFUNC=MADLIB_SCHEMA.mlogregr_robust_step_transition,
+    m4_ifdef(`GREENPLUM',`prefunc=MADLIB_SCHEMA.mlogregr_robust_step_merge_states,')
+    FINALFUNC=MADLIB_SCHEMA.mlogregr_robust_step_final,
+    INITCOND='{0,0,0,0,0.0}'
+);
 
