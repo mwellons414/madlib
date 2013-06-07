@@ -54,12 +54,12 @@ CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
    , regression_type						VARCHAR       -- type of regression 
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname        VARCHAR       -- name of independent variable
-   , regr_coef									DOUBLE PRECISION[]      --regression coefficients 
+   , coef												DOUBLE PRECISION[]      --regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
 insert_string       VARCHAR;
-coef								DOUBLE PRECISION[];
+regr_coef						DOUBLE PRECISION[];
 robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
 BEGIN
 	IF (source_table IS NULL OR source_table = '') THEN
@@ -86,23 +86,23 @@ BEGIN
 	-- Separate wrapper for each function 
 	IF (regression_type = 'linear') THEN
 	
-		IF (regr_coef IS NULL) THEN
+		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
 			EXECUTE '
 					SELECT (MADLIB_SCHEMA.linregr('
 								|| dependent_varname    || ' , '
 								|| independent_varname  || ')
 						).coef FROM ' || source_table
-				INTO coef;
+				INTO regr_coef;
 		ELSE
-				coef := regr_coef;	
+				regr_coef := coef;	
 		END IF;
     
 		-- compute linear regression and heteroskedasticity values (if required)
     robust_lin_rst := MADLIB_SCHEMA.__internal_get_robust_linregr_result(
-                    source_table, dependent_varname, independent_varname, coef);
+                    source_table, dependent_varname, independent_varname, regr_coef);
 		insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
-                    robust_lin_rst, coef, out_table);
+                    robust_lin_rst, regr_coef, out_table);
     -- Ensure Infinity and NaN are cast properly
     insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
                                     '''Infinity''::double precision', 'gi');
