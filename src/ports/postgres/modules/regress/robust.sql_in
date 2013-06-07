@@ -108,7 +108,7 @@ CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
  *     
  */
  
-DROP TYPE IF EXISTS MADLIB_SCHEMA.robust_logregr_result;
+--DROP TYPE IF EXISTS MADLIB_SCHEMA.robust_logregr_result;
 CREATE TYPE MADLIB_SCHEMA.robust_logregr_result AS (
     coef DOUBLE PRECISION[],
     std_err DOUBLE PRECISION[],

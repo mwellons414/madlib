@@ -576,7 +576,7 @@ INSERT INTO test2(feat1, feat2, cat) VALUES
 (2,0.62,2);
 
 SELECT assert(
-	relative_error(robust_variance, ARRAY[1.645,1.397,0.0785,0.0699,4.761,4.617]) < 1e-3,
+	relative_error(coef, ARRAY[1.645,1.397,0.0785,0.0699,4.761,4.617]) < 1e-3,
 	'Robust Variance: Wrong Results'
 )FROM (
 	select (robustMLogregr(cat, 3, ARRAY[1, feat1, feat2], ARRAY[-3.5792895, 

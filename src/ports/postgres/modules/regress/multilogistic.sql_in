@@ -339,14 +339,14 @@ LANGUAGE plpythonu VOLATILE;
  * @brief Compute the robust variance for on the multinomial regression coefficients
  */
 
-/*
-DROP TYPE IF EXISTS MADLIB_SCHEMA.robust_Mresult;
-CREATE TYPE MADLIB_SCHEMA.robust_result AS (
-    robust_variance DOUBLE PRECISION[],
-    std_err DOUBLE PRECISION[],
-    z_stats DOUBLE PRECISION[],
-    p_values DOUBLE PRECISION[]
-);*/
+/**
+--DROP TYPE IF EXISTS MADLIB_SCHEMA.robust_logregr_result;
+--CREATE TYPE MADLIB_SCHEMA.robust_logregr_result AS (
+ --   coef DOUBLE PRECISION[],
+ --   std_err DOUBLE PRECISION[],
+ --   z_stats DOUBLE PRECISION[],
+--    p_values DOUBLE PRECISION[]
+--);*/
  
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.mlogregr_robust_step_transition(
     state DOUBLE PRECISION[],
@@ -368,7 +368,7 @@ LANGUAGE C IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.mlogregr_robust_step_final(
     state DOUBLE PRECISION[])
-RETURNS robust_result
+RETURNS MADLIB_SCHEMA.robust_logregr_result
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT; 
 
