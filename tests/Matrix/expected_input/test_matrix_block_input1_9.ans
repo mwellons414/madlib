@@ -1,0 +1,17 @@
+-- @description This is for input tests of matrix_blockize.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_block_100_100'"
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param csize = "NULL"
+-- @madlib-param rsize = "5"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_blockize(
+            'madlibtestdata.matrix_block_100_100', 5, NULL, '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixBlockInputTestCase1/test_matrix_block_input1_9.sql:11: ERROR:  plpy.Error: invalid block dimension (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_blockize", line 25, in <module>
+    matrix_op.matrix_blockize(schema_madlib, matrix_in, rsize, csize, matrix_out)
+  PL/Python function "matrix_blockize", line 571, in matrix_blockize
+  PL/Python function "matrix_blockize", line 20, in __assert
+PL/Python function "matrix_blockize"
+      

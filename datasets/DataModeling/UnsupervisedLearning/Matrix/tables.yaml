@@ -1,0 +1,11 @@
+cmd : 
+sql : "./gen_data.sql"
+tables :
+    - id : matrix_mem_100_200
+      args :
+          data : "http://jkhsdhs.com/y.gz"
+          desc : "./desc/no.desc"
+    - id : matrix_array_1k_500
+      args :
+          data : "http://jkhsdhs.com/y.gz"
+          desc : "./desc/no.desc"

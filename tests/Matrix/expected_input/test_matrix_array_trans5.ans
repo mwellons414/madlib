@@ -1,0 +1,20 @@
+-- @description This is for input tests of dense matrix (array format) transposition.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_out = "''"
+-- @madlib-param use_temp_table = "true"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_trans(
+            'madlibtestdata.matrix_array_100_100', 
+            '',
+            true);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixArrayTransInputTestCase/test_matrix_array_trans5.sql:12: ERROR:  plpy.Error: invalid output table (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_trans", line 26, in <module>
+    matrix_in, in_row, in_col, in_val, matrix_out, use_temp_table)
+  PL/Python function "matrix_trans", line 206, in matrix_trans
+  PL/Python function "matrix_trans", line 234, in __matrix_trans_dense
+  PL/Python function "matrix_trans", line 30, in __validate_output_table
+  PL/Python function "matrix_trans", line 20, in __assert
+PL/Python function "matrix_trans"
+      

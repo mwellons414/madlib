@@ -1,0 +1,16 @@
+-- @description This is for input tests of matrix_block_trans.
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param matrix_in = "'non_existing_input_table'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_block_trans(
+            'non_existing_input_table', '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixBlockInputTestCase2/test_matrix_block_input2_3.sql:9: ERROR:  plpy.Error: the input table doesn't exist (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_block_trans", line 25, in <module>
+    matrix_op.matrix_block_trans(schema_madlib, matrix_in, matrix_out)
+  PL/Python function "matrix_block_trans", line 503, in matrix_block_trans
+  PL/Python function "matrix_block_trans", line 52, in __validate_block
+  PL/Python function "matrix_block_trans", line 20, in __assert
+PL/Python function "matrix_block_trans"
+      

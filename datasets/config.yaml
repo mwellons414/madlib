@@ -13,6 +13,7 @@ DataModeling :
     UnsupervisedLearning :
         kMeansClustering : 
         AssociationRules : 
+        Matrix :
         LDA : 
 InferentialStatistics :
     HypothesisTests : 

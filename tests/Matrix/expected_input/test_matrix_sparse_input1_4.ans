@@ -1,0 +1,17 @@
+-- @description This is for input tests of matrix_sparsify.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_out = "NULL"
+-- @madlib-param use_temp_table = "true"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_sparsify(
+            'madlibtestdata.matrix_array_100_100', NULL, true);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase1/test_matrix_sparse_input1_4.sql:10: ERROR:  plpy.Error: invalid output table (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_sparsify", line 25, in <module>
+    matrix_op.matrix_sparsify(matrix_in, matrix_out, use_temp_table)
+  PL/Python function "matrix_sparsify", line 100, in matrix_sparsify
+  PL/Python function "matrix_sparsify", line 30, in __validate_output_table
+  PL/Python function "matrix_sparsify", line 20, in __assert
+PL/Python function "matrix_sparsify"
+      

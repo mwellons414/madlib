@@ -1,0 +1,17 @@
+-- @description This is for input tests of matrix_block_mult.
+-- @madlib-param matrix_b = "''"
+-- @madlib-param matrix_a = "'madlibtestdata.matrix_block_100_100'"
+-- @madlib-param matrix_r = "'__madlib_temp_40418089_1365619947_6556506__'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_block_mult(
+            'madlibtestdata.matrix_block_100_100', '', '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixBlockInputTestCase3/test_matrix_block_input3_5.sql:10: ERROR:  plpy.Error: the input table doesn't exist (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_block_mult", line 26, in <module>
+    matrix_a, matrix_b, matrix_r)
+  PL/Python function "matrix_block_mult", line 455, in matrix_block_mult
+  PL/Python function "matrix_block_mult", line 52, in __validate_block
+  PL/Python function "matrix_block_mult", line 20, in __assert
+PL/Python function "matrix_block_mult"
+      

@@ -1,0 +1,17 @@
+-- @description This is for input tests of dense matrix (array format) transposition.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param use_temp_table = "NULL"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_trans(
+            'madlibtestdata.matrix_array_100_100', 
+            '__madlib_temp_40418089_1365619947_6556506__',
+            NULL);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixArrayTransInputTestCase/test_matrix_array_trans6.sql:12: ERROR:  plpy.Error: Input error: invalid input for a logical value! (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_trans", line 26, in <module>
+    matrix_in, in_row, in_col, in_val, matrix_out, use_temp_table)
+  PL/Python function "matrix_trans", line 199, in matrix_trans
+PL/Python function "matrix_trans"
+      

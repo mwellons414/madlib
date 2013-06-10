@@ -1,0 +1,19 @@
+-- @description This is for input tests of dense matrix (array format) multiplication.
+-- @madlib-param matrix_b = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param trans_a = "NULL"
+-- @madlib-param trans_b = "true"
+-- @madlib-param matrix_a = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_r = "'__madlib_temp_40418089_1365619947_6556506__'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_mult(
+            'madlibtestdata.matrix_array_100_100', NULL,
+            'madlibtestdata.matrix_array_100_100', true,
+            '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixArrayMultInputTestCase/test_matrix_array_mult9.sql:14: ERROR:  plpy.Error: Input error: invalid logical values (a_trans or b_trans)! (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_mult", line 28, in <module>
+    matrix_r)
+  PL/Python function "matrix_mult", line 268, in matrix_mult
+PL/Python function "matrix_mult"
+      

@@ -1,0 +1,29 @@
+-- @description This is for input tests of matrix_mult.
+-- @madlib-param col_a = "'col_id'"
+-- @madlib-param row_a = "'row_id'"
+-- @madlib-param row_b = "'row_id'"
+-- @madlib-param matrix_b = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param trans_a = "true"
+-- @madlib-param trans_b = "true"
+-- @madlib-param matrix_a = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param col_b = "NULL"
+-- @madlib-param val_a = "'value'"
+-- @madlib-param val_b = "'value'"
+-- @madlib-param matrix_r = "'__madlib_temp_40418089_1365619947_6556506__'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_mult(
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', 'col_id', 'value', true,
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', NULL, 'value', true,
+            '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase4/test_matrix_sparse_input4_20.sql:20: ERROR:  plpy.Error: one or more expected columns(e.g. row_id, row_vec) don't exist in the table representing a dense matrix (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_mult", line 28, in <module>
+    matrix_r)
+  PL/Python function "matrix_mult", line 282, in matrix_mult
+  PL/Python function "matrix_mult", line 206, in matrix_trans
+  PL/Python function "matrix_mult", line 233, in __matrix_trans_dense
+  PL/Python function "matrix_mult", line 46, in __validate_dense
+  PL/Python function "matrix_mult", line 20, in __assert
+PL/Python function "matrix_mult"
+      

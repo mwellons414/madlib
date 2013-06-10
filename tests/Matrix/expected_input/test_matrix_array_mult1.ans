@@ -1,0 +1,23 @@
+-- @description This is for input tests of dense matrix (array format) multiplication.
+-- @madlib-param matrix_b = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param trans_a = "true"
+-- @madlib-param trans_b = "true"
+-- @madlib-param matrix_a = "NULL"
+-- @madlib-param matrix_r = "'__madlib_temp_40418089_1365619947_6556506__'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_mult(
+            NULL, true,
+            'madlibtestdata.matrix_array_100_100', true,
+            '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixArrayMultInputTestCase/test_matrix_array_mult1.sql:14: ERROR:  plpy.Error: Input error: Table name is invalid (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_mult", line 28, in <module>
+    matrix_r)
+  PL/Python function "matrix_mult", line 272, in matrix_mult
+  PL/Python function "matrix_mult", line 206, in matrix_trans
+  PL/Python function "matrix_mult", line 233, in __matrix_trans_dense
+  PL/Python function "matrix_mult", line 43, in __validate_dense
+  PL/Python function "matrix_mult", line 14, in __is_tbl_exists
+PL/Python function "matrix_mult"
+      

@@ -1,0 +1,22 @@
+-- @description This is for input tests of dense matrix (array format) multiplication.
+-- @madlib-param matrix_b = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param trans_a = "true"
+-- @madlib-param trans_b = "true"
+-- @madlib-param matrix_a = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_r = "NULL"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_mult(
+            'madlibtestdata.matrix_array_100_100', true,
+            'madlibtestdata.matrix_array_100_100', true,
+            NULL);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixArrayMultInputTestCase/test_matrix_array_mult7.sql:14: ERROR:  plpy.Error: invalid output table (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_mult", line 28, in <module>
+    matrix_r)
+  PL/Python function "matrix_mult", line 292, in matrix_mult
+  PL/Python function "matrix_mult", line 370, in __matrix_mult_dense
+  PL/Python function "matrix_mult", line 30, in __validate_output_table
+  PL/Python function "matrix_mult", line 20, in __assert
+PL/Python function "matrix_mult"
+      

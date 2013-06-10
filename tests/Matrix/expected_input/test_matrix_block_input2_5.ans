@@ -1,0 +1,16 @@
+-- @description This is for input tests of matrix_block_trans.
+-- @madlib-param matrix_out = "''"
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_block_100_100'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_block_trans(
+            'madlibtestdata.matrix_block_100_100', '');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixBlockInputTestCase2/test_matrix_block_input2_5.sql:9: ERROR:  plpy.Error: invalid output table (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_block_trans", line 25, in <module>
+    matrix_op.matrix_block_trans(schema_madlib, matrix_in, matrix_out)
+  PL/Python function "matrix_block_trans", line 504, in matrix_block_trans
+  PL/Python function "matrix_block_trans", line 30, in __validate_output_table
+  PL/Python function "matrix_block_trans", line 20, in __assert
+PL/Python function "matrix_block_trans"
+      

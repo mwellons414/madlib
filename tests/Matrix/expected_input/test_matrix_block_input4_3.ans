@@ -1,0 +1,16 @@
+-- @description This is for input tests of matrix_unblockize.
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param matrix_in = "'non_existing_input_table'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_unblockize(
+            'non_existing_input_table', '__madlib_temp_40418089_1365619947_6556506__');
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixBlockInputTestCase4/test_matrix_block_input4_3.sql:9: ERROR:  plpy.Error: the input table doesn't exist (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_unblockize", line 25, in <module>
+    matrix_op.matrix_unblockize(schema_madlib, matrix_in, matrix_out)
+  PL/Python function "matrix_unblockize", line 612, in matrix_unblockize
+  PL/Python function "matrix_unblockize", line 52, in __validate_block
+  PL/Python function "matrix_unblockize", line 20, in __assert
+PL/Python function "matrix_unblockize"
+      

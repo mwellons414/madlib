@@ -5,7 +5,6 @@
 *.swp
 data/
 log/
-*.ans
 settings/dbsettings.py
 
 result_*

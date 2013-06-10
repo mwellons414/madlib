@@ -1,0 +1,29 @@
+-- @description This is for input tests of matrix_mult.
+-- @madlib-param matrix_a = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param row_a = "'row_id'"
+-- @madlib-param row_b = "'row_id'"
+-- @madlib-param col_b = "'col_b'"
+-- @madlib-param trans_a = "true"
+-- @madlib-param trans_b = "true"
+-- @madlib-param col_a = "'col_id'"
+-- @madlib-param matrix_b = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param val_a = "'value'"
+-- @madlib-param val_b = "'value'"
+-- @madlib-param matrix_r = "NULL"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_mult(
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', 'col_id', 'value', true,
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', 'col_b', 'value', true,
+            NULL);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase4/test_matrix_sparse_input4_27.sql:20: ERROR:  plpy.Error: one or more expected columns (e.g. row_id, col_id, value) don't exist in the table representing a sparse matrix (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_mult", line 28, in <module>
+    matrix_r)
+  PL/Python function "matrix_mult", line 282, in matrix_mult
+  PL/Python function "matrix_mult", line 203, in matrix_trans
+  PL/Python function "matrix_mult", line 210, in __matrix_trans_sparse
+  PL/Python function "matrix_mult", line 35, in __validate_sparse
+  PL/Python function "matrix_mult", line 20, in __assert
+PL/Python function "matrix_mult"
+      

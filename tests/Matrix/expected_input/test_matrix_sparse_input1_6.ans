@@ -1,0 +1,15 @@
+-- @description This is for input tests of matrix_sparsify.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_array_100_100'"
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param use_temp_table = "NULL"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_sparsify(
+            'madlibtestdata.matrix_array_100_100', '__madlib_temp_40418089_1365619947_6556506__', NULL);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase1/test_matrix_sparse_input1_6.sql:10: ERROR:  plpy.Error: Input error: invalid input for a logical value! (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_sparsify", line 25, in <module>
+    matrix_op.matrix_sparsify(matrix_in, matrix_out, use_temp_table)
+  PL/Python function "matrix_sparsify", line 104, in matrix_sparsify
+PL/Python function "matrix_sparsify"
+      

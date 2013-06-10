@@ -1,0 +1,22 @@
+-- @description This is for input tests of matrix_trans.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param use_temp_table = "true"
+-- @madlib-param col_id = "'col_id'"
+-- @madlib-param value = "'non_exisiting_value'"
+-- @madlib-param row_id = "'row_id'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_trans(
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', 'col_id', 'non_exisiting_value', '__madlib_temp_40418089_1365619947_6556506__',
+            true);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase2/test_matrix_sparse_input2_12.sql:14: ERROR:  plpy.Error: one or more expected columns (e.g. row_id, col_id, value) don't exist in the table representing a sparse matrix (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_trans", line 26, in <module>
+    matrix_in, in_row, in_col, in_val, matrix_out, use_temp_table)
+  PL/Python function "matrix_trans", line 203, in matrix_trans
+  PL/Python function "matrix_trans", line 210, in __matrix_trans_sparse
+  PL/Python function "matrix_trans", line 35, in __validate_sparse
+  PL/Python function "matrix_trans", line 20, in __assert
+PL/Python function "matrix_trans"
+      

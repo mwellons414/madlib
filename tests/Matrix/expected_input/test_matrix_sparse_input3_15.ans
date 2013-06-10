@@ -1,0 +1,19 @@
+-- @description This is for input tests of matrix_densify.
+-- @madlib-param matrix_in = "'madlibtestdata.matrix_sparse_100_100'"
+-- @madlib-param matrix_out = "'__madlib_temp_40418089_1365619947_6556506__'"
+-- @madlib-param use_temp_table = "NULL"
+-- @madlib-param col_id = "'col_id'"
+-- @madlib-param value = "'value'"
+-- @madlib-param row_id = "'row_id'"
+        set client_min_messages to error;
+SET
+        select madlib.matrix_densify(
+            'madlibtestdata.matrix_sparse_100_100', 'row_id', 'col_id', 'value', '__madlib_temp_40418089_1365619947_6556506__',
+            NULL);
+psql:/Users/qianh1/workspace/madlib_testsuite/tests/Matrix/sql_MatrixSparseInputTestCase3/test_matrix_sparse_input3_15.sql:14: ERROR:  plpy.Error: Input error: invalid input for a logical value! (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "matrix_densify", line 26, in <module>
+    matrix_in, in_row, in_col, in_val, matrix_out, use_temp_table)
+  PL/Python function "matrix_densify", line 141, in matrix_densify
+PL/Python function "matrix_densify"
+      
