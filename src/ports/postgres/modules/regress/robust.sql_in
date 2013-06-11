@@ -453,7 +453,7 @@ $$ LANGUAGE plpgsql VOLATILE;
  *  - If the coefficients are already known, they can be provided directly
  *    <pre>select robust_variance(source_table, out_table, regression_type, dependentVariable, independentVariables, coef );</pre>
  */
-*/
+
 CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
      source_table               VARCHAR       -- name of input  table
    , out_table                  VARCHAR       -- name of output table
@@ -521,6 +521,8 @@ BEGIN
 	
 		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
+			RAISE NOTICE 'Computing logistic regression coef';	
+					
 			EXECUTE '
 					--DROP TABLE IF EXISTS __tempTable;
 					SELECT MADLIB_SCHEMA.logregr_train('
@@ -537,15 +539,15 @@ BEGIN
 				regr_coef := coef;	
 		END IF;
 
-		RAISE NOTICE 'Computing logistic regression coef';		
+			
     -- compute linear regression and heteroskedasticity values (if required)
     robust_log_rst := MADLIB_SCHEMA.__internal_get_robust_logregr_result(
                     source_table, dependent_varname, independent_varname, regr_coef);
-		RAISE NOTICE 'Computing string';		
+		--RAISE NOTICE 'Computing string';		
 		insert_string := MADLIB_SCHEMA.__internal_get_robust_logregr_insert_string(
                     robust_log_rst, out_table);
-		RAISE NOTICE 'Calling cs_create_job(%)', 1;		
-		RAISE NOTICE '%', insert_string;		
+		--RAISE NOTICE 'Calling cs_create_job(%)', 1;		
+		--RAISE NOTICE '%', insert_string;		
     -- Ensure Infinity and NaN are cast properly
     insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
                                     '''Infinity''::double precision', 'gi');
