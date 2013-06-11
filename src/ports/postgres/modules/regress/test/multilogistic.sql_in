@@ -347,7 +347,7 @@ SELECT assert(
  *
  * BEGIN CODE
  *
-install.packages("multinomRob",dependencies = TRUE)
+
 library(multinomRob)
 mdata <- read.table("mlog_testdata.txt")
 x1 = mdata[1:200, 1:1]

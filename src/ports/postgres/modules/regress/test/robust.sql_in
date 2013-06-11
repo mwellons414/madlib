@@ -64,7 +64,7 @@ select robust_variance('weibull', 'result_weibull', 'linear',
  * example, and checks that the robust variance is correct.  
  * The correct values were checked with R.  For completeness, the following
  * R code segment can be used to reproduce the correct values. This code segment
- * expects the data table 'patients' to be in a file called "testdata.txt".
+ * expects the data table 'patients' to be in a file called "patients.txt".
  * the data file should look exactly like:
 second_attack, treatment, trait_anxiety
 1, 1, 70
@@ -88,7 +88,7 @@ second_attack, treatment, trait_anxiety
 0, 0, 50
 0, 0, 60
  * BEGIN CODE:
-	 data <- read.csv("testdata.txt")
+	 data <- read.csv("patients.txt")
 	 regress <- glm( second_attack ~ treatment + trait_anxiety, family=binomial("logit"), data = data)
 	 library(sandwich)
 	 vcovHC(regress, 'HC0')
