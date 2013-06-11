@@ -453,7 +453,6 @@ $$ LANGUAGE plpgsql VOLATILE;
  *  - If the coefficients are already known, they can be provided directly
  *    <pre>select robust_variance(source_table, out_table, regression_type, dependentVariable, independentVariables, coef );</pre>
  */
-
 CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
      source_table               VARCHAR       -- name of input  table
    , out_table                  VARCHAR       -- name of output table
