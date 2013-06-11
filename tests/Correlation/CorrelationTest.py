@@ -6,11 +6,10 @@ from madlib.src.template.madlib_test import MADlibTestCase
 from madlib.src.test_utils.utils import unique_string
 from madlib.src.test_utils.utils import mean_squared_error
 from madlib.src.test_utils.utils import read_sql_result
+from madlib.src.test_utils.utils import modified_Gpdiff
 # from madlib.src.test_utils.get_dbsettings import get_schema_madlib
 from madlib.src.test_utils.get_dbsettings import get_schema_testing
-from tinctest.lib import Gpdiff
 import re
-import os
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -119,34 +118,7 @@ class CorrelationInputTestCase (MADlibTestCase):
     # Gpdiff cannot ignore the path name in lines with INFO
     # but it can ignore the different path name in lines with ERROR
     def validate(self, sql_resultfile, answerfile):
-        dirname = os.path.dirname(sql_resultfile)
-        res_tmp = dirname + "/" + unique_string()
-        ans_tmp = dirname + "/" + unique_string()
-
-        r = open(res_tmp, "w")
-        with open(sql_resultfile, "r") as f:
-            for line in f:
-                if re.search("INFO", line):
-                    r.write(line.replace("INFO", "ERROR"))
-                else:
-                    r.write(line)
-        r.close()
-
-        s = open(ans_tmp, "w")
-        with open(answerfile, "r") as f:
-            for line in f:
-                if re.search("INFO", line):
-                    s.write(line.replace("INFO", "ERROR"))
-                else:
-                    s.write(line)
-        s.close()
-
-        cmr = Gpdiff.are_files_equal(res_tmp, ans_tmp)
-
-        os.system("rm -rf " + res_tmp)
-        os.system("rm -rf " + ans_tmp)
-
-        return cmr
+        return modified_Gpdiff(sql_resultfile, answerfile)
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------

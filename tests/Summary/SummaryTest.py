@@ -63,5 +63,5 @@ class SummaryInputTestCase (MADlibTestCase):
     # Gpdiff cannot ignore the path name in lines with INFO
     # but it can ignore the different path name in lines with ERROR
     def validate(self, sql_resultfile, answerfile):
-        modified_Gpdiff(sql_resultfile, answerfile)
+        return modified_Gpdiff(sql_resultfile, answerfile)
 # -------------------------------------------------------------------------
