@@ -1,0 +1,27 @@
+-- @description Input tests for Sumary
+-- @madlib-param target_cols = "NULL"
+-- @madlib-param grouping_cols = "NULL"
+-- @madlib-param ntile_array = "NULL"
+-- @madlib-param tbl_output = "'_mdadlib_input_test_summary_output_'"
+-- @madlib-param get_quartiles = "True"
+-- @madlib-param get_estimates = "True"
+-- @madlib-param dataset = ""
+-- @madlib-param get_distinct = "True"
+          set client_min_messages to error;
+SET
+          select * from
+          madlib.summary(
+              ,
+              '_mdadlib_input_test_summary_output_',
+              NULL,
+              NULL,
+              True,
+              True,
+              NULL,
+              10,
+              True
+          );
+psql:/Users/iyerr3/Work/MADlib/tinc/tinc/tincrepo/madlib/tests/Summary/sql_SummaryInputTestCase/test_summary_input_test_16.sql:24: ERROR:  syntax error at or near ","
+LINE 3:               ,
+                      ^
+              

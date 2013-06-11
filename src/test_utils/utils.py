@@ -7,8 +7,9 @@ from tinctest import logger
 import re
 import os
 import sys
-import time         
+import time
 import random
+from tinctest.lib import Gpdiff
 
 # ------------------------------------------------------------------------
 
@@ -55,11 +56,11 @@ def call_R_script (script, ans_path, methodName, params):
     except:
         os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
         sys.exit("MADlib Test Error: cannot pass parameters to R script!")
-        
+
     # execute the tmp R script
     os.system("R -q --no-save < " + tmp_r + " > " + tmp_r + ".out")
     os.system("rm -f " + tmp_r + " " + tmp_r + ".out")
-    
+
 # ------------------------------------------------------------------------
 
 def read_record (f):
@@ -71,7 +72,7 @@ def read_record (f):
     pass
 
 # ------------------------------------------------------------------------
-    
+
 def read_sql_result (resultfile):
     """
     Read the result file into a dictionary,
@@ -93,7 +94,7 @@ def read_sql_result (resultfile):
             else:
                 res["result"].append(line)
     return res
-            
+
 # ------------------------------------------------------------------------
 
 def unique_string ():
@@ -195,3 +196,97 @@ def biprint (info, syswrite = False, sysexit = False):
         sys.stdout.flush()
     if sysexit:
         sys.exit()
+
+# ------------------------------------------------------------------------
+
+def modified_Gpdiff (result, answer):
+    """
+    Gpdiff cannot ignore the path name in lines with INFO
+    but it can ignore the different path name in lines with ERROR
+    """
+    dirname = os.path.dirname(result)
+    tmp_name = unique_string()
+    res_tmp = dirname + "/" + tmp_name + ".sql.out"
+    ans_tmp = dirname + "/" + tmp_name + ".ans"
+    diff_tmp = dirname + "/" + tmp_name + ".sql.diff"
+    diff_real = result.replace("sql.out", "sql.diff")
+
+    r = open(res_tmp, "w")
+    with open(result, "r") as f:
+        for line in f:
+            if line.startswith("Time"):
+                # r.write("\n")
+                next
+            if re.search("INFO", line):
+                r.write(line.replace("INFO", "ERROR"))
+            else:
+                r.write(line)
+    r.close()
+
+    s = open(ans_tmp, "w")
+    with open(answer, "r") as f:
+        for line in f:
+            if line.startswith("Time"):
+                # s.write("\n")
+                next
+            if re.search("INFO", line):
+                s.write(line.replace("INFO", "ERROR"))
+            else:
+                s.write(line)
+    s.close()
+
+    cmr = Gpdiff.are_files_equal(res_tmp, ans_tmp)
+
+    if os.path.exists(diff_tmp):
+        os.system("mv " + diff_tmp + " " + diff_real)
+    os.system("rm -rf " + res_tmp)
+    os.system("rm -rf " + ans_tmp)
+
+    return cmr
+
+# -------------------------------------------------------------------------
+def _get_argument_expansion(arg_dict, default_arg_val):
+    """
+    Generates a list of dictionaries, each dictionary corresponding to
+    a specific value for one argument, with other arguments taking default values.
+
+    This function is a helper function created to ease the input of various
+    values for arguments. Following the example should make it easier to understand.
+
+    Inputs:
+        arg_dict = { arg1=[1, 2, 3],
+                     arg2=[A, B, C],
+                     arg3=[X, Y, Z]}
+        default_arg_val = { arg1=A1,
+                            arg2=A2,
+                            arg3=A3}
+    Output:
+        [ {arg1=1, arg2=A2, arg3=A3}, {arg1=2, arg2=A2, arg3=A3}, {arg1=3, arg2=A2, arg3=A3},
+          {arg1=A1, arg2=A, arg3=A3}, {arg1=A1, arg2=B, arg3=A3}, {arg1=A1, arg2=C, arg3=A3},
+          {arg1=A1, arg2=A2, arg3=X}, {arg1=A1, arg2=A2, arg3=Y}, {arg1=A1, arg2=A2, arg3=Z},
+        ]
+
+    Number of dictionaries in the output list is the sum of all possible values
+    taken by the arguments.
+
+    Args:
+        @param argument_dict Dictionary {argument_name: [values for argument]}
+        @param default_arg_val Dictionary {argument_name: default_value}
+
+    Returns:
+        List of dictionaries, each dictionary with single value for each argument
+        and default values for the other arguments
+    """
+    if not isinstance(arg_dict, dict):
+        return arg_dict
+    arg_dict_list = []  # output a list of argument dictionaries
+    for each_arg_key, each_arg_vals in arg_dict.iteritems():
+        for each_val in each_arg_vals:
+            curr_arg_dict = dict((k,v) for k, v in default_arg_val.iteritems())
+            # this is slower than a dictionary composition but TINC is not
+            #  guaranteed to use Python 2.7 or higher
+            curr_arg_dict[each_arg_key] = each_val
+            arg_dict_list.append(curr_arg_dict)
+    return arg_dict_list
+# -------------------------------------------------------------------------
+

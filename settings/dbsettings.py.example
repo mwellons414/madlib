@@ -106,7 +106,10 @@ irgp42 = dict(dbname = "madlib-gp42",
              port = 5435,
              schema_madlib = "madlib",      # where madlib is installed
              schema_testing = "madlibtestdata",     # where datasets are placed
-             psql_options = "-x", # PG client options, expended view of result, might be easier to process
+             psql_options = "--no-psqlrc",
+             # PG client options,
+             #      -x: expanded view of result, might be easier to process
+             #      -X --no-psqlrc: Do not read the start-up psqlrc file
              # ------------------------------------------------
              # The following are only for data loader & upgrade test
              superuser = "iyerr3",

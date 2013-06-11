@@ -1,0 +1,34 @@
+-- @description Input tests for Sumary
+-- @madlib-param target_cols = "'temperature, non_existing_col'"
+-- @madlib-param grouping_cols = "NULL"
+-- @madlib-param ntile_array = "NULL"
+-- @madlib-param tbl_output = "'_mdadlib_input_test_summary_output_'"
+-- @madlib-param get_quartiles = "True"
+-- @madlib-param get_estimates = "True"
+-- @madlib-param dataset = "'madlibtestdata.dt_golf'"
+-- @madlib-param get_distinct = "True"
+          set client_min_messages to error;
+SET
+          select * from
+          madlib.summary(
+              'madlibtestdata.dt_golf',
+              '_mdadlib_input_test_summary_output_',
+              'temperature, non_existing_col',
+              NULL,
+              True,
+              True,
+              NULL,
+              10,
+              True
+          );
+psql:/Users/iyerr3/Work/MADlib/tinc/tinc/tincrepo/madlib/tests/Summary/sql_SummaryInputTestCase/test_summary_input_test_3.sql:24: ERROR:  plpy.Error: (plpython.c:4648)
+DETAIL:  Summary -- Invalid paramter: column(s) "non_existing_col" missing from source table
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "summary", line 27, in <module>
+    get_distinct, get_quartiles, ntile_array, how_many_mfv, get_estimates)
+  PL/Python function "summary", line 72, in summary
+  PL/Python function "summary", line 369, in run
+  PL/Python function "summary", line 123, in _validate_paras
+  PL/Python function "summary", line 92, in _validate_target_cols
+PL/Python function "summary"
+              
