@@ -84,6 +84,7 @@ Output is stored in the <em>out_table</em>:
 @examp
 
 @endverbatim
+
 -#  For function summary information. Run 
 @verbatim
 sql> select robust_variance('help');
@@ -486,7 +487,6 @@ RETURNS VARCHAR AS $$
 DECLARE
 insert_string       VARCHAR;
 BEGIN
-  
 	IF (usage_string = ''  OR usage_string = 'help' OR usage_string = '?') THEN
     insert_string := '' || 
     E'Summary \n' || 	
@@ -500,8 +500,15 @@ BEGIN
     E'                                       ,''dependent_variable'' \n' || 
     E'                                       ,''independent_variable'' \n' || 
     E'                                       , coef );\n' || 
-    E' (b) NULL coefficients: First runs the regression, calculates the \n' ||
+    E' (b) NULL/EMPTY coefficients: First runs the regression, calculates the \n' ||
     E'     coefficients and uses them to calculate the robust statistics \n' || 	
+    E' SELECT {schema_madlib}.robust_variance(''source_table'' \n' || 
+    E'                                       ,''output_table'' \n' || 
+    E'                                       ,''regression_type'' \n' || 
+    E'                                       ,''dependent_variable'' \n' || 
+    E'                                       ,''independent_variable'' \n' ||
+    E'                                       );\n' || 
+    E' OR \n' || 
     E' SELECT {schema_madlib}.robust_variance(''source_table'' \n' || 
     E'                                       ,''output_table'' \n' || 
     E'                                       ,''regression_type'' \n' || 
@@ -521,8 +528,8 @@ BEGIN
     E' ''output_table'',         -- Name of result table (overwrites if exists) \n' || 
     E' ''regression_type'',      -- Type of regression (linear/logistic)        \n' || 
     E' ''dependent_variable'',   -- Name of column for dependent variables\n' || 
-    E'                               (can be any SQL expression Eg: ''*'') \n' || 
     E' ''independent_variable'', -- Name of column for independent variables\n' || 
+    E'                               (can be any SQL expression Eg: ''*'') \n' || 
     E' ''coef'',                 -- DOUBLE PRECISION[] or NULL\n' || 
     E'                            (If NULL, then the regression is preformed first)\n' || 
     E' );\n' || 
@@ -573,9 +580,15 @@ $$ LANGUAGE plpgsql VOLATILE;
  *  - <tt>p_values FLOAT8[]</tt> - Array of p-values, \f$ \boldsymbol p \f$
  *
  * @usage
- *  - Compute the coefficients, and the get the robust diagnostic statistics :\n
- * 
- *  
+ * For function summary information. Run 
+ * sql> select robust_variance('help');
+ * OR
+ * sql> select robust_variance();
+ * OR
+ * sql> select robust_variance('?');
+ * For function usage information. Run 
+ * sql> select robust_variance('usage');
+ *  - Compute the coefficients, and the get the robust diagnostic statistics:
  * 	<pre> 
  *  select robust_variance(source_table, out_table, regression_type, dependentVariable, independentVariables, NULL );
  * </pre>
@@ -597,29 +610,42 @@ insert_string       VARCHAR;
 regr_coef			DOUBLE PRECISION[];
 robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
 robust_log_rst		MADLIB_SCHEMA.robust_logregr_result;
+old_msg_level                 TEXT;
 BEGIN
+  EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
+  EXECUTE 'SET client_min_messages TO warning';
 	IF (source_table IS NULL OR source_table = '') THEN
-	RAISE EXCEPTION 'Invalid input table name given.';
+	  RAISE EXCEPTION 'Invalid input table name given.';
+	END IF;
+	IF (NOT MADLIB_SCHEMA.__table_exists(source_table)) THEN
+	  RAISE EXCEPTION 'Input table name does not exist.';
+	END IF;
+	IF (MADLIB_SCHEMA.__table_exists(out_table)) THEN
+	  RAISE EXCEPTION 'Output table name already exists. Drop the table before calling the function.';
 	END IF;
 	IF (out_table IS NULL OR out_table = '') THEN
-	RAISE EXCEPTION 'Invalid output table name given.';
+	  RAISE EXCEPTION 'Invalid output table name given.';
 	END IF;
 	IF (dependent_varname IS NULL OR dependent_varname = '') THEN
-	RAISE EXCEPTION 'Invalid dependent variable name given.';
+	  RAISE EXCEPTION 'Invalid dependent variable name given.';
 	END IF;
 	IF (independent_varname IS NULL OR independent_varname = '') THEN
-	RAISE EXCEPTION 'Invalid independent variable name given.';
+	  RAISE EXCEPTION 'Invalid independent variable name given.';
 	END IF;
+	IF NOT (regression_type = 'linear' OR regression_type = 'logistic') THEN
+    RAISE EXCEPTION 'No such regression type found. Must be (linear/logistic)';
+  END IF;
+
 	-- create output table with appropriate column names
-	EXECUTE 'DROP TABLE IF EXISTS ' || out_table;
-	RAISE NOTICE 'Creating table';		
 	EXECUTE '
 	CREATE TABLE ' || out_table || ' (
 			coef DOUBLE PRECISION[],
 			std_err DOUBLE PRECISION[],
 			t_stats DOUBLE PRECISION[],
 			p_values DOUBLE PRECISION[])';
-	-- Separate wrapper for each function 
+
+  -- Separate wrapper for each function 
+  --  Linear regression
 	IF (regression_type = 'linear') THEN
 	
 		IF (coef IS NULL) THEN
@@ -630,14 +656,13 @@ BEGIN
 								|| independent_varname  || ')
 						).coef FROM ' || source_table
 				INTO regr_coef;
-		ELSE
+    ELSE
 				regr_coef := coef;	
-		END IF;
-    
-		-- compute linear regression and heteroskedasticity values (if required)
+    END IF;
+    -- compute linear regression and heteroskedasticity values (if required)
     robust_lin_rst := MADLIB_SCHEMA.__internal_get_robust_linregr_result(
                     source_table, dependent_varname, independent_varname, regr_coef);
-		insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
+    insert_string := MADLIB_SCHEMA.__internal_get_robust_linregr_insert_string(
                     robust_lin_rst, regr_coef, out_table);
     -- Ensure Infinity and NaN are cast properly
     insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
@@ -646,7 +671,9 @@ BEGIN
                                     '''NaN''::double precision', 'gi');
 		-- complete the sql string and execute
 		EXECUTE insert_string || ')';
-	ElSIF (regression_type = 'logistic') THEN
+
+  --  Logistic Regression
+  ElSIF (regression_type = 'logistic') THEN
 	
 		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
@@ -685,10 +712,27 @@ BEGIN
 		-- complete the sql string and execute
 		EXECUTE insert_string || ')';
 		
-  ELSE
-      RAISE EXCEPTION 'No such regression type found. Must be (linear/logistic)';
   END IF;
-
+  EXECUTE 'SET client_min_messages TO '|| old_msg_level;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
+
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , regression_type						VARCHAR       -- type of regression 
+   , dependent_variable          VARCHAR       -- name of dependent variable
+   , independent_variable        VARCHAR       -- name of independent variable
+  )
+RETURNS VOID AS $$
+BEGIN
+  EXECUTE 'SELECT MADLIB_SCHEMA.robust_variance(' ||
+          ' ''' || source_table || ''' ' ||
+          ' ,''' || out_table || ''' ' ||
+          ' ,''' || regression_type || ''' ' ||
+          ' ,''' || dependent_variable || ''' ' ||
+          ' ,''' || independent_variable || ''' ' ||
+          ' , NULL)';
+END;
+$$ LANGUAGE plpgsql VOLATILE;

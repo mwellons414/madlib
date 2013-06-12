@@ -620,6 +620,9 @@ BEGIN
     IF (independent_varname IS NULL OR independent_varname = '') THEN
         RAISE EXCEPTION 'Invalid independent variable name given.';
     END IF;
+	  IF (MADLIB_SCHEMA.__table_exists(out_table)) THEN
+	    RAISE EXCEPTION 'Output table name already exists. Drop the table before calling the function.';
+    END IF;
     -- create output table with appropriate column names
     EXECUTE 'DROP TABLE IF EXISTS ' || out_table;
     EXECUTE '

@@ -42,9 +42,9 @@ def __runIterativeAlg(stateType, intermediateStateType, initialState, source,
     @param cyclesPerIteration Number of aggregate function calls per iteration.
     """
     updateSQL = """
-				INSERT INTO _cox_intermediate_state (_cox_dependant_variable,_cox_iState)
+				INSERT INTO _cox_intermediate_state (_cox_dependant_variable, _cox_iState)
 				SELECT 
-					({depColumn})::FLOAT8,
+					({depColumn})::double precision,
 					{intermediateExpr}
 				FROM
 					(
@@ -72,6 +72,7 @@ def __runIterativeAlg(stateType, intermediateStateType, initialState, source,
                 intermediateExpr = intermediateExpr,
                 resultExpr = resultExpr,
 								depColumn=depColumn)
+    print updateSQL
     terminateSQL = """
         SELECT
             {terminateExpr} AS should_terminate
@@ -104,7 +105,7 @@ def __runIterativeAlg(stateType, intermediateStateType, initialState, source,
         );
 				DROP TABLE IF EXISTS _cox_intermediate_state;
 				CREATE TEMPORARY TABLE _cox_intermediate_state (
-			    _cox_dependant_variable FLOAT8,
+			    _cox_dependant_variable double precision,
 			    _cox_iState {intermediateStateType}
 				) m4_ifdef( `__GREENPLUM__', `DISTRIBUTED BY (_cox_dependant_variable)' );
         SET client_min_messages = {oldMsgLevel};
@@ -143,7 +144,7 @@ def __runIterativeAlg(stateType, intermediateStateType, initialState, source,
 
 
 def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
-		depColumn, optimizer, maxNumIterations, precision, **kwargs):
+		depColumn, status, optimizer, maxNumIterations, precision, **kwargs):
     """
     Compute cox survival regression coefficients
     
@@ -155,6 +156,7 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
     @param source Name of relation containing the training data
     @param indepColumn Name of independent column in training data
     @param depColumn Name of dependant column which captures time of death
+    @param status Right censoring support for cox
     @param optimizer Name of the optimizer. 'newton': newton method
     @param maxNumIterations Maximum number of iterations
     @param precision Terminate if two consecutive iterations have a difference 
@@ -168,6 +170,7 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
            the required arguments by this function.
     
     @return array with coefficients in case of convergence, otherwise None
+    \pc
     """
     
     if maxNumIterations < 1:
@@ -177,7 +180,7 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
         plpy.error("Unknown optimizer requested. Must be 'newton'")
 						
     return __runIterativeAlg(
-        stateType = "FLOAT8[]",
+        stateType = "double precision[]",
         intermediateStateType = "{schema_madlib}.intermediate_cox_prop_hazards_result".format(schema_madlib = schema_madlib),
         initialState = "NULL" ,
         source = source,
@@ -186,6 +189,7 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
             {schema_madlib}.cox_prop_hazards_step(
                 ({{intermediateState}}).x,
 								{{intermediateStateDepColumn}},
+                ({{intermediateState}}).status,
                 ({{intermediateState}}).exp_coef_x,
                 ({{intermediateState}}).x_exp_coef_x,
                 ({{intermediateState}}).x_xTrans_exp_coef_x,
@@ -197,12 +201,14 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
                 depColumn = depColumn),
         intermediateExpr = """
             {schema_madlib}.intermediate_cox_prop_hazards(
-                ({indepColumn})::FLOAT8[],
-                {{oldCoef}}::FLOAT8[]
+                ({indepColumn})::double precision[],
+                ({status})::double precision,
+                {{oldCoef}}::double precision[]
             )
             """.format(
                 schema_madlib = schema_madlib,
-                indepColumn = indepColumn),
+                indepColumn = indepColumn,
+                status = status),
 
         terminateExpr = """
             {schema_madlib}.internal_cox_prop_hazards_step_distance(
