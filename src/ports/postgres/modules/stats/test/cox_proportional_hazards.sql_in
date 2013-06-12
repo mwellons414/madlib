@@ -14,13 +14,13 @@ CREATE TABLE leukemia (
     id INTEGER NOT NULL,
     grp DOUBLE PRECISION,
     wbc DOUBLE PRECISION,
-    timeDeath INTEGER,
+    timedeath INTEGER,
     status BOOLEAN,
     CONSTRAINT pk_leukemia PRIMARY key (id)
 );
 
 
-INSERT INTO leukemia(id, grp, wbc, timeDeath,status) VALUES
+INSERT INTO leukemia(id, grp, wbc, timedeath,status) VALUES
 (0,0,1.45,35,TRUE),
 (1,0,1.47,34,TRUE),
 (3,0,2.2,32,TRUE),
@@ -56,12 +56,12 @@ SELECT assert(
     'Cox-Proportional hazards (unique time of death): Wrong results'
 ) FROM (
 		SELECT (cox_prop_hazards_regr(
-    'leukemia', 'ARRAY[grp, wbc]', 'timeDeath', 'status', 20, 'newton',  0.001
+    'leukemia', 'ARRAY[grp, wbc]', 'timedeath', 'status', 20, 'newton',  0.001
 		)).*
 ) q;
 
 DROP TABLE IF EXISTS tmp_out;
-SELECT cox_prop_hazards('leukemia', 'tmp_out', 'timeDeath', 'ARRAY[grp, wbc]', 'status');
+SELECT cox_prop_hazards('leukemia', 'tmp_out', 'timedeath', 'ARRAY[grp, wbc]', 'status');
 SELECT * from tmp_out;
 
 DROP TABLE IF EXISTS leukemia;
@@ -69,12 +69,12 @@ CREATE TABLE leukemia (
     id INTEGER NOT NULL,
     grp DOUBLE PRECISION,
     wbc DOUBLE PRECISION,
-    timeDeath INTEGER,
+    timedeath INTEGER,
     status BOOLEAN,
     CONSTRAINT pk_leukemia PRIMARY key (id)
 );
 
-INSERT INTO leukemia(id, grp, wbc, timeDeath, status) VALUES
+INSERT INTO leukemia(id, grp, wbc, timedeath, status) VALUES
 (1,0,1.45,35,TRUE),
 (2,0,1.47,34,TRUE),
 (3,0,2.2,32,TRUE),
@@ -128,7 +128,7 @@ SELECT assert(
     'Cox-Proportional hazards (tied times of death): Wrong results'
 ) FROM (
 		SELECT (cox_prop_hazards_regr(
-    'leukemia', 'ARRAY[grp, wbc]', 'timeDeath', 'status', 20, 'newton',  0.001
+    'leukemia', 'ARRAY[grp, wbc]', 'timedeath', 'status', 20, 'newton',  0.001
 		)).*
 ) q;
 
