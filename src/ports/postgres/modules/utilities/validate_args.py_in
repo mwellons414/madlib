@@ -123,8 +123,9 @@ def __is_col_exists_in_schema(tbl, cols):
     """
     schema = plpy.execute("select current_schema()")[0]["current_schema"]
     existing_cols = __get_cols(tbl, schema)
+    existing_cols = map(str.lower, existing_cols)
     for col in cols:
-        if col not in existing_cols:
+        if col.lower() not in existing_cols:
             return False
     return True
 ## ========================================================================

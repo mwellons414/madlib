@@ -251,7 +251,7 @@ def compute_cox_prop_hazards(schema_madlib, source, indepColumn,
         intermediateExpr = """
             {schema_madlib}.intermediate_cox_prop_hazards(
                 ({indepColumn})::double precision[],
-                ({status}),
+                ({status})::boolean,
                 {{oldCoef}}::double precision[]
             )
             """.format(
