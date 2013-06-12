@@ -322,6 +322,7 @@ CREATE AGGREGATE MADLIB_SCHEMA.robust_logregr(
 );
 
 --------------------------- INTERNAL ---------------------------------------
+
 /**
   * @brief Return robust logistic regression estimates given a set of coefficients
 **/
@@ -335,7 +336,6 @@ RETURNS MADLIB_SCHEMA.robust_logregr_result AS $$
 DECLARE
 robust_value MADLIB_SCHEMA.robust_logregr_result;
 BEGIN
-  
 	EXECUTE '
     SELECT (MADLIB_SCHEMA.robust_logregr('
           || dependent_varname    || ' , '
@@ -540,7 +540,7 @@ BEGIN
     E' ''regression_type'',      -- Type of regression (linear/logistic)        \n' || 
     E' ''dependent_variable'',   -- Name of column for dependent variables\n' || 
     E' ''independent_variable'', -- Name of column for independent variables\n' || 
-    E'                               (can be any SQL expression Eg: ''*'') \n' || 
+    E'                               (can be any SQL expression like ''*'') \n' || 
     E' ''coef'',                 -- DOUBLE PRECISION[] or NULL\n' || 
     E'                            (If NULL, then the regression is preformed first)\n' || 
     E' );\n' || 
@@ -608,20 +608,21 @@ $$ LANGUAGE plpgsql VOLATILE;
  *    <pre>select robust_variance(source_table, out_table, regression_type, dependentVariable, independentVariables, coef );</pre>
  */
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
-     source_table               VARCHAR       -- name of input  table
-   , out_table                  VARCHAR       -- name of output table
-   , regression_type						VARCHAR       -- type of regression 
-   , dependent_varname          VARCHAR       -- name of dependent variable
-   , independent_varname        VARCHAR       -- name of independent variable
-   , coef												DOUBLE PRECISION[]      --regression coefficients 
+     source_table               VARCHAR             -- name of input  table
+   , out_table                  VARCHAR             -- name of output table
+   , regression_type						VARCHAR             -- type of regression 
+   , dependent_varname          VARCHAR             -- name of dependent variable
+   , input_independent_varname  VARCHAR             -- name of independent variable
+   , coef												DOUBLE PRECISION[]  --regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
 insert_string       VARCHAR;
-regr_coef			DOUBLE PRECISION[];
+independent_varname   VARCHAR;
+regr_coef		      	DOUBLE PRECISION[];
 robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
-robust_log_rst		MADLIB_SCHEMA.robust_logregr_result;
-old_msg_level                 TEXT;
+robust_log_rst		  MADLIB_SCHEMA.robust_logregr_result;
+old_msg_level       TEXT;
 BEGIN
   EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
   EXECUTE 'SET client_min_messages TO warning';
@@ -637,16 +638,23 @@ BEGIN
 	IF (out_table IS NULL OR out_table = '') THEN
 	  RAISE EXCEPTION 'Invalid output table name given.';
 	END IF;
-	IF (dependent_varname IS NULL OR dependent_varname = '') THEN
+	IF (input_independent_varname IS NULL OR input_independent_varname = '') THEN
 	  RAISE EXCEPTION 'Invalid dependent variable name given.';
 	END IF;
-	IF (independent_varname IS NULL OR independent_varname = '') THEN
+	IF (dependent_varname IS NULL OR dependent_varname = '') THEN
 	  RAISE EXCEPTION 'Invalid independent variable name given.';
 	END IF;
 	IF NOT (regression_type = 'linear' OR regression_type = 'logistic') THEN
     RAISE EXCEPTION 'No such regression type found. Must be (linear/logistic)';
   END IF;
 
+	IF (input_independent_varname = '*') THEN
+	  independent_varname := MADLIB_SCHEMA__internal_get_col_names_except_dep_variable(source_table, 
+	                            dependent_varname);
+	ELSE
+	  independent_varname := input_dependent_varname; 
+	END IF;
+	
 	-- create output table with appropriate column names
 	EXECUTE '
 	CREATE TABLE ' || out_table || ' (
@@ -733,8 +741,8 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
      source_table               VARCHAR       -- name of input  table
    , out_table                  VARCHAR       -- name of output table
    , regression_type						VARCHAR       -- type of regression 
-   , dependent_variable          VARCHAR       -- name of dependent variable
-   , independent_variable        VARCHAR       -- name of independent variable
+   , dependent_variable         VARCHAR       -- name of dependent variable
+   , independent_variable       VARCHAR       -- name of independent variable
   )
 RETURNS VOID AS $$
 BEGIN
@@ -747,3 +755,5 @@ BEGIN
           ' , NULL)';
 END;
 $$ LANGUAGE plpgsql VOLATILE;
+
+
