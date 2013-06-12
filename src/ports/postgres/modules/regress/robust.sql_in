@@ -652,7 +652,7 @@ BEGIN
 	  independent_varname := MADLIB_SCHEMA__internal_get_col_names_except_dep_variable(source_table, 
 	                            dependent_varname);
 	ELSE
-	  independent_varname := input_dependent_varname; 
+	  independent_varname := input_independent_varname; 
 	END IF;
 	
 	-- create output table with appropriate column names
