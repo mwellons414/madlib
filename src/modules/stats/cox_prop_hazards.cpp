@@ -36,7 +36,7 @@ AnyType intermediate_stateToResult(
 		const HandleMap<const ColumnVector, TransparentHandle<double> >
 												& x,
 		const double inTimeDeath,
-		const double inStatus,
+		const bool inStatus,
 		const double inExp_coef_x,
 		const HandleMap<const ColumnVector, TransparentHandle<double> >
 												& inCoef,
@@ -240,7 +240,7 @@ AnyType cox_prop_hazards_step_transition::run(AnyType &args) {
 		CoxPropHazardsTransitionState<MutableArrayHandle<double> > state = args[0];
     MappedColumnVector x = args[1].getAs<MappedColumnVector>();
     double y = args[2].getAs<double>();
-    double status = args[3].getAs<double>();
+    bool status = args[3].getAs<bool>();
 		
 		/** Note: These precomputations come from "intermediate_cox_prop_hazards".
 			They are precomputed and stored in a temporary table.
@@ -275,7 +275,7 @@ AnyType cox_prop_hazards_step_transition::run(AnyType &args) {
 		*/
 		
 		if (std::abs(y-state.y_previous) < 1.0e-6 || state.numRows == 1) {
-		  if (status > 1.0e-6) {
+		  if (status == 1) {
 			  state.multiplier++;
 			}
 		}
@@ -302,7 +302,7 @@ AnyType cox_prop_hazards_step_transition::run(AnyType &args) {
     state.H += x_exp_coef_x;
     state.V += x_xTrans_exp_coef_x;
     state.y_previous = y;
-		if (status > 1.0e-6) {
+		if (status == 1) {
       state.grad += x;
       state.logLikelihood += std::log(exp_coef_x);
     }
@@ -420,7 +420,7 @@ AnyType stateToResult(
 AnyType intermediate_cox_prop_hazards::run(AnyType &args) {
 
     MappedColumnVector x = args[0].getAs<MappedColumnVector>();
-    double status = args[1].getAs<double>();
+    bool status = args[1].getAs<bool>();
     MutableNativeColumnVector coef(allocateArray<double>(x.size()));
 		
     // The following check was added with MADLIB-138.

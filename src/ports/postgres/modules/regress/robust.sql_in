@@ -66,10 +66,21 @@ SELECT madlib.\ref robust_variance(
     <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogisitc) 
     <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
     <em>'independent_varname'</em>, -- dependent variable, VARCHAR
-    <em>'coef'</em>,  				-- coef FLOAT8[] or NULL
+    <em>'coef'</em>,  				      -- coef DOUBLE PRECISION[] or NULL
 );
 </pre>
 
+OR 
+
+<pre>
+SELECT madlib.\ref robust_variance(
+    <em>'source_table'</em>,        -- name of input table, VARCHAR
+    <em>'out_table'</em>,           -- name of output table, VARCHAR
+    <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogisitc) 
+    <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
+    <em>'independent_varname'</em>, -- dependent variable, VARCHAR
+);
+</pre>
 Here the <em>'independent_varname'</em> can be the name of a column, which contains
 array of numeric values. It can also have a format of string 'array[1, x1, x2, x3]',
 where <em>x1</em>, <em>x2</em> and <em>x3</em> are all column names.
