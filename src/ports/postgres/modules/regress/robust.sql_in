@@ -233,6 +233,7 @@ CREATE TYPE MADLIB_SCHEMA.robust_logregr_result AS (
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_logregr_step_transition(
     state DOUBLE PRECISION[],
     y DOUBLE PRECISION,
+    --y BOOLEAN,
     x DOUBLE PRECISION[],
     coef DOUBLE PRECISION[])
 RETURNS DOUBLE PRECISION[]
@@ -266,7 +267,7 @@ LANGUAGE C IMMUTABLE STRICT;
  * <tt>independentVariables</tt> array to 1.
  *
  * @return A composite value:
- *  - <tt>robust_est FLOAT8[] </tt> - Array of robust variance estimates
+ *  - <tt>robust_est FLOAT8[] </tt> - The coefficients for the regression
  *  - <tt>std_err FLOAT8[]</tt> - Array of huber-white standard errors,
  *    \f$ \mathit{se}(c_1), \dots, \mathit{se}(c_k) \f$
  *  - <tt>t_stats FLOAT8[]</tt> - Array of t-statistics, \f$ \boldsymbol t \f$
@@ -307,10 +308,10 @@ RETURNS MADLIB_SCHEMA.robust_logregr_result AS $$
 DECLARE
 robust_value MADLIB_SCHEMA.robust_logregr_result;
 BEGIN
-  
+    
 	EXECUTE '
-    SELECT (MADLIB_SCHEMA.robust_logregr('
-          || dependent_varname    || ' , '
+    SELECT (MADLIB_SCHEMA.robust_logregr(('
+          || dependent_varname  || ')::integer::double precision , '
           || independent_varname  || ' , '
           || 'ARRAY[' || array_to_string(logregr_coeffs, ',') || '])
      	).* FROM ' || source_table
@@ -456,10 +457,10 @@ $$ LANGUAGE plpgsql VOLATILE;
 CREATE FUNCTION MADLIB_SCHEMA.robust_variance(
      source_table               VARCHAR       -- name of input  table
    , out_table                  VARCHAR       -- name of output table
-   , regression_type						VARCHAR       -- type of regression 
+   , regression_type			VARCHAR       -- type of regression 
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname        VARCHAR       -- name of independent variable
-   , coef												DOUBLE PRECISION[]      --regression coefficients 
+   , coef						DOUBLE PRECISION[]      --regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
@@ -467,8 +468,8 @@ insert_string       VARCHAR;
 regr_coef			DOUBLE PRECISION[];
 robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
 robust_log_rst		MADLIB_SCHEMA.robust_logregr_result;
+tempTableName			VARCHAR;
 BEGIN
-	set client_min_messages to error;
 	IF (source_table IS NULL OR source_table = '') THEN
 	RAISE EXCEPTION 'Invalid input table name given.';
 	END IF;
@@ -521,33 +522,27 @@ BEGIN
 		
 		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
-			RAISE NOTICE 'Computing logistic regression coef';	
-					
+			tempTableName := __unique_string(); 
 			EXECUTE '
-					--DROP TABLE IF EXISTS __tempTable;
 					SELECT MADLIB_SCHEMA.logregr_train('
 								|| ' '''||source_table||''' ' || ','
-								|| ' '''||'__tempTable'||''' ' || ','
+								|| ' '''||tempTableName||''' ' || ','
 								|| ' '''||dependent_varname ||''' ' || ' , '
 								|| ' '''||independent_varname||''' '|| ')';
-					--SELECT coef from __tempTable;
-					EXECUTE 'SELECT coef from __tempTable' INTO regr_coef;
-					--regr_coef := SELECT coef from __tempTable;
-					--RAISE NOTICE '%', regr_coef;
-					DROP TABLE IF EXISTS __tempTable;
+					EXECUTE 'SELECT coef from ' || tempTableName INTO regr_coef;
+
+					EXECUTE 'DROP TABLE IF EXISTS ' || tempTableName;
 		ELSE
 				regr_coef := coef;	
 		END IF;
 
 			
-    -- compute linear regression and heteroskedasticity values (if required)
+    -- compute robust variance calculation
     robust_log_rst := MADLIB_SCHEMA.__internal_get_robust_logregr_result(
                     source_table, dependent_varname, independent_varname, regr_coef);
 		--RAISE NOTICE 'Computing string';		
 		insert_string := MADLIB_SCHEMA.__internal_get_robust_logregr_insert_string(
                     robust_log_rst, out_table);
-		--RAISE NOTICE 'Calling cs_create_job(%)', 1;		
-		--RAISE NOTICE '%', insert_string;		
     -- Ensure Infinity and NaN are cast properly
     insert_string := REGEXP_REPLACE(insert_string, 'Infinity', 
                                     '''Infinity''::double precision', 'gi');

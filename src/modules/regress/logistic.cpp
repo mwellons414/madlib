@@ -501,6 +501,9 @@ AnyType robuststateToResult(
 	MutableNativeColumnVector variance(
         inAllocator.allocateArray<double>(inCoef.size()));
 
+	MutableNativeColumnVector coef(
+        inAllocator.allocateArray<double>(inCoef.size()));
+
    MutableNativeColumnVector stdErr(
         inAllocator.allocateArray<double>(inCoef.size()));
     MutableNativeColumnVector waldZStats(
@@ -509,7 +512,9 @@ AnyType robuststateToResult(
         inAllocator.allocateArray<double>(inCoef.size()));
 
     for (Index i = 0; i < inCoef.size(); ++i) {
-        variance(i) = diagonal_of_varianceMat(i);
+        //variance(i) = diagonal_of_varianceMat(i);
+        coef(i) = inCoef(i);
+        
         stdErr(i) = std::sqrt(diagonal_of_varianceMat(i));
         waldZStats(i) = inCoef(i) / stdErr(i);
         waldPValues(i) = 2. * prob::cdf( prob::normal(),
@@ -518,7 +523,8 @@ AnyType robuststateToResult(
 
     // Return all coefficients, standard errors, etc. in a tuple
     AnyType tuple;
-    tuple <<  variance<<stdErr << waldZStats << waldPValues;
+    //tuple <<  variance<<stdErr << waldZStats << waldPValues;
+    tuple <<  coef<<stdErr << waldZStats << waldPValues;
     return tuple;
 }
 
