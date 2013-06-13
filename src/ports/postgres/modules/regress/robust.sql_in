@@ -159,6 +159,7 @@ p_values       | {0.0657926909738772,0.382066744586027,0.0258849510756295}
 
 
 --------------------------- Robust Linear Regression ----------------------------------
+
 CREATE TYPE MADLIB_SCHEMA.robust_linregr_result AS (
     std_err DOUBLE PRECISION[],
     t_stats DOUBLE PRECISION[],
@@ -610,22 +611,22 @@ $$ LANGUAGE plpgsql VOLATILE;
  */
 
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
-     source_table               VARCHAR             -- name of input  table
-   , out_table                  VARCHAR             -- name of output table
-   , regression_type			VARCHAR             -- type of regression 
-   , dependent_varname          VARCHAR             -- name of dependent variable
-   , input_independent_varname  VARCHAR             -- name of independent variable
-   , coef						DOUBLE PRECISION[]  --regression coefficients 
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , regression_type			      VARCHAR       -- type of regression 
+   , dependent_varname          VARCHAR       -- name of dependent variable
+   , input_independent_varname  VARCHAR       -- name of independent variable
+   , coef				  		DOUBLE PRECISION[]      -- regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
-insert_string       VARCHAR;
-independent_varname   VARCHAR;
-regr_coef		      	DOUBLE PRECISION[];
-robust_lin_rst      MADLIB_SCHEMA.robust_linregr_result;
-tempTableName			VARCHAR;
-robust_log_rst		  MADLIB_SCHEMA.robust_logregr_result;
-old_msg_level       TEXT;
+  insert_string         VARCHAR;
+  independent_varname   VARCHAR;
+  regr_coef		      	  DOUBLE PRECISION[];
+  robust_lin_rst        MADLIB_SCHEMA.robust_linregr_result;
+  tempTableName			    VARCHAR;
+  robust_log_rst		    MADLIB_SCHEMA.robust_logregr_result;
+  old_msg_level         TEXT;
 BEGIN
   EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
   EXECUTE 'SET client_min_messages TO warning';
@@ -658,18 +659,82 @@ BEGIN
 	  independent_varname := input_independent_varname; 
 	END IF;
 	
-	-- create output table with appropriate column names
-	EXECUTE '
-	CREATE TABLE ' || out_table || ' (
-			coef DOUBLE PRECISION[],
-			std_err DOUBLE PRECISION[],
-			t_stats DOUBLE PRECISION[],
-			p_values DOUBLE PRECISION[])';
 
   -- Separate wrapper for each function 
   --  Linear regression
 	IF (regression_type = 'linear') THEN
+
+    PERFORM MADLIB_SCHEMA.robust_variance_linear(
+                                source_table,
+                                out_table,
+                                dependent_varname,
+                                independent_varname,
+                                coef);
+
+  --  Logistic Regression
+  ElSIF (regression_type = 'logistic') THEN
 	
+    PERFORM MADLIB_SCHEMA.robust_variance_logistic(
+                                source_table,
+                                out_table,
+                                dependent_varname,
+                                independent_varname,
+                                coef);
+		
+  END IF;
+  EXECUTE 'SET client_min_messages TO '|| old_msg_level;
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+/**
+  * @brief Robust regression with default fit regression behaviour & no grouping
+ **/
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , regression_type						VARCHAR       -- type of regression 
+   , dependent_variable         VARCHAR       -- name of dependent variable
+   , independent_variable       VARCHAR       -- name of independent variable
+  )
+RETURNS VOID AS $$
+BEGIN
+  PERFORM MADLIB_SCHEMA.robust_variance(
+                              source_table,
+                              out_table,
+                              regression_type,
+                              dependent_variable,
+                              independent_variable,
+                              NULL);
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+--------------------------- Robust Linear Regression ----------------------------------
+
+/**
+  * @brief Robust linear regression function subcall
+ **/
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance_linear(
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , dependent_varname          VARCHAR       -- name of dependent variable
+   , independent_varname        VARCHAR       -- name of independent variable
+   , coef					  DOUBLE PRECISION[]        -- regression coefficients 
+  )
+RETURNS VOID AS $$
+DECLARE
+  insert_string         VARCHAR;
+  regr_coef		      	  DOUBLE PRECISION[];
+  robust_lin_rst        MADLIB_SCHEMA.robust_linregr_result;
+BEGIN
+    -- create output table with appropriate column names
+    EXECUTE '
+    CREATE TABLE ' || out_table || ' (
+        coef DOUBLE PRECISION[],
+        std_err DOUBLE PRECISION[],
+        t_stats DOUBLE PRECISION[],
+        p_values DOUBLE PRECISION[])';
 		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
 			EXECUTE '
@@ -694,9 +759,37 @@ BEGIN
 		-- complete the sql string and execute
 		EXECUTE insert_string || ')';
 
-  --  Logistic Regression
-  ElSIF (regression_type = 'logistic') THEN
-	
+END;
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+--------------------------- Robust Logistic Regression ----------------------------------
+
+/**
+  * @brief Robust logistic function subcall
+ **/
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance_logistic(
+     source_table               VARCHAR       -- name of input  table
+   , out_table                  VARCHAR       -- name of output table
+   , dependent_varname          VARCHAR       -- name of dependent variable
+   , independent_varname        VARCHAR       -- name of independent variable
+   , coef					  DOUBLE PRECISION[]        -- regression coefficients 
+   , group_cols                 VARCHAR[]     -- name of independent variable
+  )
+RETURNS VOID AS $$
+DECLARE
+  insert_string         VARCHAR;
+  regr_coef		      	  DOUBLE PRECISION[];
+  tempTableName			    VARCHAR;
+  robust_log_rst		    MADLIB_SCHEMA.robust_logregr_result;
+BEGIN
+    -- create output table with appropriate column names
+    EXECUTE '
+    CREATE TABLE ' || out_table || ' (
+        coef DOUBLE PRECISION[],
+        std_err DOUBLE PRECISION[],
+        t_stats DOUBLE PRECISION[],
+        p_values DOUBLE PRECISION[])';
 		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
 			tempTableName := __unique_string(); 
@@ -727,30 +820,10 @@ BEGIN
                                     '''NaN''::double precision', 'gi');
 		-- complete the sql string and execute
 		EXECUTE insert_string || ')';
-		
-  END IF;
-  EXECUTE 'SET client_min_messages TO '|| old_msg_level;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 
-CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
-     source_table               VARCHAR       -- name of input  table
-   , out_table                  VARCHAR       -- name of output table
-   , regression_type						VARCHAR       -- type of regression 
-   , dependent_variable         VARCHAR       -- name of dependent variable
-   , independent_variable       VARCHAR       -- name of independent variable
-  )
-RETURNS VOID AS $$
-BEGIN
-  EXECUTE 'SELECT MADLIB_SCHEMA.robust_variance(' ||
-          ' ''' || source_table || ''' ' ||
-          ' ,''' || out_table || ''' ' ||
-          ' ,''' || regression_type || ''' ' ||
-          ' ,''' || dependent_variable || ''' ' ||
-          ' ,''' || independent_variable || ''' ' ||
-          ' , NULL)';
-END;
-$$ LANGUAGE plpgsql VOLATILE;
+
 
 
