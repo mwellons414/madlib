@@ -126,10 +126,10 @@ INSERT INTO patients(ID, second_attack, treatment, trait_anxiety) VALUES
 
 
 
--- SELECT assert(
--- 	relative_error(coef, ARRAY[11.96, 1.37, 0.0028]) < 1e-3,
--- 	'Robust Variance: Wrong Results'
--- )FROM (
--- 	select (robust_logregr( second_attack, ARRAY[1,treatment, trait_anxiety], 
--- 	ARRAY[-6.36346994177327,-1.02410605238946,0.119044916668435])).* from patients
--- ) as sq;
+SELECT assert(
+	relative_error(coef, ARRAY[-6.36346, -1.024, 0.11904]) < 1e-3,
+	'Robust Variance: Wrong Results'
+)FROM (
+	select (robust_logregr( second_attack, ARRAY[1,treatment, trait_anxiety], 
+	ARRAY[-6.36346994177327,-1.02410605238946,0.119044916668435])).* from patients
+) as sq;
