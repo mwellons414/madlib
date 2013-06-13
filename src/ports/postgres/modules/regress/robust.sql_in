@@ -166,6 +166,7 @@ CREATE TYPE MADLIB_SCHEMA.robust_linregr_result AS (
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_linregr_transition(
     state MADLIB_SCHEMA.bytea8,
     y DOUBLE PRECISION,
+    --y BOOLEAN,
     x DOUBLE PRECISION[],
     coef DOUBLE PRECISION[])
 RETURNS MADLIB_SCHEMA.bytea8
@@ -228,7 +229,7 @@ LANGUAGE C IMMUTABLE STRICT;
  */
 
 CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
-    /*+ "dependentVariable" */ DOUBLE PRECISION,
+    /*+ "dependentVariable" */  DOUBLE PRECISION,
     /*+ "independentVariables" */ DOUBLE PRECISION[],
     /*+ "coef" */ DOUBLE PRECISION[]) (
     SFUNC=MADLIB_SCHEMA.robust_linregr_transition,
@@ -240,6 +241,7 @@ CREATE AGGREGATE MADLIB_SCHEMA.robust_linregr(
 
 
 
+--------------------------- ROBUST LOGISTIC REGRESSION ---------------------------------------
 
 
 /**
@@ -258,8 +260,7 @@ CREATE TYPE MADLIB_SCHEMA.robust_logregr_result AS (
  
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_logregr_step_transition(
     state DOUBLE PRECISION[],
-    y DOUBLE PRECISION,
-    --y BOOLEAN,
+    y BOOLEAN,
     x DOUBLE PRECISION[],
     coef DOUBLE PRECISION[])
 RETURNS DOUBLE PRECISION[]
@@ -309,7 +310,7 @@ LANGUAGE C IMMUTABLE STRICT;
  */
 
 CREATE AGGREGATE MADLIB_SCHEMA.robust_logregr(
-	 /*+ "dependentVariable" */ DOUBLE PRECISION,
+	 /*+ "dependentVariable" */ BOOLEAN, --DOUBLE PRECISION,
 	/*+ "independentVariables" */  DOUBLE PRECISION[], 
     /*+ "coef" */ DOUBLE PRECISION[] ) (
     
@@ -319,6 +320,8 @@ CREATE AGGREGATE MADLIB_SCHEMA.robust_logregr(
     FINALFUNC=MADLIB_SCHEMA.robust_logregr_step_final,
     INITCOND='{0,0,0,0,0.0}'
 );
+
+
 
 --------------------------- INTERNAL ---------------------------------------
 
@@ -335,12 +338,13 @@ RETURNS MADLIB_SCHEMA.robust_logregr_result AS $$
 DECLARE
 robust_value MADLIB_SCHEMA.robust_logregr_result;
 BEGIN
-	EXECUTE '
-    SELECT (MADLIB_SCHEMA.robust_logregr(('
-          || dependent_varname  || ')::integer::double precision , '
-          || independent_varname  || ' , '
-          || 'ARRAY[' || array_to_string(logregr_coeffs, ',') || '])
-     	).* FROM ' || source_table
+--	EXECUTE '
+--     SELECT (MADLIB_SCHEMA.robust_logregr(('
+--           || dependent_varname  || ')::integer::double precision , '
+--           || independent_varname  || ' , '
+--           || 'ARRAY[' || array_to_string(logregr_coeffs, ',') || '])
+--      	).* FROM ' || source_table
+	EXECUTE 'SELECT (MADLIB_SCHEMA.robust_logregr(('|| dependent_varname  || ' )::BOOLEAN, '|| independent_varname  || ' , '|| 'ARRAY[' || array_to_string(logregr_coeffs, ',') || '])).* FROM ' || source_table
 	INTO robust_value;
   RETURN robust_value;
 END
