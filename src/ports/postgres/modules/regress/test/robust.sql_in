@@ -125,11 +125,13 @@ INSERT INTO patients(ID, second_attack, treatment, trait_anxiety) VALUES
 (20, 0, 0, 60);
 
 
+drop table if exists temp_result;
+select robust_variance('patients', 'temp_result', 'logistic', 'second_attack', 'ARRAY[1, treatment, trait_anxiety]');
 
 SELECT assert(
-	relative_error(coef, ARRAY[-6.36346, -1.024, 0.11904]) < 1e-3,
+	relative_error(coef, ARRAY[-6.36346, -1.024, 0.11904]) < 1e-3 AND
+	relative_error(std_err, ARRAY[3.4587,1.171,0.05343]) < 1e-3 AND
+	relative_error(t_stats, ARRAY[-1.8398,-0.87409,2.2279]) < 1e-3 AND
+	relative_error(p_values, ARRAY[0.06579,0.38206,0.025884]) < 1e-3,
 	'Robust Variance: Wrong Results'
-)FROM (
-	select (robust_logregr( second_attack, ARRAY[1,treatment, trait_anxiety], 
-	ARRAY[-6.36346994177327,-1.02410605238946,0.119044916668435])).* from patients
-) as sq;
+)FROM temp_result;

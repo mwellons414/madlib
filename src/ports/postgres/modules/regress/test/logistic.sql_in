@@ -69,9 +69,8 @@ select logregr_train(
     'second_attack',
     'ARRAY[1, treatment, trait_anxiety]',
     Null,
-    200,
-    'cg',
-    0
+    2000,
+    'cg'
 );
 -- We are pretty generous here
 SELECT assert(
