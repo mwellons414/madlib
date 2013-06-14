@@ -61,7 +61,7 @@ The training data is expected to be of the following form:
 SELECT madlib.\ref robust_variance(
     <em>'source_table'</em>,        -- name of input table, VARCHAR
     <em>'out_table'</em>,           -- name of output table, VARCHAR
-    <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogisitc) 
+    <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogistic) 
     <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
     <em>'independent_varname'</em>, -- dependent variable, VARCHAR
 );

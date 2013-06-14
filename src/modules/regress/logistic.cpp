@@ -535,15 +535,6 @@ AnyType
 robust_logregr_step_transition::run(AnyType &args) {
     RobustLogRegrTransitionState<MutableArrayHandle<double> > state = args[0];
     double y = args[1].getAs<bool>() ? 1. : -1.;
-    //double y = args[1].getAs<double>();
-//     if(y > 0)
-//     {
-//     	y= 1;
-//     }
-//     else
-//     {
-//     	y= -1;
-//     }
         
     MappedColumnVector x = args[2].getAs<MappedColumnVector>();
     MappedColumnVector coef = args[3].getAs<MappedColumnVector>();
