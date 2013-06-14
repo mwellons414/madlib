@@ -50,10 +50,8 @@ The training data is expected to be of the following form:
     <em>regressionType </em> VARCHAR,
     <em>dependentVariable</em> VARCHAR,
     <em>independentVariable</em> VARCHAR,
-    <em>coef</em> FLOAT8[] OR NULL,
 )</pre>
 
-If the coefficients are NULL then the function will compute the coeffiecents of the required regresison.
 @usage
 
 
@@ -66,7 +64,6 @@ SELECT madlib.\ref robust_variance(
     <em>'regression_type'</em>,     -- type of regression (linear/logistic/multilogisitc) 
     <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
     <em>'independent_varname'</em>, -- dependent variable, VARCHAR
-    <em>'coef'</em>,  				      -- coef DOUBLE PRECISION[] or NULL
 );
 </pre>
 
@@ -127,7 +124,7 @@ sql> SELECT * FROM data;
 @endverbatim
 -# Run the logistic regression function and then compute the robust variance of the regression:
 @verbatim
-sql> select robust_variance('patients', 'newTable', 'logistic', 'second_attack', 'ARRAY[1, treatment, trait_anxiety]', NULL ); 
+sql> select robust_variance('patients', 'newTable', 'logistic', 'second_attack', 'ARRAY[1, treatment, trait_anxiety]'); 
 sql> select * from newTable;
 coef           | {11.962748350258,1.37269168529894,0.00285507335100035}
 std_err        | {3.45872062333141,1.17161925782182,0.053432886418388}
@@ -505,15 +502,7 @@ BEGIN
     E'Summary \n' || 	
     E'-----------------------------------------------------------------------------------------\n' ||
     E' Functionality: Calculate Huber-White robust statistics for linear/logistic regression\n' || 	
-    E' There are two ways to use this function  \n' || 	
-    E' (a) On pre-calculated regression coefficients \n' || 	
-    E' SELECT {schema_madlib}.robust_variance(''source_table''  \n' || 
-    E'                                       ,''output_table''  \n' || 
-    E'                                       ,''regression_type''  \n' || 
-    E'                                       ,''dependent_variable'' \n' || 
-    E'                                       ,''independent_variable'' \n' || 
-    E'                                       , coef );\n' || 
-    E' (b) NULL/EMPTY coefficients: First runs the regression, calculates the \n' ||
+    E' The funciton first runs the regression, calculates the \n' ||
     E'     coefficients and uses them to calculate the robust statistics \n' || 	
     E' SELECT {schema_madlib}.robust_variance(''source_table'' \n' || 
     E'                                       ,''output_table'' \n' || 
@@ -521,13 +510,6 @@ BEGIN
     E'                                       ,''dependent_variable'' \n' || 
     E'                                       ,''independent_variable'' \n' ||
     E'                                       );\n' || 
-    E' OR \n' || 
-    E' SELECT {schema_madlib}.robust_variance(''source_table'' \n' || 
-    E'                                       ,''output_table'' \n' || 
-    E'                                       ,''regression_type'' \n' || 
-    E'                                       ,''dependent_variable'' \n' || 
-    E'                                       ,''independent_variable'' \n' ||
-    E'                                       , NULL);\n' || 
     E'For more details on function usage:  \n' || 
     E'SELECT {schema_madlib}.robust_variance(''usage'') \n' || 
     E'';
@@ -543,15 +525,12 @@ BEGIN
     E' ''dependent_variable'',   -- Name of column for dependent variables\n' || 
     E' ''independent_variable'', -- Name of column for independent variables\n' || 
     E'                               (can be any SQL expression like ''*'') \n' || 
-    E' ''coef'',                 -- DOUBLE PRECISION[] or NULL\n' || 
-    E'                            (If NULL, then the regression is preformed first)\n' || 
     E' );\n' || 
     E'\n' || 
     E'Output:\n' || 	
     E'-----------------------------------------------------------------------------------------\n' ||
     E' The output table (''output_table'' above) has the following columns\n' || 	
     E' ''coef''    DOUBLE PRECISION[],  -- Coefficients of regression \n' || 
-    E'                                   (if computed, else returns same as input) \n' || 
     E' ''std_err''  DOUBLE PRECISION[], -- Huber-White standard errors\n' || 
     E' ''stats''    DOUBLE PRECISION[], -- Z-stats of the standard errors\n' || 
     E' ''p_values'' DOUBLE PRECISION[], -- p-values of the standard errors\n' || 
@@ -616,13 +595,11 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
    , regression_type			      VARCHAR       -- type of regression 
    , dependent_varname          VARCHAR       -- name of dependent variable
    , input_independent_varname  VARCHAR       -- name of independent variable
-   , coef				  		DOUBLE PRECISION[]      -- regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
   insert_string         VARCHAR;
   independent_varname   VARCHAR;
-  regr_coef		      	  DOUBLE PRECISION[];
   robust_lin_rst        MADLIB_SCHEMA.robust_linregr_result;
   tempTableName			    VARCHAR;
   robust_log_rst		    MADLIB_SCHEMA.robust_logregr_result;
@@ -668,8 +645,7 @@ BEGIN
                                 source_table,
                                 out_table,
                                 dependent_varname,
-                                independent_varname,
-                                coef);
+                                independent_varname);
 
   --  Logistic Regression
   ElSIF (regression_type = 'logistic') THEN
@@ -678,36 +654,13 @@ BEGIN
                                 source_table,
                                 out_table,
                                 dependent_varname,
-                                independent_varname,
-                                coef);
+                                independent_varname);
 		
   END IF;
   EXECUTE 'SET client_min_messages TO '|| old_msg_level;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
-
-/**
-  * @brief Robust regression with default fit regression behaviour & no grouping
- **/
-CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance(
-     source_table               VARCHAR       -- name of input  table
-   , out_table                  VARCHAR       -- name of output table
-   , regression_type						VARCHAR       -- type of regression 
-   , dependent_variable         VARCHAR       -- name of dependent variable
-   , independent_variable       VARCHAR       -- name of independent variable
-  )
-RETURNS VOID AS $$
-BEGIN
-  PERFORM MADLIB_SCHEMA.robust_variance(
-                              source_table,
-                              out_table,
-                              regression_type,
-                              dependent_variable,
-                              independent_variable,
-                              NULL);
-END;
-$$ LANGUAGE plpgsql VOLATILE;
 
 
 --------------------------- Robust Linear Regression ----------------------------------
@@ -720,7 +673,6 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance_linear(
    , out_table                  VARCHAR       -- name of output table
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname        VARCHAR       -- name of independent variable
-   , coef					  DOUBLE PRECISION[]        -- regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
@@ -735,17 +687,13 @@ BEGIN
         std_err DOUBLE PRECISION[],
         t_stats DOUBLE PRECISION[],
         p_values DOUBLE PRECISION[])';
-		IF (coef IS NULL) THEN
-			-- Run the regression if the coefficients are not provided 
-			EXECUTE '
-					SELECT (MADLIB_SCHEMA.linregr('
-								|| dependent_varname    || ' , '
-								|| independent_varname  || ')
-						).coef FROM ' || source_table
-				INTO regr_coef;
-    ELSE
-				regr_coef := coef;	
-    END IF;
+    -- Run the regression if the coefficients are not provided 
+    EXECUTE '
+        SELECT (MADLIB_SCHEMA.linregr('
+              || dependent_varname    || ' , '
+              || independent_varname  || ')
+          ).coef FROM ' || source_table
+      INTO regr_coef;
     -- compute linear regression and heteroskedasticity values (if required)
     robust_lin_rst := MADLIB_SCHEMA.__internal_get_robust_linregr_result(
                     source_table, dependent_varname, independent_varname, regr_coef);
@@ -773,7 +721,6 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance_logistic(
    , out_table                  VARCHAR       -- name of output table
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname        VARCHAR       -- name of independent variable
-   , coef					  DOUBLE PRECISION[]        -- regression coefficients 
   )
 RETURNS VOID AS $$
 DECLARE
@@ -789,21 +736,17 @@ BEGIN
         std_err DOUBLE PRECISION[],
         t_stats DOUBLE PRECISION[],
         p_values DOUBLE PRECISION[])';
-		IF (coef IS NULL) THEN
 			-- Run the regression if the coefficients are not provided 
 			tempTableName := MADLIB_SCHEMA.__unique_string(); 
 			EXECUTE '
-					SELECT MADLIB_SCHEMA.logregr_train('
-								|| ' '''||source_table||''' ' || ','
-								|| ' '''||tempTableName||''' ' || ','
-								|| ' '''||dependent_varname ||''' ' || ' , '
-								|| ' '''||independent_varname||''' '|| ')';
-					EXECUTE 'SELECT coef from ' || tempTableName INTO regr_coef;
+        SELECT MADLIB_SCHEMA.logregr_train('
+              || ' '''||source_table||''' ' || ','
+              || ' '''||tempTableName||''' ' || ','
+              || ' '''||dependent_varname ||''' ' || ' , '
+              || ' '''||independent_varname||''' '|| ')';
+        EXECUTE 'SELECT coef from ' || tempTableName INTO regr_coef;
 
-					EXECUTE 'DROP TABLE IF EXISTS ' || tempTableName;
-		ELSE
-				regr_coef := coef;	
-		END IF;
+        EXECUTE 'DROP TABLE IF EXISTS ' || tempTableName;
 
 			
     -- compute robust variance calculation

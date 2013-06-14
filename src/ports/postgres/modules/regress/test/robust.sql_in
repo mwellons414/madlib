@@ -51,10 +51,6 @@ SELECT * FROM (
 	weibull as src
 ) q;
 
-select robust_variance('weibull', 'result_weibull', 'linear',
-                    'y', 'ARRAY[1, x1, x2]', ARRAY[-153.51, 1.24, 12.08]);
-select robust_variance('weibull', 'result_weibull_2', 'linear',
-                    'y', 'ARRAY[1, x1, x2]', NULL);
 select robust_variance('weibull', 'result_weibull_3', 'linear',
                     'y', 'ARRAY[1, x1, x2]');
 -- End of robust linear regression 
