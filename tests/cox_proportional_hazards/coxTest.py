@@ -364,7 +364,7 @@ class CoxPropHazardsDefaultInputTestCase (MADlibTestCase):
 
 
   # use a different name convention from the above example
-  template_method = "cox_prop_hazards_input_test_{incr_}"
+  template_method = "cox_prop_hazards_default_input_test_{incr_}"
 
   # doc does not seem to be important
   template_doc = "This is for input tests of linear regression with heteroskedasticity"

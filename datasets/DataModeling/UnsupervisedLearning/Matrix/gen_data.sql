@@ -1,5 +1,5 @@
 -- Generating datasets for performance tests
-DROP TABLE madlibtestdata.matrix_block_10k_10k_1k; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_10k_10k_1k; 
 CREATE TABLE madlibtestdata.matrix_block_10k_10k_1k 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 
@@ -9,7 +9,7 @@ SELECT
 FROM generate_series(0, 9) AS col_id
 DISTRIBUTED BY (row_id);
 
-DROP TABLE madlibtestdata.matrix_block_10k_10k_100; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_10k_10k_100; 
 CREATE TABLE madlibtestdata.matrix_block_10k_10k_100 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 
@@ -19,7 +19,7 @@ SELECT
 FROM generate_series(0, 99) AS col_id
 DISTRIBUTED BY (row_id);
 
-DROP TABLE madlibtestdata.matrix_block_300k_100_1000; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_300k_100_1000; 
 CREATE TABLE madlibtestdata.matrix_block_300k_100_1000 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 
@@ -29,7 +29,7 @@ SELECT
 FROM generate_series(0, 0) AS col_id
 DISTRIBUTED BY (row_id);
 
-DROP TABLE madlibtestdata.matrix_block_300k_100_2000; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_300k_100_2000; 
 CREATE TABLE madlibtestdata.matrix_block_300k_100_2000 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 
@@ -39,7 +39,7 @@ SELECT
 FROM generate_series(0, 0) AS col_id
 DISTRIBUTED BY (row_id);
 
-DROP TABLE madlibtestdata.matrix_block_300k_100_4000; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_300k_100_4000; 
 CREATE TABLE madlibtestdata.matrix_block_300k_100_4000 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 
@@ -58,7 +58,7 @@ SELECT
 FROM generate_series(0, 99) AS row_id 
 DISTRIBUTED BY (row_id);
 
-DROP TABLE madlibtestdata.matrix_block_100_100; 
+DROP TABLE IF EXISTS madlibtestdata.matrix_block_100_100; 
 CREATE TABLE madlibtestdata.matrix_block_100_100 
 WITH (APPENDONLY=true, COMPRESSTYPE=quicklz) AS
 SELECT 

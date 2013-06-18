@@ -1,6 +1,26 @@
 cmd : "./conv_linregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
 #sql : "./lininit.sql"
 tables :
+    - id : cox_leukemia
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : cox_leukemia_integer
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : cox_rossi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : lin_houses_group_oi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : lin_houses_group_wi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
     - id : patients
       args :
           data : "http://jhkjdhfkh"

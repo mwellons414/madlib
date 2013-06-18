@@ -1,16 +1,17 @@
 -- @description This is for input tests of linear regression with heteroskedasticity
+-- @madlib-param status = "'status'"
 -- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
 -- @madlib-param dataset = "cox_rossi"
--- @madlib-param y = "'y'"
--- @madlib-param x = "NULL"
+-- @madlib-param y = "NULL"
+-- @madlib-param x = "'x'"
           select madlib.cox_prop_hazards(
               'madlibtestdata.cox_rossi',
               '__madlib_temp_40418089_1365619947_6556506__',
-              'y', 
-              NULL);
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsDefaultInputTestCase/test_cox_prop_hazards_input_test_5.sql:12: ERROR:  cannot EXECUTE a null querystring
-CONTEXT:  PL/pgSQL function "cox_prop_hazards" line 2 at execute statement
+              NULL, 
+              'x',
+              'status');
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsInputTestCase/test_cox_prop_hazards_input_test_5.sql:14: ERROR:  Invalid dependent variable name given.
           drop table if exists __madlib_temp_40418089_1365619947_6556506__;
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsDefaultInputTestCase/test_cox_prop_hazards_input_test_5.sql:13: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+psql:/Users/qianh1/workspace/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsInputTestCase/test_cox_prop_hazards_input_test_5.sql:15: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
 DROP TABLE
           
