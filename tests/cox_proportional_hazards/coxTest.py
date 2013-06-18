@@ -17,6 +17,7 @@ import sys
 # ------------------------------------------------------------------------
 
 output_test_sql = """
+          drop table if exists {tbl_output};
           select {schema_madlib}.cox_prop_hazards(
               '{schema_testing}.{dataset}',
               '{tbl_output}',
@@ -31,6 +32,7 @@ output_test_sql = """
           """
 
 input_test_sql = """
+          drop table if exists {tbl_output};
           select {schema_madlib}.cox_prop_hazards(
               '{schema_testing}.{dataset}',
               '{tbl_output}',
@@ -41,6 +43,7 @@ input_test_sql = """
           """
 
 input_default_test_sql = """
+          drop table if exists {tbl_output};
           select {schema_madlib}.cox_prop_hazards(
               '{schema_testing}.{dataset}',
               '{tbl_output}',
