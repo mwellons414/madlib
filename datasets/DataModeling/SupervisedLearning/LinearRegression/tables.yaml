@@ -21,6 +21,14 @@ tables :
       args :
           data : "http://jhkjdhfkh"
           desc : "/kjgskjfg"
+    - id : lin_ornstein_group_oi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : lin_ornstein_group_wi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
     - id : patients
       args :
           data : "http://jhkjdhfkh"

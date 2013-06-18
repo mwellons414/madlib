@@ -1,0 +1,20 @@
+-- @description Input tests for linear regression, grouping and hetero
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param g = "'g1'"
+-- @madlib-param hetero = "'wrong_type_name'"
+-- @madlib-param dataset = "lin_ornstein_group"
+-- @madlib-param y = "'y'"
+-- @madlib-param x = "'x'"
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+DROP TABLE
+          select madlib.linregr_train(
+              'madlibtestdata.lin_ornstein_group_wi',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              'y', 
+              'x', 
+              'g1',
+              'wrong_type_name');
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/linregr/sql_LinregrGroupInputTestCase/test_linregr_group_input_test_12.sql:17: ERROR:  invalid input syntax for type boolean: "wrong_type_name"
+LINE 1: select madlib.linregr_train(
+               ^
+          

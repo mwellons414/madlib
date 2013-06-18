@@ -311,64 +311,68 @@ def relative_mean_squared_error (vec1, vec2):
 
 # ------------------------------------------------------------------------
 def parse_all_R_output(resultFile, params_dict, results_dict):
-	"""
-	Read R results from the answer file.
-	Read only once for all the tests
-	"""
-	count = 0
-	return_dict = dict()
-	params_keys = sorted(params_dict.values())
-	results_keys = sorted(results_dict.values())
+  """
+  Read R results from the answer file.
+  Read only once for all the tests
+  """
+  count = 0
+  return_dict = dict()
+  params_keys = sorted(params_dict.values())
+  results_keys = sorted(results_dict.values())
 
-	# Parse and cleanup 
-	r_results = open(resultFile, 'r').readlines()
-	r_results = map(lambda x: x.strip().lower(), r_results)
-	
-	# Number of lines in the r_results segment files
-	block_size = 0
-	for line in r_results:
-		if not line.strip():
-			block_size += 1
-			break
-		else:
-			block_size += 1
-			
-	# Read all results and options datasetwise (blockwise)
-	for i in range(0, len(r_results), block_size):
-			block = r_results[i:i+block_size]
-			options = map(lambda x: block[x], params_keys)
-			results = {}
-			for r in results_dict:
-				results[r] = map(float, block[results_dict[r]].split(','))
-			return_dict[tuple(options)] = results
-		
-	return return_dict
+  # Parse and cleanup 
+  r_results = open(resultFile, 'r').readlines()
+  r_results = map(lambda x: x.strip().lower(), r_results)
+  
+  # Number of lines in the r_results segment files
+  block_size = 0
+  for line in r_results:
+    if not line.strip():
+      block_size += 1
+      break
+    else:
+      block_size += 1
+      
+  # Read all results and options datasetwise (blockwise)
+  for i in range(0, len(r_results), block_size):
+      block = r_results[i:i+block_size]
+      options = map(lambda x: block[x], params_keys)
+      results = {}
+      for r in results_dict:
+        results[r] = map(float, block[results_dict[r]].split(','))
+      return_dict[tuple(options)] = results
+    
+  return return_dict
 
 # ------------------------------------------------------------------------
 def parse_single_SQL_output(result, result_dict):
-		"""
-		Extract all the outputs
-		"""
-		parsed_params = 0
-		# Invert the python dictionary
-		inv_result_dict = {}
-		sorted_keys = sorted(result_dict.keys(), key=lambda x: result_dict[x])
-		for i,k in enumerate(sorted_keys):
-			inv_result_dict[i] = k
+    """
+    Extract all the outputs
+    """
+    parsed_params = 0
+    # Invert the python dictionary
+    inv_result_dict = {}
+    sorted_keys = sorted(result_dict.keys(), key=lambda x: result_dict[x])
+    for i,k in enumerate(sorted_keys):
+      inv_result_dict[i] = k
  
-		return_dict = {}
-		for line in result:
-				s = re.match(r"^[^\{]*\{([^\}]*)\}", line)
-				if s is not None:
-						try:
-								res = map(float, string_to_array(s.group(1)))
-								return_dict[inv_result_dict[parsed_params]] = res 
-								parsed_params += 1
-						except:
-								sys.exit("SQL parser error: Not float type for %s" % \
-																inv_result_dict[parsed_params])
-						if res is None:
-								sys.exit("SQL parser error: Empty array for %s" % parsed_params)
-		return return_dict
+    return_dict = {}
+    for line in result:
+        if parsed_params in inv_result_dict:
+          tag = inv_result_dict[parsed_params]
+        pattern = ".*?\{(.*?)\}"
+        s = re.match(tag + pattern, line)
+        #s = re.match(r"^[^\{]*\{([^\}]*)\}", line)
+        if s is not None:
+            try:
+                res = map(float, string_to_array(s.group(1)))
+                return_dict[inv_result_dict[parsed_params]] = res 
+                parsed_params += 1
+            except:
+                sys.exit("SQL parser error: Not float type for %s" % \
+                                inv_result_dict[parsed_params])
+            if res is None:
+                sys.exit("SQL parser error: Empty array for %s" % parsed_params)
+    return return_dict
 
 

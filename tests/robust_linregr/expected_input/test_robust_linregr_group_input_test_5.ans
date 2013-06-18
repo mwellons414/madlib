@@ -1,0 +1,15 @@
+-- @description Input tests for linear regression, grouping and hetero
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param g = "'g1'"
+-- @madlib-param dataset = "lin_ornstein_group"
+-- @madlib-param y = "'y'"
+-- @madlib-param x = "NULL"
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_5.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          select madlib.robust_variance(
+              'madlibtestdata.lin_ornstein_group_wi',
+              '__madlib_temp_40418089_1365619947_6556506__', 'linear',
+              'y', NULL, 'g1');
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_5.sql:13: ERROR:  Invalid dependent variable name given.
+          

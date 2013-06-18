@@ -17,6 +17,7 @@ import sys
 # ------------------------------------------------------------------------
 
 output_test_sql = """
+          \\x on
           drop table if exists {tbl_output};
           select {schema_madlib}.cox_prop_hazards(
               '{schema_testing}.{dataset}',
@@ -29,6 +30,7 @@ output_test_sql = """
           select z_stats from {tbl_output};
           select p_values from {tbl_output};
           drop table if exists {tbl_output};
+          \\x off
           """
 
 input_test_sql = """
@@ -137,7 +139,7 @@ class CoxPropHazardsOutputTestCase (MADlibTestCase):
         options_dict["dataset"] = 0    
         results_dict["coef"] = 1          
         results_dict["std_err"] = 2          
-        results_dict["t_stats"] = 3          
+        results_dict["z_stats"] = 3          
         results_dict["p_values"] = 4          
         if self.__class__.Rresults is None:
             self.__class__.Rresults = parse_all_R_output(R_resultfile \
@@ -239,7 +241,7 @@ class CoxPropHazardsDefaultOutputTestCase (MADlibTestCase):
         options_dict["dataset"] = 0    
         results_dict["coef"] = 1          
         results_dict["std_err"] = 2          
-        results_dict["t_stats"] = 3          
+        results_dict["z_stats"] = 3          
         results_dict["p_values"] = 4          
         if self.__class__.Rresults is None:
             self.__class__.Rresults = parse_all_R_output(R_resultfile \

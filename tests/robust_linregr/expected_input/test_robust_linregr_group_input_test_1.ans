@@ -1,0 +1,34 @@
+-- @description Input tests for linear regression, grouping and hetero
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param g = "'g1'"
+-- @madlib-param dataset = "lin_ornstein_group"
+-- @madlib-param y = "'wrong_col_name'"
+-- @madlib-param x = "'x'"
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_1.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          select madlib.robust_variance(
+              'madlibtestdata.lin_ornstein_group_wi',
+              '__madlib_temp_40418089_1365619947_6556506__', 'linear',
+              'wrong_col_name', 'x', 'g1');
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_1.sql:13: ERROR:  column "wrong_col_name" does not exist
+LINE 7:               SELECT g1, madlib.linregr( wrong_col_name , x ...
+                                                 ^
+QUERY:  
+          INSERT INTO __madlib_temp_95567208_1371584318_8718302__
+            SELECT g1, (result).coef, (result).r2,
+                    (result).std_err, (result).t_stats,
+                    (result).p_values, (result).condition_no
+            FROM (
+              SELECT g1, madlib.linregr( wrong_col_name , x )
+                      AS result
+              FROM madlibtestdata.lin_ornstein_group_wi
+              GROUP BY g1) subq
+CONTEXT:  PL/pgSQL function "linregr_train" line 146 at execute statement
+SQL statement "SELECT  madlib.linregr_train(  $1 ,  $2 ,  $3 ,  $4 ,  $5 , FALSE)"
+PL/pgSQL function "linregr_train" line 2 at perform
+SQL statement "SELECT  madlib.linregr_train( $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance_linear" line 110 at perform
+SQL statement "SELECT  madlib.robust_variance_linear(  $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance" line 45 at perform
+          
