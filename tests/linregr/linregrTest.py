@@ -18,6 +18,7 @@ import sys
 # ------------------------------------------------------------------------
 
 output_test_sql = """
+          \\x on
           drop table if exists {tbl_output};
           select {schema_madlib}.linregr_train(
               '{schema_testing}.{dataset}_wi',
@@ -31,6 +32,7 @@ output_test_sql = """
           select t_stats from {tbl_output};
           select p_values from {tbl_output};
           select ARRAY[condition_no] from {tbl_output};
+          \\x off
           """
 
 input_test_sql = """
