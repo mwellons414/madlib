@@ -2,9 +2,9 @@
 import re # regular expression
 import sys
 
-def convert (in_file, out_file):
+
+def convert_cox (in_file, out_file):
     count = 0
-    
     with open(out_file, "w") as of:
         for line in open(in_file):
             if line.startswith(("{", "array[")):
@@ -13,20 +13,22 @@ def convert (in_file, out_file):
                 for m in re.finditer(r"([^,\s\{\}]+)", line):
                     elm.append(m.group(1))
                 if count == 1:
-                    for i in range(len(elm)-1):
+                    for i in range(len(elm)-2):
                         of.write("x" + str(i+1) + ",")
-                    of.write("y\n")
+                    of.write("y,")
+                    of.write("status\n")
                 for i in range(len(elm)):
-                    if(elm[i].lower() == "t" or elm[i].lower() == "true"):
-                    	elm[i] = "1"
-                    if(elm[i].lower() == "f" or elm[i].lower() == "false"):
-                    	elm[i] = "0"
-                    of.write(elm[i])
+                    if elm[i].lower() == 't' or elm[i].lower() == 'true':
+                      of.write("1")
+                    elif elm[i].lower() == 'f' or elm[i].lower() == 'false':
+                      of.write("0")
+                    else:
+                      of.write(elm[i])
+
                     if i != len(elm) - 1:
                         of.write(",")
                     else:
                         of.write("\n")
-
 if __name__ == "__main__":
-    convert (sys.argv[1], sys.argv[2])
+    convert_cox(sys.argv[1], sys.argv[2])
 

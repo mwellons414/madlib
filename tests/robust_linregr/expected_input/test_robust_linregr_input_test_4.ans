@@ -1,0 +1,23 @@
+-- @description This is for input tests of linear robust regression 
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param dataset = "lin_auto_mpg"
+-- @madlib-param y = "'y'"
+-- @madlib-param x = "'wrong_col_name'"
+          select madlib.robust_variance(
+              'madlibtestdata.lin_auto_mpg_wi',
+              '__madlib_temp_40418089_1365619947_6556506__', 'linear',
+              'y', 'wrong_col_name',
+              NULL);
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrInputTestCase/test_robust_linregr_input_test_4.sql:12: ERROR:  column "wrong_col_name" does not exist
+LINE 2:      SELECT (madlib.linregr(y , wrong_col_name)
+                                        ^
+QUERY:  
+					SELECT (madlib.linregr(y , wrong_col_name)
+						).coef FROM madlibtestdata.lin_auto_mpg_wi
+CONTEXT:  PL/pgSQL function "robust_variance_linear" line 15 at execute statement
+SQL statement "SELECT  madlib.robust_variance_linear(  $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance" line 46 at perform
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrInputTestCase/test_robust_linregr_input_test_4.sql:13: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          

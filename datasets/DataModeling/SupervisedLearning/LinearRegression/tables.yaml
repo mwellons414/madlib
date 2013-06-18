@@ -1,7 +1,31 @@
 cmd : "./conv_linregr.py -s -t <table> -o <sql> -d <data> -D <desc>"
 #sql : "./lininit.sql"
 tables :
+    - id : patients
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : patients_wi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : patients_oi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"
+    - id : patients_bool_wi
+      args :
+          data : "http://jhkjdhfkh"
+          desc : "/kjgskjfg"           
     - id : lin_fdic_clean
+      args :
+          data : "http://jkkjhkkjhkh"
+          desc : "/sdkhsdfhs"
+    - id : lin_fdic_clean_wi
+      args :
+          data : "http://jkkjhkkjhkh"
+          desc : "/sdkhsdfhs"
+    - id : lin_fdic_clean_oi
       args :
           data : "http://jkkjhkkjhkh"
           desc : "/sdkhsdfhs"

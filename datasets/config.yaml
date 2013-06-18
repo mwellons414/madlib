@@ -4,9 +4,9 @@ DataModeling :
         DecisionTree : 
         LinearRegression : 
         LogisticRegression : 
-        ElasticNet : 
+        ElasticNet : False
         MultinomialLogisticRegression : 
-        NaiveBayesClassification :
+        NaiveBayesClassification : 
         RandomForest : 
         SupportVectorMachines : 
         GeneralCV : 

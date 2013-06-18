@@ -1,0 +1,30 @@
+-- @description This is for input tests of linear regression with heteroskedasticity
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param dataset = "cox_rossi"
+-- @madlib-param y = "'wrong_col_name'"
+-- @madlib-param x = "'x'"
+          select madlib.cox_prop_hazards(
+              'madlibtestdata.cox_rossi',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              'wrong_col_name', 
+              'x');
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsDefaultInputTestCase/test_cox_prop_hazards_input_test_1.sql:12: ERROR:  plpy.Error: Cox Proportional Hazards Error: The dependent variable does not exist! (plpython.c:4648)
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "compute_cox_prop_hazards_regr", line 24, in <module>
+    return cox_prop_hazards.compute_cox_prop_hazards(**globals())
+  PL/Python function "compute_cox_prop_hazards_regr", line 223, in compute_cox_prop_hazards
+  PL/Python function "compute_cox_prop_hazards_regr", line 41, in __check_args
+PL/Python function "compute_cox_prop_hazards_regr"
+SQL statement "SELECT  ( SELECT madlib.compute_cox_prop_hazards_regr( $1 ,  $2 ,  $3 ,  $4 ,  $5 ,  $6 ,  $7 ) )"
+PL/pgSQL function "cox_prop_hazards_regr" line 6 at assignment
+SQL statement "
+        SELECT (madlib.cox_prop_hazards_regr('madlibtestdata.cox_rossi', 'x', 'wrong_col_name', 'TRUE')).* "
+PL/pgSQL function "__internal_get_cox_prop_hazards_result" line 4 at execute statement
+SQL statement "SELECT  madlib.__internal_get_cox_prop_hazards_result(  $1 ,  $2 ,  $3 ,  $4 )"
+PL/pgSQL function "cox_prop_hazards" line 38 at assignment
+SQL statement "SELECT madlib.cox_prop_hazards( 'madlibtestdata.cox_rossi'  ,'__madlib_temp_40418089_1365619947_6556506__'  ,'wrong_col_name'  ,'x'  , 'TRUE')"
+PL/pgSQL function "cox_prop_hazards" line 2 at execute statement
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsDefaultInputTestCase/test_cox_prop_hazards_input_test_1.sql:13: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          

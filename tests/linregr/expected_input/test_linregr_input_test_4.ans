@@ -1,0 +1,28 @@
+-- @description This is for input tests of linear regression with heteroskedasticity
+-- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param hetero = "TRUE"
+-- @madlib-param dataset = "lin_auto_mpg"
+-- @madlib-param y = "'y'"
+-- @madlib-param x = "'wrong_col_name'"
+          drop table if exists __madlib_temp_40418089_1365619947_6556506__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/linregr/sql_LinregrInputTestCase/test_linregr_input_test_4.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+DROP TABLE
+          select madlib.linregr_train(
+              'madlibtestdata.lin_auto_mpg_wi',
+              '__madlib_temp_40418089_1365619947_6556506__',
+              'y', 'wrong_col_name',
+              NULL,
+              TRUE);
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/linregr/sql_LinregrInputTestCase/test_linregr_input_test_4.sql:15: ERROR:  column "wrong_col_name" does not exist
+LINE 2:         SELECT (madlib.linregr( y , wrong_col_name)
+                                            ^
+QUERY:  
+        SELECT (madlib.linregr( y , wrong_col_name)
+              ).*
+        FROM madlibtestdata.lin_auto_mpg_wi
+CONTEXT:  PL/pgSQL function "__internal_get_linreg_result" line 4 at execute statement
+SQL statement "SELECT  madlib.__internal_get_linreg_result(  $1 ,  $2 ,  $3 )"
+PL/pgSQL function "__internal_linregr_train_hetero" line 39 at assignment
+SQL statement "SELECT  madlib.__internal_linregr_train_hetero(  $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "linregr_train" line 24 at perform
+          

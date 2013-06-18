@@ -84,7 +84,7 @@ class dbManager:
         superpwd = conf['superpwd']
         dbname = conf['dbname']
         dbtemplate = 'template1'
-        port = str(conf['port'])
+        port = conf['port']
 
         print "###Init test DB start ###\n"
         # 0. Update pg_hba to allow madlibtester to access all databases
@@ -103,14 +103,14 @@ class dbManager:
             print e
             print 'Database "%s" does not exist \nCreate the new database "%s"'%(dbname,dbname)
 
-        sql = 'DROP USER %s CASCADE' % username
-        run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                         onErrorStop = False) #, source_path = conf['env'])
+        # sql = 'DROP USER %s CASCADE' % username
+        # run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
+        #                  onErrorStop = False) #, source_path = conf['env'])
 
-        # 1. Create non super user with super user
-        sql = 'CREATE USER %s WITH CREATEDB' % username
-        run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
-                          onErrorStop = False) #, source_path = conf['env'])
+        # # 1. Create non super user with super user
+        # sql = 'CREATE USER %s WITH CREATEDB' % username
+        # run_sql.runSQL(sql, logusername = superuser, logport = port, logdatabase = dbtemplate, \
+        #                   onErrorStop = False) #, source_path = conf['env'])
 
         # 2. Create database non super user
         sql = 'CREATE DATABASE %s ' % dbname

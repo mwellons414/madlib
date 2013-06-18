@@ -71,6 +71,9 @@ def runSQL(sql, logusername = None, logpassword = None, loghostname = None, logp
         cmdLine.extend(['-h', loghostname])
     if logport is not None:
         cmdLine.extend(['-p', str(logport)])
+    else:
+        if os.environ.has_key("PGPORT"):
+            cmdLine.extend(['-p', os.environ.get("PGPORT")])
     if logdatabase is not None:
         cmdLine.extend(['-d', logdatabase])
     if logusername is not None:

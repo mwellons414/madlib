@@ -7,7 +7,7 @@ from madlib.src.test_utils.utils import unique_string
 from madlib.src.test_utils.utils import string_to_array
 from madlib.src.test_utils.utils import mean_squared_error
 from madlib.src.test_utils.utils import read_sql_result
-# from madlib.src.test_utils.get_dbsettings import get_schema_madlib
+#from madlib.src.test_utils.get_dbsettings import get_schema_madlib
 from madlib.src.test_utils.get_dbsettings import get_schema_testing
 import os
 import re
@@ -60,7 +60,8 @@ class LinregrOutputTestCase (MADlibTestCase):
 
     template = run_sql
 
-    # ----------------------------------------------------------------
+ 
+ # ----------------------------------------------------------------
     # The following class variables are defined only for this test
     # One can use any names here
     # ----------------------------------------------------------------

@@ -1,0 +1,19 @@
+-- @description This is for input tests of linear regression with heteroskedasticity
+-- @madlib-param status = "'status'"
+-- @madlib-param tbl_output = "__madlib_temp_20853298_1371073819_54103355__"
+-- @madlib-param dataset = "cox_rossi"
+-- @madlib-param y = "'y'"
+-- @madlib-param x = "wrong_type_name"
+          select madlib.cox_prop_hazards(
+              'madlibtestdata.cox_rossi',
+              '__madlib_temp_20853298_1371073819_54103355__',
+              'y', 
+              wrong_type_name,
+              'status');
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsInputTestCase/test_cox_prop_hazards_input_test_10.sql:14: ERROR:  column "wrong_type_name" does not exist
+LINE 5:               wrong_type_name,
+                      ^
+          drop table if exists __madlib_temp_20853298_1371073819_54103355__;
+psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/cox_proportional_hazards/sql_CoxPropHazardsInputTestCase/test_cox_prop_hazards_input_test_10.sql:15: NOTICE:  table "__madlib_temp_20853298_1371073819_54103355__" does not exist, skipping
+DROP TABLE
+          
