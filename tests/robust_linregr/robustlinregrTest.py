@@ -18,6 +18,7 @@ import sys
 # ------------------------------------------------------------------------
 
 output_test_sql = """
+          \\x on
           select {schema_madlib}.robust_variance(
               '{schema_testing}.{dataset}_wi',
               '{tbl_output}', 'linear',
@@ -27,6 +28,7 @@ output_test_sql = """
           select t_stats from {tbl_output};
           select p_values from {tbl_output};
           drop table if exists {tbl_output};
+          \\x off
           """
 
 input_test_sql = """
