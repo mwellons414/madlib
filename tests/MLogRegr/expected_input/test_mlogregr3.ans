@@ -1,0 +1,19 @@
+-- @description This is for input tests of multinomial logistic regression.
+-- @madlib-param optimizer = "'irls'"
+-- @madlib-param dataset = "'non_existing_input_table'"
+-- @madlib-param depvar = "'y'"
+-- @madlib-param indepvar = "'x'"
+        set client_min_messages to error;
+SET
+        select * from madlib.mlogregr(
+            'non_existing_input_table',
+            'y', 
+            'x', 
+            20,
+            'irls', 
+            0.0001,
+            0);
+psql:/Users/yangs16/dev/tinc_framework/tinc/tincrepo/madlib/tests/MLogRegr/sql_MlogregrInputTestCase/test_mlogregr3.sql:16: ERROR:  relation "non_existing_input_table" does not exist
+CONTEXT:  SQL statement "SELECT  (SELECT atttypid::regtype <> 'INTEGER'::regtype FROM pg_attribute WHERE attrelid =  $1 ::regclass AND attname =  $2 )"
+PL/pgSQL function "mlogregr" line 32 at if
+        

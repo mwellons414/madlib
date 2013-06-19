@@ -1,0 +1,17 @@
+-- @description This is for input tests of multinomial logistic regression.
+-- @madlib-param optimizer = "'irls'"
+-- @madlib-param dataset = "''"
+-- @madlib-param depvar = "'y'"
+-- @madlib-param indepvar = "'x'"
+        set client_min_messages to error;
+SET
+        select * from madlib.mlogregr(
+            '',
+            'y', 
+            'x', 
+            20,
+            'irls', 
+            0.0001,
+            0);
+psql:/Users/yangs16/dev/tinc_framework/tinc/tincrepo/madlib/tests/MLogRegr/sql_MlogregrInputTestCase/test_mlogregr2.sql:16: ERROR:  Invalid source table given
+        

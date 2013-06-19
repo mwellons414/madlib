@@ -1,0 +1,18 @@
+-- @description This is for input tests of multinomial logistic regression.
+-- @madlib-param optimizer = "'irls'"
+-- @madlib-param dataset = "'madlibtestdata.mlogr_pokerhand'"
+-- @madlib-param depvar = "'y'"
+-- @madlib-param indepvar = "'x'"
+        set client_min_messages to error;
+SET
+        select * from madlib.mlogregr(
+            'madlibtestdata.mlogr_pokerhand',
+            'y', 
+            'x', 
+            20,
+            'irls', 
+            0.0001,
+            100);
+psql:/Users/yangs16/dev/tinc_framework/tinc/tincrepo/madlib/tests/MLogRegr/sql_MlogregrInputTestCase/test_mlogregr18.sql:16: ERROR:  The value of the reference category should be in the
+DETAIL:  range of [0, "10")
+        

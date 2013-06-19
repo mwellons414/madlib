@@ -1,0 +1,46 @@
+-- @description This is for input tests of multinomial logistic regression.
+-- @madlib-param optimizer = "'irls'"
+-- @madlib-param dataset = "'madlibtestdata.mlogr_pokerhand'"
+-- @madlib-param depvar = "'y'"
+-- @madlib-param indepvar = "'non_exisiting_indepvar'"
+        set client_min_messages to error;
+SET
+        select * from madlib.mlogregr(
+            'madlibtestdata.mlogr_pokerhand',
+            'y', 
+            'non_exisiting_indepvar', 
+            20,
+            'irls', 
+            0.0001,
+            0);
+psql:/Users/yangs16/dev/tinc_framework/tinc/tincrepo/madlib/tests/MLogRegr/sql_MlogregrInputTestCase/test_mlogregr9.sql:16: ERROR:  plpy.SPIError: column "non_exisiting_indepvar" does not exist (plpython.c:4648)
+LINE 10:                 (non_exisiting_indepvar)::FLOAT8[],
+                          ^
+QUERY:  
+        INSERT INTO _madlib_iterative_alg
+        SELECT
+            1,
+            
+            madlib.__mlogregr_irls_step(
+                (y),
+                (10),
+                (0),
+                (non_exisiting_indepvar)::FLOAT8[],
+                (st._madlib_state)
+            )
+            
+        FROM
+            _madlib_iterative_alg AS st,
+            madlibtestdata.mlogr_pokerhand AS src
+        WHERE
+            st._madlib_iteration = 1 - 1
+        
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "__compute_mlogregr", line 25, in <module>
+    return multilogistic.compute_mlogregr(**globals())
+  PL/Python function "__compute_mlogregr", line 179, in compute_mlogregr
+  PL/Python function "__compute_mlogregr", line 96, in __runIterativeAlg
+PL/Python function "__compute_mlogregr"
+SQL statement "SELECT  ( SELECT madlib.__compute_mlogregr(  $1 ,  $2 ,  $3 ,  $4 ,  $5 ,  $6 ,  $7 ,  $8 ) )"
+PL/pgSQL function "mlogregr" line 66 at assignment
+        
