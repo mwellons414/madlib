@@ -27,11 +27,11 @@ output_test_sql = """
               NULL,
               {hetero});
           select coef from {tbl_output};
-          select ARRAY[r2] from {tbl_output};
+          select ARRAY[r2] as r2 from {tbl_output};
           select std_err from {tbl_output};
           select t_stats from {tbl_output};
           select p_values from {tbl_output};
-          select ARRAY[condition_no] from {tbl_output};
+          select ARRAY[condition_no] as condition_no from {tbl_output};
           \\x off
           """
 
