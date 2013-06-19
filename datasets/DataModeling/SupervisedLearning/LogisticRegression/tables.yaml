@@ -25,3 +25,7 @@ tables :
       args :
           data : "http://sahdl.asfasf.com"
           desc : "./desfdkl/sfsf"
+    - id : dt_census_income_wi
+      args :
+          data : "http://sahdl.asfasf.com"
+          desc : "./desfdkl/sfsf"

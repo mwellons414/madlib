@@ -112,6 +112,7 @@ prepare.dataset <- function(dataset, sql.path = "../../dataset/sql/",
     dat <- read.csv(paste(data.path, "/", dataset, ".txt", sep = ""))
     return (dat)
 }
+
 ## ------------------------------------------------------------------------
 
 prepare.dataset.grouping <- function(dataset, sql.path = "../../dataset/sql/",

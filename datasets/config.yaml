@@ -1,10 +1,10 @@
 DataModeling :
     SupervisedLearning :
         Convex : 
-        DecisionTree : 
+        DecisionTree :  
         LinearRegression : 
         LogisticRegression : 
-        ElasticNet : False
+        ElasticNet : 
         MultinomialLogisticRegression : 
         NaiveBayesClassification : 
         RandomForest : 
