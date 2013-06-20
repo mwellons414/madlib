@@ -1,4 +1,5 @@
-
+## @madlib-param dataset The data set name, string
+## @madlib-param ans.path_ The answer file path
 ## -----------------------------------------------------------------------
 ## Generate R results for validation
 ## -----------------------------------------------------------------------
@@ -7,41 +8,50 @@ library(lmtest)
 library(car)
 library(sandwich)
 
-source("~/madlib_testsuite/src/r_utils/utils.R")
+tincrepo <- Sys.getenv("TINCREPOHOME")
+if(tincrepo == "")
+{
+	tincrepo <- "~/tinc/tincrepo/" #If the tincrepo isn't set.  Make a guess about where it is.  
+}
+
+
+if(exists('dataset'))#Did we get any command line parameters?
+{
+	dataset <- as.character(dataset)
+	ans.path_ <- as.character(ans.path_)
+}else
+{
+	datasets <- c("patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc")
+	ans.path_ <- "../robust_Logregr_test.ans"
+}
+
+#system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file
+sql.path = paste(tincrepo, "/madlib/datasets/sql/", sep = "")
+py.path = paste(tincrepo, "/madlib/src/r_utils/", sep = "")
+
+source( paste(py.path, "utils.R", sep = "")) #grab the R utilities script
 
 ## robust logistic regression R result
 hsd.append.results <- function(datasets, 
                                sql.path = "~/madlib_testsuite/datasets/sql/",
-                               data.path = "~/temp/", 
-                               py.path = "~/madlib_testsuite/src/r_utils"
-                               , firstTest = TRUE)
+                               data.path = "./temp/", 
+                               py.path = "~/madlib_testsuite/src/r_utils",
+                               outputPath = "../robust_Logregr_test.ans")
 {
-	if(firstTest == TRUE)
-	{
-		writeMode = "w"
-	}
-	else
-	{
-		writeMode = "a"
-	}
-    con <- file("robust_Logregr_test.ans", writeMode)
+	con <- file(outputPath, "w")
     for (i in seq_along(datasets))
     {
         name <- datasets[i]
         
         dat <- prepare.dataset(name, sql.path = sql.path, data.path = data.path, py.path = py.path)
-        lastTwoDigits = substr(name, nchar(name)-1,nchar(name))
-        if(lastTwoDigits == "oi")
-        {
-			substr(name, nchar(name)-1,nchar(name)) <- "wi"
-        }
-        print(name)
+        
+        #print(name)
         #print(dat)
         if (! is.null(dat))
         {
             if (sum(is.na(dat)) > 0) next
             ##
-            regress <- glm( y ~ . , family=binomial("logit"), data = dat)
+            regress <- glm( y ~ . -1 , family=binomial("logit"), data = dat)
             cat(paste(name, "\n", sep = ""), file = con)
             otherStats  = coeftest(regress, vcov = vcovHC(regress, type = "HC0"))
             l <- length(regress$coefficients)
@@ -55,8 +65,6 @@ hsd.append.results <- function(datasets,
             output.vec(pVal, con)
             cat("\n", file = con)
             
-            
-            
         }
     }
     close(con)
@@ -64,8 +72,5 @@ hsd.append.results <- function(datasets,
 
 ## ------------------------------------------------------------------------
 
-datasets <- c("patients_oi", "patients_bool_oi")
-
-hsd.append.results(datasets, firstTest = TRUE);
-#hsd.append.results(datasets, firstTest = FALSE);
+hsd.append.results(datasets, sql.path = sql.path, py.path = py.path, outputPath = ans.path_);
 

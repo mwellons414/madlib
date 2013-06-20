@@ -87,7 +87,7 @@ eval.logregr.append.results <- function (data.set, # data set name
             fit <- glm(formula(paste(target,  predictors)), family = binomial, data = dat.use,
                        control = list(epsilon = 1e-8, maxit = 2000))
             ##
-            #print(fit)
+            print(fit)
             X <- as.matrix(dat.use[xcols])
             sigma <- colSums(t(X) * fit$coefficients)
             a <- diag((1/(1 + exp(-sigma))) * (1/(1+exp(sigma))))
@@ -103,6 +103,10 @@ eval.logregr.append.results <- function (data.set, # data set name
             p.value <- smry[3*n + seq(n)]
             odds.ratios <- exp(coeff)
    
+   			if(gval != "")
+   			{
+   				output.one(gval, conn)
+            }
             output.vec(coeff,  conn)
             output.vec(std.err, conn)
             output.vec(z.stats, conn)

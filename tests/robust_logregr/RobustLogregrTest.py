@@ -40,10 +40,9 @@ def _generate_template_vars(arg_dict, default_arg_val):
 run_sql = """
 		  set client_min_messages to error;
 		  \\x on
-		  select {schema_madlib}.robust_variance(
+		  select {schema_madlib}.robust_variance_logregr(
 			  '{schema_testing}.{dataset}',
 			  {tbl_outputInQuotes},
-			  'logistic',
 			  '{y}', '{x}');
 		  select * from {tbl_output};
 		  drop table if exists {tbl_output};
@@ -76,7 +75,7 @@ class RobustLogregrOutputTestCase (MADlibTestCase):
 	template_vars = dict(
 		# These names are not hard-coded
 		tbl_output = unique_string(),
-		dataset = ["patients_wi", "patients_bool_wi"],
+		dataset = ["patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc"],
 		x = "x", 
 		y = "y", 
 		)
@@ -123,14 +122,16 @@ class RobustLogregrOutputTestCase (MADlibTestCase):
 		r_tVal = self.__class__.Rresults[dataset]["tVal"]
 		r_pVal = self.__class__.Rresults[dataset]["pVal"]
 
-		(sql_coef, sql_stdErr, sql_tVal, sql_pVal) = self.get_coef(sql_result["result"])
+		(sql_coef, sql_stdErr, sql_tVal, sql_pVal) = self.get_SQLresults(sql_result["result"])
 		
+		#print (sql_coef, sql_stdErr, sql_tVal, sql_pVal)
+		#print self.__class__.Rresults
 		
 		maxError = max( [mean_squared_error(sql_coef, r_coef), mean_squared_error(sql_stdErr, r_stdErr), mean_squared_error(sql_tVal, r_tVal), mean_squared_error(sql_pVal, r_pVal)])
 		
 		return maxError < 1e-6
 
-	def get_coef (self, result):
+	def get_SQLresults (self, result):
 		"""
 		Extract the values from the SQL output
 		"""
@@ -218,7 +219,7 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 			  else "expect_input_pg"
 
 
-	template_method = "robust_logregr_input_test_{incr_}"
+	template_method = "robust_logregr_input_{incr_}"
 	template_doc = "This is for input tests of the robust covariance calculation of the logistic regression"
 	
 	outTable = unique_string()
@@ -226,9 +227,9 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 		# These names are not hard-coded
 		tbl_output = [],
 		tbl_outputInQuotes = ["NULL"],
-		dataset = ["nonExistentTable"],
-		x = ["BadColumnNameX"],
-		y = ["BadColumnNameY"]
+		dataset = ["nonExistentTable", ""],
+		x = ["BadColumnNameX", ""],
+		y = ["BadColumnNameY", "", "y>0.5"]
 		)
 	argument_defaults = dict(
 		# These names are not hard-coded
@@ -255,13 +256,14 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 		errMessage = self.get_errMessage(sql_result["result"])
 		#print sql_result["result"]
 		
-		#print "Error message"
+		
+		#print "\nError message"
 		#print errMessage
 		expectedResults = self.get_expectedInput(answerfile)
 	
 		#print "Expected Input"
 		#print expectedResults
-		return errMessage == expectedResults
+		return expectedResults in errMessage
 
 
 	#skip_file = "Robust_logregr_skip.py"
@@ -273,7 +275,7 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 		res = dict()
 		with open(resultFile, "r") as f:
 			for line in f:
-				line = line.strip("\n")
+				line = line.lower().strip()
 				return line
 				
 
@@ -281,13 +283,14 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 		#Extract the values from the SQL output
 		message = None
 		for line in result:
-			#print line
-			pattern = ".*ERROR:\s*(.*)"
+			line = line.lower()
+			pattern = ".*error:\s*(.*)"
 			s = re.match(pattern, line)
 			#print s
 			if(s != None):
 				message = s.group(1)
 				
 				break
-
+		if(message == None):
+			message = "no error"
 		return message

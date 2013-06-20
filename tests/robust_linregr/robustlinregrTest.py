@@ -19,9 +19,9 @@ import sys
 
 output_test_sql = """
           \\x on
-          select {schema_madlib}.robust_variance(
+          select {schema_madlib}.robust_variance_linregr(
               '{schema_testing}.{dataset}_wi',
-              '{tbl_output}', 'linear',
+              '{tbl_output}', 
               {y}, {x});
           select coef from {tbl_output};
           select std_err from {tbl_output};
@@ -33,9 +33,9 @@ output_test_sql = """
 
 input_test_sql = """
           drop table if exists {tbl_output};
-          select {schema_madlib}.robust_variance(
+          select {schema_madlib}.robust_variance_linregr(
               '{schema_testing}.{dataset}_wi',
-              '{tbl_output}', 'linear',
+              '{tbl_output}', 
               {y}, {x});
           """
 
@@ -53,10 +53,9 @@ output_test_sql_group = """
           \\x on
           %s
           drop table if exists {tbl_output};
-          select {schema_madlib}.robust_variance(
+          select {schema_madlib}.robust_variance_linregr(
               '{schema_testing}.{dataset}_wi',
               '{tbl_output}',
-              'linear',
               {y}, {x},
               '{g}');
           select array_accum_madlib_temp_4545341231(coef order by {g}) 
@@ -72,9 +71,9 @@ output_test_sql_group = """
 
 input_test_sql_group = """
           drop table if exists {tbl_output};
-          select {schema_madlib}.robust_variance(
+          select {schema_madlib}.robust_variance_linregr(
               '{schema_testing}.{dataset}_wi',
-              '{tbl_output}', 'linear',
+              '{tbl_output}', 
               {y}, {x}, {g});
           """
 ALL_DATASETS = [
@@ -407,7 +406,7 @@ class RobustLinregrGroupInputTestCase (MADlibTestCase):
       dataset = [], 
       x = ["'wrong_col_name'", "NULL", "wrong_type_name"],
       y = ["'wrong_col_name'", "NULL", "wrong_type_name"],
-      g = ["'wrong_col_name'", "NULL", "wrong_type_name"]
+      g = ["'wrong_col_name'", "NULL", "wrong_type_name", "'  g1 '", "'		g1    '"]
   )
   default_arg_dict = dict(
       tbl_output = '__madlib_temp_40418089_1365619947_6556506__',

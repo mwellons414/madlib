@@ -18,7 +18,7 @@ if(exists('dataset'))#Did we get any command line parameters?
 tincrepo <- Sys.getenv("TINCREPOHOME")
 if(tincrepo == "")
 {
-	tincrepo <- "/Users/wellom1/tinc/tincrepo"
+	tincrepo <- "~/tinc/tincrepo"
 }
 
 

@@ -1,1 +1,0 @@
-plpy.SPIError: column "badcolumnnamex" does not exist (plpython.c:4648)

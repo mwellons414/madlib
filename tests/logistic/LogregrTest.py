@@ -376,10 +376,12 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 
 		args = sql_result["madlib_params"]
 		dataset = args["dataset"].lower()
-		self.__class__.sql_results = self.get_sqlResult(sql_result["result"])
+		self.__class__.SQLresults = self.get_sqlResult(sql_result["result"])
 
-		groups = self.__class__.sql_results.keys()
-		#print groups
+		groups = self.__class__.Rresults[dataset].keys()
+		print groups
+		print self.__class__.Rresults
+		print self.__class__.SQLresults
 		allTestPassed = True
 		debug = False
 
@@ -387,9 +389,9 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 		#print self.__class__.Rresults
 			
 		for group in groups:
-			for key in self.__class__.sql_results[1].keys():
+			for key in self.__class__.SQLresults[group].keys():
 				#print dataset, group, key
-				if(not checkEntries(self.__class__.sql_results[group][key], self.__class__.Rresults[dataset][group][key])):
+				if(not checkEntries(self.__class__.SQLresults[group][key], self.__class__.Rresults[dataset][group][key])):
 					print "Mismatch in the values of", key, "for group", group
 					allTestPassed= False
 		
@@ -410,7 +412,7 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 			s = re.match(pattern, line)#, re.IGNORECASE)
 			if(s != None):
 				#print s, line, s.group(1)
-				group = int(s.group(1))
+				group = s.group(1)
 				sql_values[group] = {}
 			elif(group == None):
 				continue
@@ -456,30 +458,29 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 
 				count += 1
 				if(re.match("^[a-zA-Z]",line)):
-					group = 1
 					count = 0
 					#current_dataset = "'" + line + "'" 
 					current_dataset = line 
 					if current_dataset not in res.keys():
 						res[current_dataset] = dict()
-						res[current_dataset][group] = dict()
 				elif count == 1:
-					res[current_dataset][group]["coef"] = map(float, string_to_array(line))
+					group = line.strip('"')
+					res[current_dataset][group] = dict()
 				elif count == 2:
-					res[current_dataset][group]["std_err"] = map(float, string_to_array(line))
+					res[current_dataset][group]["coef"] = map(float, string_to_array(line))
 				elif count == 3:
-					res[current_dataset][group]["z_stats"] = map(float, string_to_array(line))
+					res[current_dataset][group]["std_err"] = map(float, string_to_array(line))
 				elif count == 4:
-					res[current_dataset][group]["p_values"] = map(float, string_to_array(line))
+					res[current_dataset][group]["z_stats"] = map(float, string_to_array(line))
 				elif count == 5:
-					res[current_dataset][group]["log_likelihood"] = float(line)
+					res[current_dataset][group]["p_values"] = map(float, string_to_array(line))
 				elif count == 6:
-					res[current_dataset][group]["odds_ratios"] = map(float, string_to_array(line))
+					res[current_dataset][group]["log_likelihood"] = float(line)
 				elif count == 7:
+					res[current_dataset][group]["odds_ratios"] = map(float, string_to_array(line))
+				elif count == 8:
 					res[current_dataset][group]["condition_no"] = float(line)
 				elif line == "":
-					group += 1 
-					res[current_dataset][group] = dict()
 					count = 0
 		return res
 
