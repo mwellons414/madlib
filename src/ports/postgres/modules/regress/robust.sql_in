@@ -713,7 +713,7 @@ BEGIN
   EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
   PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname, input_group_cols);	
   IF (input_independent_varname = '*') THEN
-	  independent_varname := MADLIB_SCHEMA.__internal_get_col_names_except_dep_variable(source_table, dependent_varname);
+	  independent_varname := MADLIB_SCHEMA.__internal_get_col_names_except_dep_variable(source_table, input_independent_varname);
 	ELSE
 	  independent_varname := input_independent_varname; 
   	END IF;
@@ -914,7 +914,7 @@ BEGIN
 	PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname, input_group_cols);
 
 	IF (input_independent_varname = '*') THEN
-	  independent_varname := MADLIB_SCHEMA.__internal_get_col_names_except_dep_variable(source_table, dependent_varname);
+	  independent_varname := MADLIB_SCHEMA.__internal_get_col_names_except_dep_variable(source_table, input_independent_varname);
 	ELSE
 	  independent_varname := input_independent_varname; 
   	END IF;
