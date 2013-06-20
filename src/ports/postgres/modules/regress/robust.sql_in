@@ -759,7 +759,7 @@ BEGIN
     
     -- Step 1: Prepare the group columns 
     -------------------------------------------------------------------------
-    group_cols = MADLIB_SCHEMA._string_to_array(input_group_cols, E',');
+    group_cols = MADLIB_SCHEMA._string_to_array(input_group_cols);
     group_array_length = array_upper(group_cols, 1);
 
     input_table_name = regexp_split_to_array(source_table, E'\\.');
@@ -961,7 +961,7 @@ BEGIN
     
     -- Step 1: Prepare the group columns 
     -------------------------------------------------------------------------
-    group_cols = MADLIB_SCHEMA._string_to_array(input_group_cols, E',');
+    group_cols = MADLIB_SCHEMA._string_to_array(input_group_cols);
     group_array_length = array_upper(group_cols, 1);
 
     input_table_name = regexp_split_to_array(source_table, E'\\.');

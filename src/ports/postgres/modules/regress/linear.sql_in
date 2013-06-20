@@ -743,7 +743,7 @@ BEGIN
     RAISE EXCEPTION 'Output table name already exists. Drop the table before calling the function.';
   END IF;
  
-  group_cols = regexp_split_to_array(input_group_cols, E',');
+  group_cols = MADLIB_SCHEMA._string_to_array(input_group_cols);
   -- initial validation
   IF (group_cols IS NULL
       OR array_upper(group_cols, 1) IS NULL
