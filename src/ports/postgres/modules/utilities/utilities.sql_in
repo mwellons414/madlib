@@ -276,6 +276,17 @@ $$ LANGUAGE plpythonu;
 
 ------------------------------------------------------------------------
 /**
+ * @brief Takes a string of comma separated values and puts it into an array
+ */
+CREATE OR REPLACE FUNCTION MADLIB_SCHEMA._string_to_array (
+  s VARCHAR
+)
+RETURNS VARCHAR[] AS $$
+PythonFunction(utilities, utilities, _string_to_sql_array)
+$$ LANGUAGE plpythonu;
+
+------------------------------------------------------------------------
+/**
  * @brief Cast boolean into text
  */
 CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.bool_to_text (BOOLEAN)
