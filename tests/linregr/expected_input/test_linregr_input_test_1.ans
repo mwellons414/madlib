@@ -1,28 +1,19 @@
--- @description This is for input tests of linear regression with heteroskedasticity
+-- @description Input tests for linear regression, grouping and hetero
 -- @madlib-param tbl_output = "__madlib_temp_40418089_1365619947_6556506__"
+-- @madlib-param g = "'wrong_col_name'"
 -- @madlib-param hetero = "TRUE"
--- @madlib-param dataset = "lin_auto_mpg"
--- @madlib-param y = "'wrong_col_name'"
+-- @madlib-param dataset = "lin_ornstein_group"
+-- @madlib-param y = "'y'"
 -- @madlib-param x = "'x'"
           drop table if exists __madlib_temp_40418089_1365619947_6556506__;
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/linregr/sql_LinregrInputTestCase/test_linregr_input_test_1.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
+psql:/data/home/gpdbchina/pulse2-data/agents/agent1/work/%28TINC%20team-madlib%29%20MADlib%20Feature%20Test%20on%20GPDB%204.2.3.0/rhel5_x86_64/tests/linregr/sql_LinregrGroupInputTestCase/test_linregr_group_input_test_1.sql:10: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
 DROP TABLE
           select madlib.linregr_train(
-              'madlibtestdata.lin_auto_mpg_wi',
+              'madlibtestdata.lin_ornstein_group_wi',
               '__madlib_temp_40418089_1365619947_6556506__',
-              'wrong_col_name', 'x',
-              NULL,
+              'y', 
+              'x', 
+              'wrong_col_name',
               TRUE);
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/linregr/sql_LinregrInputTestCase/test_linregr_input_test_1.sql:15: ERROR:  column "wrong_col_name" does not exist
-LINE 2:         SELECT (madlib.linregr( wrong_col_name , x)
-                                        ^
-QUERY:  
-        SELECT (madlib.linregr( wrong_col_name , x)
-              ).*
-        FROM madlibtestdata.lin_auto_mpg_wi
-CONTEXT:  PL/pgSQL function "__internal_get_linreg_result" line 4 at execute statement
-SQL statement "SELECT  madlib.__internal_get_linreg_result(  $1 ,  $2 ,  $3 )"
-PL/pgSQL function "__internal_linregr_train_hetero" line 39 at assignment
-SQL statement "SELECT  madlib.__internal_linregr_train_hetero(  $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
-PL/pgSQL function "linregr_train" line 24 at perform
+psql:/data/home/gpdbchina/pulse2-data/agents/agent1/work/%28TINC%20team-madlib%29%20MADlib%20Feature%20Test%20on%20GPDB%204.2.3.0/rhel5_x86_64/tests/linregr/sql_LinregrGroupInputTestCase/test_linregr_group_input_test_1.sql:17: ERROR:  Grouping column wrong_col_name does not exist
           

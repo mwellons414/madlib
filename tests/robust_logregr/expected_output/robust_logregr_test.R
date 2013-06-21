@@ -19,12 +19,12 @@ if(exists('dataset'))#Did we get any command line parameters?
 {
 	dataset <- as.character(dataset)
 	ans.path_ <- as.character(ans.path_)
-	resultFile <- paste(ans.path_, "/logregr_test.ans", sep="")
+	resultFile <- paste(ans.path_, "/robust_logregr_test.ans", sep="")
 	if (incr_ == 1) system(paste("rm -f", resultFile))
 }else
 {
 	dataset <- c("patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc")
-	resultFile <- "robust_Logregr_test.ans"
+	resultFile <- "robust_logregr_test.ans"
 }
 
 #system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file
