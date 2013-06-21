@@ -14,7 +14,7 @@ if(tincrepo == "")
 {
 	tincrepo <- "~/tinc/tincrepo/" #If the tincrepo isn't set.  Make a guess about where it is.  
 }
-print "hi"
+
 if(exists('dataset'))#Did we get any command line parameters?
 {
 	dataset <- as.character(dataset)
