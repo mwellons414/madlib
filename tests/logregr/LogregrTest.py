@@ -100,9 +100,9 @@ class LogregrOutputTestCase (MADlibTestCase):
 		x = "x", 
 		y = "y", 
 		grouping_col = "NULL::VARCHAR",
-		max_iteration = "20",
+		max_iteration = "40",
 		optimizer = 'irls',
-		convergence_threshold = 0.00001
+		convergence_threshold = 0.000001
 		)
 	template_vars['tbl_outputInQuotes']	 = "'" + template_vars['tbl_output'] + "'"
 
@@ -159,18 +159,18 @@ class LogregrOutputTestCase (MADlibTestCase):
 		if(debug):
 			print "Comparing coefficients"
 		if(not checkEntries(sql_coef, r_coef)):
-			print checkEntries(sql_coef, r_coef)
-			for i in range(len(sql_coef)):
-				print i, sql_coef[i], r_coef[i], sql_coef[i] - r_coef[i]
+			#print checkEntries(sql_coef, r_coef)
+			#for i in range(len(sql_coef)):
+			#	print i, sql_coef[i], r_coef[i], sql_coef[i] - r_coef[i]
 			print "Coefficients don't match"
 			allTestPassed= False
 		
 		if(debug):
 			print "Comparing Standard Errors"
 		if(not checkEntries(sql_stdErr, r_stdErr) ):
-			for i in range(len(sql_stdErr)):
-				if( abs(sql_stdErr[i] - r_stdErr[i]) > 1e-6):
-					print i, sql_stdErr[i], r_stdErr[i]
+			#for i in range(len(sql_stdErr)):
+			#	if( abs(sql_stdErr[i] - r_stdErr[i]) > 1e-6):
+			#		print i, sql_stdErr[i], r_stdErr[i]
 			print "Standard errors don't match"
 			allTestPassed= False
 		
@@ -326,9 +326,8 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 	template_doc = "This is for output tests of the the logistic regression with grouping"
 
 	template_vars = dict(
-		# These names are not hard-coded
 		tbl_output = unique_string(),
-		dataset = ["log_ornstein_wi", ],
+		dataset = ["log_ornstein_wi"],
 		x = "x", 
 		y = "y", 
 		grouping_col = "'z'",
@@ -378,10 +377,13 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 		dataset = args["dataset"].lower()
 		self.__class__.SQLresults = self.get_sqlResult(sql_result["result"])
 
+		#print sql_result["result"]
+
 		groups = self.__class__.Rresults[dataset].keys()
-		print groups
-		print self.__class__.Rresults
-		print self.__class__.SQLresults
+		#print groups
+		#print self.__class__.Rresults[dataset]
+		#print
+		#print self.__class__.SQLresults
 		allTestPassed = True
 		debug = False
 
@@ -518,17 +520,18 @@ class LogregrInputTestCase (MADlibTestCase):
 		max_iteration = ["-1"],
 		optimizer = ['invalid_optimizer'],
 		convergence_threshold = [-0.0001],
+		grouping_col = ["'		z'", "'a'"]
 		)
 	argument_defaults = dict(
 		# These names are not hard-coded
 		tbl_output = outTable,
-		dataset = ["patients_wi"],
+		dataset = ["log_ornstein_wi"],
 		x = "x",
 		y = "y",
 		max_iteration = "20",
 		optimizer = 'irls',
 		convergence_threshold = 0.00001,
-		grouping_col = "NULL::VARCHAR"
+		grouping_col = "'z'"
 		)
 	argument_defaults["tbl_outputInQuotes"] = "'"+argument_defaults["tbl_output"] +"'"
 	
@@ -554,7 +557,7 @@ class LogregrInputTestCase (MADlibTestCase):
 	
 		#print "Expected Input"
 		#print expectedResults
-		return expectedResults in errMessage 
+		return expectedResults == errMessage 
 
 
 	#skip_file = "Robust_logregr_skip.py"
@@ -563,11 +566,16 @@ class LogregrInputTestCase (MADlibTestCase):
 	def get_expectedInput (self, resultFile):
 		#Get the expected results
 		count = 0
-		res = dict()
 		with open(resultFile, "r") as f:
-			for line in f:
-				line = line.strip("\n")
-				return line
+			result = f.readlines()
+		message = None
+		for line in result:
+			pattern = ".*ERROR:\s*(\w.*?)\("
+			s = re.match(pattern, line)
+			if(s != None):
+				message = s.group(1)
+				break
+		return message
 				
 
 	def get_errMessage (self, result):
@@ -579,5 +587,6 @@ class LogregrInputTestCase (MADlibTestCase):
 			if(s != None):
 				message = s.group(1)
 				break
-
+		#if(message == None):
+		#	message = "no error"
 		return message

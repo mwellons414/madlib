@@ -37,7 +37,7 @@ def _generate_template_vars(arg_dict, default_arg_val):
 
 # ------------------------------------------------------------------------
 
-run_sql = """
+outputTest_sql = """
 		  set client_min_messages to error;
 		  \\x on
 		  select {schema_madlib}.robust_variance_logregr(
@@ -48,6 +48,19 @@ run_sql = """
 		  drop table if exists {tbl_output};
 		  \\x off
 		  """
+		  
+inputTest_sql = """
+		  set client_min_messages to error;
+		  \\x on
+		  select {schema_madlib}.robust_variance_logregr(
+			  '{schema_testing}.{dataset}',
+			  {tbl_outputInQuotes},
+			  '{y}', '{x}', NULL, {max_iter}, '{optimizer}', {tolerance}, {verbose});
+		  select * from {tbl_output};
+		  drop table if exists {tbl_output};
+		  \\x off
+		  """
+		  
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -81,7 +94,7 @@ class RobustLogregrOutputTestCase (MADlibTestCase):
 		)
 	template_vars['tbl_outputInQuotes']	 = "'" + template_vars['tbl_output'] + "'"
 
-	template = run_sql
+	template = outputTest_sql
 
 	# ----------------------------------------------------------------
 	# The following class variables are defined only for this test
@@ -229,19 +242,27 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 		tbl_outputInQuotes = ["NULL"],
 		dataset = ["nonExistentTable", ""],
 		x = ["BadColumnNameX", ""],
-		y = ["BadColumnNameY", "", "y>0.5"]
+		y = ["BadColumnNameY", "", "y>0.5"],
+		max_iter = [-1],
+		optimizer = ['nonExistentOptimizer'], 
+		tolerance = [-0.001], 
+		verbose = [True]
 		)
 	argument_defaults = dict(
 		# These names are not hard-coded
 		tbl_output = outTable,
 		dataset = ["patients_wi"],
 		x = "x",
-		y = "y"
+		y = "y",
+		max_iter = 20,
+		optimizer = 'irls', 
+		tolerance = 0.001, 
+		verbose = False
 		)
 	argument_defaults["tbl_outputInQuotes"] = "'"+argument_defaults["tbl_output"] +"'"
 	
 	template_vars = _generate_template_vars(argument_dict, argument_defaults)	 
-	template = run_sql
+	template = inputTest_sql
 
 	 # One only needs to implement the result validation function
 	def validate (self, sql_resultfile, answerfile):
@@ -263,20 +284,35 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 	
 		#print "Expected Input"
 		#print expectedResults
-		return expectedResults in errMessage
+		return expectedResults == errMessage
 
 
 	#skip_file = "Robust_logregr_skip.py"
  
-
-	def get_expectedInput (self, resultFile):
+ 
+ 	def get_expectedInput (self, resultFile):
 		#Get the expected results
 		count = 0
-		res = dict()
 		with open(resultFile, "r") as f:
-			for line in f:
-				line = line.lower().strip()
-				return line
+			result = f.readlines()
+		message = None
+		for line in result:
+			line = line.lower()
+			pattern = ".*error:\s*(.*)"
+			s = re.match(pattern, line)
+			if(s != None):
+				message = s.group(1)
+				break
+		return message
+
+# 	def get_expectedInput (self, resultFile):
+# 		#Get the expected results
+# 		count = 0
+# 		res = dict()
+# 		with open(resultFile, "r") as f:
+# 			for line in f:
+# 				line = line.lower().strip()
+# 				return line
 				
 
 	def get_errMessage (self, result):
@@ -291,6 +327,4 @@ class RobustLogregrInputTestCase (MADlibTestCase):
 				message = s.group(1)
 				
 				break
-		if(message == None):
-			message = "no error"
 		return message

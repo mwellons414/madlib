@@ -1,26 +1,35 @@
 
-## @madlib-param dataset The data set name, string
+## @madlib-param datasets The data set name, string
 ## @madlib-param ans.path_ The answer file path
 
 source("logregr_newapi_baseline.R")
+tincrepo <- Sys.getenv("TINCREPOHOME")
+if(tincrepo == "")
+{
+	tincrepo <- "~/tinc/tincrepo/" #If the tincrepo isn't set.  Make a guess about where it is.  
+}
 
 ## ------------------------------------------------------------------------
-if(exists('dataset'))#Did we get any command line parameters?
+if(exists('datasets'))#Did we get any command line parameters?
 {
-	data.path = paste(ans.path_, "/data/", sep = "")
+	datasets <- as.character(datasets)
 	ans.path_ <- as.character(ans.path_)
 }else
 {
-	datasets <- c("log_ornstein_wi")
+	datasets <- c("log_ornstein_wi", 'log_houses_group_wi')
 	ans.path_ <- "../logregr_group_test.ans"
 }
 
 system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file
 
 sql.path = paste(tincrepo, "/madlib/datasets/sql/", sep = "")
-
-eval.logregr.append.results(data.set = datasets,
+for( i in seq_along(datasets))
+{
+	dataset <- datasets[i]
+	eval.logregr.append.results(data.set = dataset,
                              target = "y",
                              predictors = "~ . -1 - z",
                              grouping.cols = c("z"),
                              sql.path='~/madlib_testsuite/datasets/sql', outfileName = ans.path_)
+}
+rm(datasets)

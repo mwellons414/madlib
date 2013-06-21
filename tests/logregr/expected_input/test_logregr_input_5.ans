@@ -1,0 +1,63 @@
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_69833098_1371792076_18910164__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_69833098_1371792076_18910164__'"
+-- @madlib-param dataset = "log_ornstein_wi"
+-- @madlib-param grouping_col = "'z'"
+-- @madlib-param y = "y"
+-- @madlib-param x = "non_existing_dependent_varname"
+-- @madlib-param max_iteration = "20"
+-- @madlib-param optimizer = "irls"
+		  \x on
+Expanded display is on.
+		  set client_min_messages to error;
+SET
+		  select madlib.logregr_train(
+			  'madlibtestdata.log_ornstein_wi',
+			  '__madlib_temp_69833098_1371792076_18910164__',
+			  'y', 'non_existing_dependent_varname', 'z', 20, 'irls', '1e-05');
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/logistic/sql_LogregrInputTestCase/test_logregr_input_5.sql:17: ERROR:  plpy.SPIError: column "non_existing_dependent_varname" does not exist (plpython.c:4648)
+LINE 9:                     (non_existing_dependent_varname)::double...
+                             ^
+QUERY:  
+            insert into pg_temp.__madlib_temp_53039660_1371792081_38691411__
+                (select
+                    z,
+                    1,
+                    (
+                madlib.__logregr_irls_step(
+                    (y)::boolean,
+                    (non_existing_dependent_varname)::double precision[],
+                    pg_temp.__madlib_temp_53039660_1371792081_38691411__._state)
+                )
+                from
+                    (madlibtestdata.log_ornstein_wi AS _src
+                    join
+                    pg_temp.__madlib_temp_53039660_1371792081_38691411__
+                    using (z))
+                where
+                    pg_temp.__madlib_temp_53039660_1371792081_38691411__._iteration = 1 - 1 and
+                    (case when 1 = 1 then
+                        True
+                    else
+                        pg_temp.__madlib_temp_53039660_1371792081_38691411__._state[0] = 0
+                    end)
+                group by z)
+            
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "logregr_train", line 25, in <module>
+    return logistic.logregr_train(**globals())
+  PL/Python function "logregr_train", line 119, in logregr_train
+  PL/Python function "logregr_train", line 233, in __logregr_train_compute
+  PL/Python function "logregr_train", line 73, in __compute_logregr
+  PL/Python function "logregr_train", line 272, in update
+  PL/Python function "logregr_train", line 110, in runSQL
+PL/Python function "logregr_train"
+		  select * from __madlib_temp_69833098_1371792076_18910164__;
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/logistic/sql_LogregrInputTestCase/test_logregr_input_5.sql:18: ERROR:  relation "__madlib_temp_69833098_1371792076_18910164__" does not exist
+LINE 1: select * from __madlib_temp_69833098_1371792076_18910164__;
+                      ^
+		  drop table if exists __madlib_temp_69833098_1371792076_18910164__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

@@ -5,9 +5,9 @@
 source("logregr_newapi_baseline.R")
 
 ## ------------------------------------------------------------------------
-if(exists('dataset'))#Did we get any command line parameters?
+if(exists('datasets'))#Did we get any command line parameters?
 {
-	dataset <- as.character(dataset)
+	datasets <- as.character(datasets)
 	ans.path_ <- as.character(ans.path_)
 }else
 {
@@ -21,10 +21,11 @@ if(tincrepo == "")
 	tincrepo <- "~/tinc/tincrepo"
 }
 
-
 system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file
 
 sql.path = paste(tincrepo, "/madlib/datasets/sql/", sep = "")
 
 
 for (data.set in datasets) eval.logregr.append.results(data.set = data.set, sql.path=sql.path, outfileName = ans.path_)
+
+rm(datasets)

@@ -1,0 +1,69 @@
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_69833098_1371792076_18910164__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_69833098_1371792076_18910164__'"
+-- @madlib-param dataset = "log_ornstein_wi"
+-- @madlib-param grouping_col = "'		z'"
+-- @madlib-param y = "y"
+-- @madlib-param x = "x"
+-- @madlib-param max_iteration = "20"
+-- @madlib-param optimizer = "irls"
+		  \x on
+Expanded display is on.
+		  set client_min_messages to error;
+SET
+		  select madlib.logregr_train(
+			  'madlibtestdata.log_ornstein_wi',
+			  '__madlib_temp_69833098_1371792076_18910164__',
+			  'y', 'x', '		z', 20, 'irls', '1e-05');
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/logistic/sql_LogregrInputTestCase/test_logregr_input_3.sql:17: INFO:  4 groups succesfully passed, and 0 groups failed
+CONTEXT:  PL/Python function "logregr_train"
+-[ RECORD 1 ]-+-
+logregr_train | 
+
+		  select * from __madlib_temp_69833098_1371792076_18910164__;
+-[ RECORD 1 ]--+--------------------------------------------------------------
+z              | 2
+coef           | {-1.19299394536902,-0.000121776133249258,0.161809203501423}
+log_likelihood | -11.4774366333677
+std_err        | {1.58764426990958,0.000218368204897223,0.206032624721077}
+z_stats        | {-0.751423960631282,-0.557664213554226,0.785357191466532}
+p_values       | {0.452397547138479,0.577073698961549,0.432244172449728}
+odds_ratios    | {0.303311804337711,0.999878231281163,1.17563591270538}
+condition_no   | 114329803.459504
+num_iterations | 5
+-[ RECORD 2 ]--+--------------------------------------------------------------
+z              | 3
+coef           | {3.51800467357332,-0.00271647762044513,0.0768105134145465}
+log_likelihood | -4.50134754072604
+std_err        | {2.04747533630508,0.00126093118204202,0.275439803784713}
+z_stats        | {1.71821589798585,-2.1543424884187,0.278864972887443}
+p_values       | {0.0857572427917518,0.0312133231575179,0.780348450174881}
+odds_ratios    | {33.7170847096545,0.997287208666226,1.07983744229572}
+condition_no   | 9738997.86342061
+num_iterations | 7
+-[ RECORD 3 ]--+--------------------------------------------------------------
+z              | 1
+coef           | {1.33508060295016,-0.000295730152964175,-0.153212231683973}
+log_likelihood | -58.4281396702858
+std_err        | {0.476471304746772,8.70187387706465e-05,0.0718635186340353}
+z_stats        | {2.80201680489387,-3.39846517131931,-2.13198900633026}
+p_values       | {0.00507842281909831,0.000677650907001722,0.0330077503355124}
+odds_ratios    | {3.80030224964746,0.999704313570887,0.857947618820162}
+condition_no   | 49555528.0338152
+num_iterations | 9
+-[ RECORD 4 ]--+--------------------------------------------------------------
+z              | 4
+coef           | {2.73238025476458,-0.000177658579822023,-0.194353510316261}
+log_likelihood | -50.1587623560344
+std_err        | {0.847408706952813,6.74340778180467e-05,0.116785492175683}
+z_stats        | {3.22439483137944,-2.63455192938782,-1.66419224422063}
+p_values       | {0.0012623921548182,0.00842484155707474,0.0960740174942854}
+odds_ratios    | {15.3694266668739,0.999822357200529,0.823366784162361}
+condition_no   | 271233705.917518
+num_iterations | 6
+
+		  drop table if exists __madlib_temp_69833098_1371792076_18910164__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

@@ -1,1 +1,63 @@
-invalid output table name given
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_58235928_1371792631_29890043__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
+-- @madlib-param dataset = "patients_wi"
+-- @madlib-param optimizer = "irls"
+-- @madlib-param y = "y"
+-- @madlib-param x = "BadColumnNameX"
+		  set client_min_messages to error;
+SET
+		  \x on
+Expanded display is on.
+		  select madlib.robust_variance_logregr(
+			  'madlibtestdata.patients_wi',
+			  '__madlib_temp_58235928_1371792631_29890043__',
+			  'y', 'BadColumnNameX', NULL, 20, 'irls', 0.001, False);
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_6.sql:15: ERROR:  plpy.SPIError: column "badcolumnnamex" does not exist (plpython.c:4648)
+LINE 9:                     (BadColumnNameX)::double precision[],
+                             ^
+QUERY:  
+            insert into pg_temp.__madlib_temp_92475849_1371792656_41009206__
+                (select
+                    Null,
+                    1,
+                    (
+                madlib.__logregr_irls_step(
+                    (y)::boolean,
+                    (BadColumnNameX)::double precision[],
+                    pg_temp.__madlib_temp_92475849_1371792656_41009206__._state)
+                )
+                from
+                    (madlibtestdata.patients_wi AS _src
+                    join
+                    pg_temp.__madlib_temp_92475849_1371792656_41009206__
+                    on True)
+                where
+                    pg_temp.__madlib_temp_92475849_1371792656_41009206__._iteration = 1 - 1 and
+                    (case when 1 = 1 then
+                        True
+                    else
+                        pg_temp.__madlib_temp_92475849_1371792656_41009206__._state[0] = 0
+                    end)
+                )
+            
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "logregr_train", line 25, in <module>
+    return logistic.logregr_train(**globals())
+  PL/Python function "logregr_train", line 119, in logregr_train
+  PL/Python function "logregr_train", line 233, in __logregr_train_compute
+  PL/Python function "logregr_train", line 73, in __compute_logregr
+  PL/Python function "logregr_train", line 272, in update
+  PL/Python function "logregr_train", line 110, in runSQL
+PL/Python function "logregr_train"
+SQL statement "SELECT  madlib.logregr_train( $1 ,  $2 ,  $3 ,  $4 ,  $5 ,  $6 ,  $7 ,  $8 ,  $9 )"
+PL/pgSQL function "robust_variance_logregr" line 41 at perform
+		  select * from __madlib_temp_58235928_1371792631_29890043__;
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_6.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
+LINE 1: select * from __madlib_temp_58235928_1371792631_29890043__;
+                      ^
+		  drop table if exists __madlib_temp_58235928_1371792631_29890043__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

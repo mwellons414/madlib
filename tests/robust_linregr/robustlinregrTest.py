@@ -442,6 +442,7 @@ class RobustLinregrGroupInputTestCase (MADlibTestCase):
       if(s != None):
         message = s.group(1)
         break
+        
     return message
         
   def get_errMessage (self, result):

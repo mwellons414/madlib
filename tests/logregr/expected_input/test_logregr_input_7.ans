@@ -1,0 +1,34 @@
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_69833098_1371792076_18910164__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_69833098_1371792076_18910164__'"
+-- @madlib-param dataset = "log_ornstein_wi"
+-- @madlib-param grouping_col = "'z'"
+-- @madlib-param y = "y"
+-- @madlib-param x = "x"
+-- @madlib-param max_iteration = "20"
+-- @madlib-param optimizer = "invalid_optimizer"
+		  \x on
+Expanded display is on.
+		  set client_min_messages to error;
+SET
+		  select madlib.logregr_train(
+			  'madlibtestdata.log_ornstein_wi',
+			  '__madlib_temp_69833098_1371792076_18910164__',
+			  'y', 'x', 'z', 20, 'invalid_optimizer', '1e-05');
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/logistic/sql_LogregrInputTestCase/test_logregr_input_7.sql:17: ERROR:  plpy.Error:  Logregr error: Unknown optimizer requested. (plpython.c:4648)
+DETAIL:  Must be 'newton'/'irls', 'cg', or 'igd'.
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "logregr_train", line 25, in <module>
+    return logistic.logregr_train(**globals())
+  PL/Python function "logregr_train", line 115, in logregr_train
+  PL/Python function "logregr_train", line 173, in __logregr_validate_args
+PL/Python function "logregr_train"
+		  select * from __madlib_temp_69833098_1371792076_18910164__;
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/logistic/sql_LogregrInputTestCase/test_logregr_input_7.sql:18: ERROR:  relation "__madlib_temp_69833098_1371792076_18910164__" does not exist
+LINE 1: select * from __madlib_temp_69833098_1371792076_18910164__;
+                      ^
+		  drop table if exists __madlib_temp_69833098_1371792076_18910164__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

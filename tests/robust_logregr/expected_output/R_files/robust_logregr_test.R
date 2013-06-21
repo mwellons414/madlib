@@ -1,4 +1,4 @@
-## @madlib-param dataset The data set name, string
+## @madlib-param datasets The data set name, string
 ## @madlib-param ans.path_ The answer file path
 ## -----------------------------------------------------------------------
 ## Generate R results for validation
@@ -15,9 +15,9 @@ if(tincrepo == "")
 }
 
 
-if(exists('dataset'))#Did we get any command line parameters?
+if(exists('datasets'))#Did we get any command line parameters?
 {
-	dataset <- as.character(dataset)
+	datasets <- as.character(datasets)
 	ans.path_ <- as.character(ans.path_)
 }else
 {
@@ -73,4 +73,5 @@ hsd.append.results <- function(datasets,
 ## ------------------------------------------------------------------------
 
 hsd.append.results(datasets, sql.path = sql.path, py.path = py.path, outputPath = ans.path_);
+#rm(datasets)
 

@@ -1,1 +1,37 @@
-invalid name syntax
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_58235928_1371792631_29890043__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
+-- @madlib-param dataset = "patients_wi"
+-- @madlib-param optimizer = "irls"
+-- @madlib-param y = "BadColumnNameY"
+-- @madlib-param x = "x"
+		  set client_min_messages to error;
+SET
+		  \x on
+Expanded display is on.
+		  select madlib.robust_variance_logregr(
+			  'madlibtestdata.patients_wi',
+			  '__madlib_temp_58235928_1371792631_29890043__',
+			  'BadColumnNameY', 'x', NULL, 20, 'irls', 0.001, False);
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_8.sql:15: ERROR:  plpy.SPIError: column "badcolumnnamey" does not exist (plpython.c:4648)
+LINE 1: select count(BadColumnNameY) from madlibtestdata.patients_wi
+                     ^
+QUERY:  select count(BadColumnNameY) from madlibtestdata.patients_wi
+CONTEXT:  Traceback (most recent call last):
+  PL/Python function "logregr_train", line 25, in <module>
+    return logistic.logregr_train(**globals())
+  PL/Python function "logregr_train", line 115, in logregr_train
+  PL/Python function "logregr_train", line 146, in __logregr_validate_args
+  PL/Python function "logregr_train", line 164, in __is_scalar_col_no_null
+PL/Python function "logregr_train"
+SQL statement "SELECT  madlib.logregr_train( $1 ,  $2 ,  $3 ,  $4 ,  $5 ,  $6 ,  $7 ,  $8 ,  $9 )"
+PL/pgSQL function "robust_variance_logregr" line 41 at perform
+		  select * from __madlib_temp_58235928_1371792631_29890043__;
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_8.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
+LINE 1: select * from __madlib_temp_58235928_1371792631_29890043__;
+                      ^
+		  drop table if exists __madlib_temp_58235928_1371792631_29890043__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

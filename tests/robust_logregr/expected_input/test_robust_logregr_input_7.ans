@@ -1,1 +1,27 @@
-input table name does not exist.
+-- @description This is for input tests of the robust covariance calculation of the logistic regression
+-- @madlib-param tbl_output = "__madlib_temp_58235928_1371792631_29890043__"
+-- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
+-- @madlib-param dataset = "patients_wi"
+-- @madlib-param optimizer = "irls"
+-- @madlib-param y = "y"
+-- @madlib-param x = ""
+		  set client_min_messages to error;
+SET
+		  \x on
+Expanded display is on.
+		  select madlib.robust_variance_logregr(
+			  'madlibtestdata.patients_wi',
+			  '__madlib_temp_58235928_1371792631_29890043__',
+			  'y', '', NULL, 20, 'irls', 0.001, False);
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_7.sql:15: ERROR:  Invalid independent variable name given.
+CONTEXT:  SQL statement "SELECT  madlib.robust_input_checking( $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance_logregr" line 23 at perform
+		  select * from __madlib_temp_58235928_1371792631_29890043__;
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_7.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
+LINE 1: select * from __madlib_temp_58235928_1371792631_29890043__;
+                      ^
+		  drop table if exists __madlib_temp_58235928_1371792631_29890043__;
+DROP TABLE
+		  \x off
+Expanded display is off.
+		  

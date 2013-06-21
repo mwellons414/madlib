@@ -2,7 +2,7 @@
 -- @madlib-param tbl_output = "__madlib_temp_58235928_1371792631_29890043__"
 -- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
 -- @madlib-param dataset = "patients_wi"
--- @madlib-param optimizer = "irls"
+-- @madlib-param optimizer = "nonExistentOptimizer"
 -- @madlib-param y = "y"
 -- @madlib-param x = "x"
 		  set client_min_messages to error;
@@ -12,18 +12,19 @@ Expanded display is on.
 		  select madlib.robust_variance_logregr(
 			  'madlibtestdata.patients_wi',
 			  '__madlib_temp_58235928_1371792631_29890043__',
-			  'y', 'x', NULL, -1, 'irls', 0.001, False);
-psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_3.sql:15: ERROR:  plpy.Error: Logregr error: Maximum number of iterations must be positive! (plpython.c:4648)
+			  'y', 'x', NULL, 20, 'nonExistentOptimizer', 0.001, False);
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_11.sql:15: ERROR:  plpy.Error:  Logregr error: Unknown optimizer requested. (plpython.c:4648)
+DETAIL:  Must be 'newton'/'irls', 'cg', or 'igd'.
 CONTEXT:  Traceback (most recent call last):
   PL/Python function "logregr_train", line 25, in <module>
     return logistic.logregr_train(**globals())
   PL/Python function "logregr_train", line 115, in logregr_train
-  PL/Python function "logregr_train", line 163, in __logregr_validate_args
+  PL/Python function "logregr_train", line 173, in __logregr_validate_args
 PL/Python function "logregr_train"
 SQL statement "SELECT  madlib.logregr_train( $1 ,  $2 ,  $3 ,  $4 ,  $5 ,  $6 ,  $7 ,  $8 ,  $9 )"
 PL/pgSQL function "robust_variance_logregr" line 41 at perform
 		  select * from __madlib_temp_58235928_1371792631_29890043__;
-psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_3.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_11.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
 LINE 1: select * from __madlib_temp_58235928_1371792631_29890043__;
                       ^
 		  drop table if exists __madlib_temp_58235928_1371792631_29890043__;

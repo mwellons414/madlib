@@ -3,7 +3,7 @@
 -- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
 -- @madlib-param dataset = "patients_wi"
 -- @madlib-param optimizer = "irls"
--- @madlib-param y = "y"
+-- @madlib-param y = "y>0.5"
 -- @madlib-param x = "x"
 		  set client_min_messages to error;
 SET
@@ -12,7 +12,7 @@ Expanded display is on.
 		  select madlib.robust_variance_logregr(
 			  'madlibtestdata.patients_wi',
 			  '__madlib_temp_58235928_1371792631_29890043__',
-			  'y', 'x', NULL, 20, 'irls', 0.001, True);
+			  'y>0.5', 'x', NULL, 20, 'irls', 0.001, False);
 -[ RECORD 1 ]-----------+-
 robust_variance_logregr | 
 

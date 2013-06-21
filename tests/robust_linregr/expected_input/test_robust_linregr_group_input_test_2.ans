@@ -5,11 +5,12 @@
 -- @madlib-param y = "NULL"
 -- @madlib-param x = "'x'"
           drop table if exists __madlib_temp_40418089_1365619947_6556506__;
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_2.sql:9: NOTICE:  table "__madlib_temp_40418089_1365619947_6556506__" does not exist, skipping
 DROP TABLE
-          select madlib.robust_variance(
+          select madlib.robust_variance_linregr(
               'madlibtestdata.lin_ornstein_group_wi',
-              '__madlib_temp_40418089_1365619947_6556506__', 'linear',
+              '__madlib_temp_40418089_1365619947_6556506__', 
               NULL, 'x', 'g1');
-psql:/Users/sridhs3/workspace/test_utils/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_2.sql:13: ERROR:  Invalid independent variable name given.
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_linregr/sql_RobustLinregrGroupInputTestCase/test_robust_linregr_group_input_test_2.sql:13: ERROR:  Invalid dependent variable name given.
+CONTEXT:  SQL statement "SELECT  madlib.robust_input_checking( $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance_linregr" line 22 at perform
           

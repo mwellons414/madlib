@@ -48,10 +48,17 @@ eval.logregr.append.results <- function (data.set, # data set name
 {
     ## copy the original .gz data file, extract it, convert it into R compatible
     ## format, and then read in
+    #print("Python Path")
+    #print(py.path)
+    
+    #print("sql.path")
+    #print(sql.path)
+    conn <- file(outfileName, "a")
+    #print(data.set)
     dat <- prepare.dataset(data.set, sql.path = sql.path, data.path = data.path,
                            py.path = py.path)
     ##
-    #print(dat)
+    #print(dat[1:20,])
     if (! is.null(dat))
     {
         ## The independent variable columns
@@ -59,7 +66,7 @@ eval.logregr.append.results <- function (data.set, # data set name
         n <- length(xcols)
         grouping.str <- paste("\"", grouping.cols, "\"", collapse = ", ", sep = "")
         ##        
-        conn <- file(outfileName, "a")
+        
         cat(paste(data.set, "\n", sep = ""), file = conn)
         ##
         if (length(grouping.cols) != 0) {
@@ -87,7 +94,7 @@ eval.logregr.append.results <- function (data.set, # data set name
             fit <- glm(formula(paste(target,  predictors)), family = binomial, data = dat.use,
                        control = list(epsilon = 1e-8, maxit = 2000))
             ##
-            print(fit)
+            #print(fit)
             X <- as.matrix(dat.use[xcols])
             sigma <- colSums(t(X) * fit$coefficients)
             a <- diag((1/(1 + exp(-sigma))) * (1/(1+exp(sigma))))
@@ -118,6 +125,7 @@ eval.logregr.append.results <- function (data.set, # data set name
             
         }
         ## 
-        close(conn)
     }
+	close(conn)
+
 }

@@ -3,7 +3,7 @@
 -- @madlib-param tbl_outputInQuotes = "'__madlib_temp_58235928_1371792631_29890043__'"
 -- @madlib-param dataset = "patients_wi"
 -- @madlib-param optimizer = "irls"
--- @madlib-param y = "y"
+-- @madlib-param y = ""
 -- @madlib-param x = "x"
 		  set client_min_messages to error;
 SET
@@ -12,17 +12,14 @@ Expanded display is on.
 		  select madlib.robust_variance_logregr(
 			  'madlibtestdata.patients_wi',
 			  '__madlib_temp_58235928_1371792631_29890043__',
-			  'y', 'x', NULL, 20, 'irls', 0.001, True);
--[ RECORD 1 ]-----------+-
-robust_variance_logregr | 
-
+			  '', 'x', NULL, 20, 'irls', 0.001, False);
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_9.sql:15: ERROR:  Invalid dependent variable name given.
+CONTEXT:  SQL statement "SELECT  madlib.robust_input_checking( $1 ,  $2 ,  $3 ,  $4 ,  $5 )"
+PL/pgSQL function "robust_variance_logregr" line 23 at perform
 		  select * from __madlib_temp_58235928_1371792631_29890043__;
--[ RECORD 1 ]-------------------------------------------------------
-coef     | {-6.36346994178185,-1.02410605239327,0.119044916668606}
-std_err  | {3.45872062333646,1.17161925782341,0.0534328864185018}
-t_stats  | {-1.83983346294195,-0.874094587943031,2.22793348156811}
-p_values | {0.0657926909738847,0.382066744585544,0.0258849510757324}
-
+psql:/Users/wellom1/tinc/tincrepo/madlib/tests/robust_logregr/sql_RobustLogregrInputTestCase/test_robust_logregr_input_9.sql:16: ERROR:  relation "__madlib_temp_58235928_1371792631_29890043__" does not exist
+LINE 1: select * from __madlib_temp_58235928_1371792631_29890043__;
+                      ^
 		  drop table if exists __madlib_temp_58235928_1371792631_29890043__;
 DROP TABLE
 		  \x off
