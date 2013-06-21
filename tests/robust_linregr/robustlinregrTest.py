@@ -124,7 +124,7 @@ class RobustLinregrOutputTestCase (MADlibTestCase):
 
     # skip_file = "robust_linregr_skip.py"
     
-    template_method = "robust_linregr%{dataset}"
+    template_method = "robust_linregr{dataset}"
 
     template_doc = "This is for output tests of robust linear regression"
 
@@ -218,7 +218,7 @@ class RobustLinregrGroupOutputTestCase (MADlibTestCase):
     ans_dir = "expected_output"
     # skip_file = "linregr_skip.py"
     
-    template_method = "robust_linregr%{dataset}"
+    template_method = "robust_linregr{dataset}"
     template_doc = "Robust linear with grouping support"
     
     group_template_vars = []

@@ -142,7 +142,7 @@ class LinregrOutputTestCase (MADlibTestCase):
 
     # skip_file = "linregr_skip.py"
     
-    template_method = "linregr%{dataset}%{hetero}"
+    template_method = "linregr_{dataset}_{hetero}"
 
     template_doc = "This is for output tests of linear regression with heteroskedasticity"
 
@@ -241,7 +241,7 @@ class LinregrGroupOutputTestCase (MADlibTestCase):
     ans_dir = "expected_output"
     # skip_file = "linregr_skip.py"
     
-    template_method = "linregr%{dataset}%{hetero}"
+    template_method = "linregr_{dataset}_{hetero}"
     template_doc = "This is for output tests of linear regression with heteroskedasticity"
     
     group_template_vars = []

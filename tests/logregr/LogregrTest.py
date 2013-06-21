@@ -89,7 +89,7 @@ class LogregrOutputTestCase (MADlibTestCase):
 
 	# skip_file = "linregr_skip.py"
 	
-	template_method = "logistic_output%{incr_}"
+	template_method = "logistic_output{incr_}"
 
 	template_doc = "This is for output tests of the the logistic regression"
 
@@ -321,7 +321,7 @@ class LogregrOutputTestCase2 (MADlibTestCase):
 
 	# skip_file = "linregr_skip.py"
 	
-	template_method = "logistic_output_group%{incr_}"
+	template_method = "logistic_output_group{incr_}"
 
 	template_doc = "This is for output tests of the the logistic regression with grouping"
 

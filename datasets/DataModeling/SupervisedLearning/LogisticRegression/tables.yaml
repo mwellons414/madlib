@@ -29,3 +29,7 @@ tables :
       args :
           data : "http://sahdl.asfasf.com"
           desc : "./desfdkl/sfsf"
+    - id : log_ornstein_wi
+      args :
+          data : "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wpbc.data"
+          desc : "./desc/log_wpbc.desc"

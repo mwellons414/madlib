@@ -81,7 +81,7 @@ class RobustLogregrOutputTestCase (MADlibTestCase):
 
 	# skip_file = "linregr_skip.py"
 	
-	template_method = "robust_logistic_output_test%{incr_}"
+	template_method = "robust_logistic_output_test{incr_}"
 
 	template_doc = "This is for output tests of the robust covariance calculation of the logistic regression"
 

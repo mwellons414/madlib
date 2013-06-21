@@ -1,4 +1,5 @@
-## @madlib-param datasets The data set name, string
+## @madlib-param dataset The data set name, string
+## @madlib-param incr_ The count of the test cases, when incr_ is 1, create the answer file
 ## @madlib-param ans.path_ The answer file path
 ## -----------------------------------------------------------------------
 ## Generate R results for validation
@@ -13,16 +14,17 @@ if(tincrepo == "")
 {
 	tincrepo <- "~/tinc/tincrepo/" #If the tincrepo isn't set.  Make a guess about where it is.  
 }
-
-
-if(exists('datasets'))#Did we get any command line parameters?
+print "hi"
+if(exists('dataset'))#Did we get any command line parameters?
 {
-	datasets <- as.character(datasets)
+	dataset <- as.character(dataset)
 	ans.path_ <- as.character(ans.path_)
+	resultFile <- paste(ans.path_, "/logregr_test.ans", sep="")
+	if (incr_ == 1) system(paste("rm -f", resultFile))
 }else
 {
-	datasets <- c("patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc")
-	ans.path_ <- "../robust_Logregr_test.ans"
+	dataset <- c("patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc")
+	resultFile <- "robust_Logregr_test.ans"
 }
 
 #system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file
@@ -38,7 +40,7 @@ hsd.append.results <- function(datasets,
                                py.path = "~/madlib_testsuite/src/r_utils",
                                outputPath = "../robust_Logregr_test.ans")
 {
-	con <- file(outputPath, "w")
+	con <- file(outputPath, "a")
     for (i in seq_along(datasets))
     {
         name <- datasets[i]
@@ -72,6 +74,6 @@ hsd.append.results <- function(datasets,
 
 ## ------------------------------------------------------------------------
 
-hsd.append.results(datasets, sql.path = sql.path, py.path = py.path, outputPath = ans.path_);
-#rm(datasets)
+hsd.append.results(dataset, sql.path = sql.path, py.path = py.path, outputPath =resultFile);
+rm(dataset)
 
