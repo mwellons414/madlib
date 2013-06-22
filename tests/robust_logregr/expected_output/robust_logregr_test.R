@@ -25,6 +25,7 @@ if(exists('dataset'))#Did we get any command line parameters?
 {
 	dataset <- c("patients_wi", "patients_bool_wi", "log_breast_cancer_wisconsin", "log_wpbc")
 	resultFile <- "robust_logregr_test.ans"
+	system(paste("rm -f", resultFile))
 }
 
 #system(paste("rm ",ans.path_, sep = " "))#Get rid of the old file

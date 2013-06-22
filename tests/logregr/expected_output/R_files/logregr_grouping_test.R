@@ -1,5 +1,6 @@
-
+source("./utils/utils.r")
 ## @madlib-param datasets The data set name, string
+## @madlib-param incr_ The count of the test cases, when _incr is 1, create the answer file
 ## @madlib-param ans.path_ The answer file path
 
 source("logregr_newapi_baseline.R")
@@ -16,7 +17,7 @@ if(exists('datasets'))#Did we get any command line parameters?
 	ans.path_ <- as.character(ans.path_)
 }else
 {
-	datasets <- c("log_ornstein_wi", 'log_houses_group_wi')
+	datasets <- c("log_ornstein_wi")
 	ans.path_ <- "../logregr_group_test.ans"
 }
 
