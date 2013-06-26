@@ -75,10 +75,10 @@ SELECT \ref madlib.robust_variance_logregr(
     <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
     <em>'independent_varname'</em>, -- independent variables, VARCHAR
     <em>'grouping_cols'</em>, 		-- [OPTIONAL] grouping variables, VARCHAR
-    <em>'max_iter'</em>,			-- [OPTIONAL] Integer identifying the maximum iterations used by the logistic regression solver.  Default is 20.
-    <em>'optimizer'</em>,			-- [OPTIONAL] String identifying the optimizer used in the logistic regression.  See the documentation in the logistic regression for the available options.  Default is irls.
-	<em>'tolerance'</em>,			-- [OPTIONAL] Float identifying the tolerance of the logistic regression optimizer. Default is 0.0001. 
-	<em>'verbose'</em>				-- [OPTIONAL] Boolean specifying if the regression fit should print any warning messages.  Default is false. 
+    <em>max_iter</em>,			-- [OPTIONAL] Integer identifying the maximum iterations used by the logistic regression solver.  Default is 20, Integer
+    <em>'optimizer'</em>,			-- [OPTIONAL] String identifying the optimizer used in the logistic regression.  See the documentation in the logistic regression for the available options.  Default is irls.  VARCHAR
+	<em>tolerance</em>,			-- [OPTIONAL] Float identifying the tolerance of the logistic regression optimizer. Default is 0.0001.  DOUBLE PRECISION
+	<em>print_warnings</em>		-- [OPTIONAL] Boolean specifying if the regression fit should print any warning messages.  Default is false. BOOLEAN
 );
 </pre>
 OR
@@ -88,7 +88,7 @@ SELECT \ref madlib.robust_variance_mlogregr(
     <em>'out_table'</em>,           -- name of output table, VARCHAR
     <em>'dependent_varname'</em>,   -- dependent variable, VARCHAR
     <em>'independent_varname'</em>, -- independent variables, VARCHAR
-    <em>'ref_category'</em>,        -- [OPTIONAL] Integer specifying the reference category. Default is 0.
+    <em>'ref_category'</em>,        -- [OPTIONAL] Integer specifying the reference category. Default is 0. INTEGER
     <em>'grouping_cols'</em>, 		-- [OPTIONAL] grouping variables, VARCHAR
 );
 </pre>
@@ -98,7 +98,7 @@ where <em>x1</em>, <em>x2</em> and <em>x3</em> are all column names.
 
 Output is stored in the <em>out_table</em>:
 <pre>
-[ coef | std_err | stats | p_values |
+[ coef | std_err | (z/t)-stats | p_values |
 +------+---------+-------+----------+
 </pre>
 
@@ -168,7 +168,7 @@ p_values       | {0.0657926909738772,0.382066744586027,0.0258849510756295}
 
 /**
  * @internal
- * @bDoes error checking on the input for the robust variance regressions.  
+ * @bDoes error checking on the input for the robust variance regressions for the mandatory inputs.  
  *     
  */
  
@@ -177,7 +177,6 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_input_checking(
    , out_table                  VARCHAR       -- name of output table
    , dependent_varname          VARCHAR       -- name of dependent variable
    , independent_varname  VARCHAR       -- name of independent variable
-   , group_cols                 VARCHAR       -- names of columns to group by
 )
 RETURNS VOID AS $$
 BEGIN
@@ -199,7 +198,6 @@ BEGIN
 	IF (dependent_varname IS NULL OR dependent_varname = '') THEN
 	  RAISE EXCEPTION 'Invalid dependent variable name given.';
 	END IF;
-	
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 
@@ -471,7 +469,7 @@ BEGIN
   EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
   EXECUTE 'SET client_min_messages TO warning';
   	
-  PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname, input_group_cols);	
+  PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname);	
   independent_varname := input_independent_varname; 
   
   --This code should be added back in should '*' support be implemented
@@ -803,7 +801,7 @@ BEGIN
     E'                                       ,''max_iter'' \n' ||
     E'                                       ,''optimizer'' \n' ||
     E'                                       ,''tolerance'' \n' ||
-    E'                                       ,''verbose'' \n' ||
+    E'                                       ,''print_warnings'' \n' ||
     E'                                       );\n' || 
     E'For more details on function usage:  \n' || 
     E'SELECT {schema_madlib}.robust_variance_logregr(''usage'') \n';
@@ -822,7 +820,7 @@ BEGIN
     E' ''max_iter'',           -- [OPTIONAL] The number of iterations used by the logistic regression solver.  Default is 20. \n' || 
     E' ''optimizer'',           -- [OPTIONAL] Name of the optimizer used in the logistic regression.  Default is irls. \n' || 
     E' ''tolerance'',           -- [OPTIONAL] The tolerance of the logistic regression optimizer.  Default is 0.0001. \n' || 
-    E' ''verbose'',           -- [OPTIONAL] Should the optimizer print warning messages to the screen.  Default is FALSE. \n' || 
+    E' ''print_warnings'',         -- [OPTIONAL] Should the optimizer print warning messages to the screen.  Default is FALSE. \n' || 
 
     E' );\n' || 
     E'\n' || 
@@ -864,7 +862,7 @@ $$ LANGUAGE plpgsql VOLATILE;
  * @param max_iter [OPTIONAL] Integre identifying the maximum iterations used by the logistic regression solver.  Default is 20.
  * @param optimizer [OPTIONAL] String identifying the optimizer used in the logistic regression.  See the documentation in the logistic regression for the available options.  Default is irls.
  * @param tolerance [OPTIONAL] Float identifying the tolerance of the logistic regression optimizer. Default is 0.0001. 
- * @param verbose [OPTIONAL] Boolean specifying if the regression fit should print any warning messages.  Default is false.  
+ * @param print_warnings [OPTIONAL] Boolean specifying if the regression fit should print any warning messages.  Default is false.  
  * @par
  * To include an intercept in the model, set one coordinate in the
  * <tt>independentVariables</tt> array to 1.
@@ -1029,7 +1027,7 @@ CREATE OR REPLACE FUNCTION MADLIB_SCHEMA.robust_variance_logregr(
 	, max_iter            INTEGER			   -- maximum of iterations in the optimizer
 	, optimizer           VARCHAR			   -- the optimizer used
 	, tolerance           DOUBLE PRECISION
-	, verbose             BOOLEAN
+	, print_warnings             BOOLEAN
   )
 RETURNS VOID AS $$
 DECLARE
@@ -1052,12 +1050,12 @@ DECLARE
   robust_log_rst		          MADLIB_SCHEMA.robust_logregr_result;
   old_msg_level         TEXT;
   independent_varname   VARCHAR;
-  verboseString VARCHAR;
+  print_warningsString VARCHAR;
 BEGIN
 	EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
 	EXECUTE 'SET client_min_messages TO warning';
   	
-	PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname, input_group_cols);
+	PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, input_independent_varname);
 
 	independent_varname := input_independent_varname; 
 	
@@ -1078,10 +1076,10 @@ BEGIN
 			z_stats DOUBLE PRECISION[],
 			p_values DOUBLE PRECISION[])';
 		-- Run the regression if the coefficients are not provided 
-		verboseString := 'FALSE';
-		IF(verbose IS TRUE)
+		print_warningsString := 'FALSE';
+		IF(print_warnings IS TRUE)
 		THEN
-			verboseString := 'TRUE';
+			print_warningsString := 'TRUE';
 		END IF;
 		tempTableName := MADLIB_SCHEMA.__unique_string(); 
 		EXECUTE '
@@ -1091,10 +1089,10 @@ BEGIN
 				  || ' '''||dependent_varname ||''' ' || ' , '
 				  || ' '''||independent_varname||''' '||' , '
 				  || 'NULL'||  ' , '
-				  || ' '''||max_iter ||''' '|| ' , '
-				  || ' '''||optimizer||''' '|| ' , '
-				  || ' '''||tolerance||''' '||' , '
-				  || ' '''||verboseString  ||' '''||
+				  ||max_iter || ' , '
+				  || ' '''||optimizer|| ''' '|| ' , '
+				  || tolerance||' , '
+				  || print_warningsString||
 				   ')';
 		EXECUTE 'SELECT coef from ' || tempTableName INTO regr_coef;
 
@@ -1180,7 +1178,7 @@ BEGIN
                                         max_iter,
                                         optimizer,
                                         tolerance,
-                                        verbose);
+                                        print_warnings);
     
     -- Note: We need to alter the names on the output tables for logregr_train
     -- so that they don't clash with the robust_variance_logregr output tables
@@ -1444,7 +1442,7 @@ BEGIN
     E' The output table (''output_table'' above) has the following columns\n' || 	
     E' ''coef''    DOUBLE PRECISION[],  -- Coefficients of regression \n' || 
     E' ''std_err''  DOUBLE PRECISION[], -- Huber-White standard errors\n' || 
-    E' ''stats''    DOUBLE PRECISION[], -- Z-stats of the standard errors\n' || 
+    E' ''z-stats''    DOUBLE PRECISION[], -- Z-stats of the standard errors\n' || 
     E' ''p_values'' DOUBLE PRECISION[], -- p-values of the standard errors\n' || 
     E'\n' || 
     E'';
@@ -1496,7 +1494,7 @@ BEGIN
     EXECUTE 'SELECT setting FROM pg_settings WHERE name=''client_min_messages''' INTO old_msg_level;
     EXECUTE 'SET client_min_messages TO warning';
   	
-    PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, independent_varname, input_group_cols);	
+    PERFORM MADLIB_SCHEMA.robust_input_checking(source_table, out_table, dependent_varname, independent_varname);	
 	    -- Run the regression if the coefficients are not provided 
         -- Will do further parameter checking in the regression function
         EXECUTE
